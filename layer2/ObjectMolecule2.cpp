@@ -3506,11 +3506,11 @@ static PyObject *ObjectMoleculeBondAsPyList(ObjectMolecule * I)
      */
 
     // supported versions
-    auto version = (!pse_export_version || pse_export_version >= 1810) ?
+    int version = (!pse_export_version || pse_export_version >= 1810) ?
       181 : (pse_export_version >= 1770) ? 177 : 176;
 
-    auto blob = Copy_To_BondType_Version(version, I->Bond, I->NBond);
-    auto blobsize = VLAGetByteSize(blob);
+    void* blob = Copy_To_BondType_Version(version, I->Bond, I->NBond);
+    unsigned int blobsize = VLAGetByteSize(blob);
 
     result = PyList_New(2);
     PyList_SetItem(result, 0, PyInt_FromLong(version));
@@ -3568,7 +3568,7 @@ static int ObjectMoleculeBondFromPyList(ObjectMolecule * I, PyObject * list)
     ok = PConvPyIntToInt(verobj, &bondInfo_version);
 
     CPythonVal *strobj = CPythonVal_PyList_GetItem(G, list, 1);
-    auto strval = PyBytes_AsSomeString(strobj);
+    SomeString strval = PyBytes_AsSomeString(strobj);
 
     if(ok)
       ok = ((I->Bond = VLAlloc(BondType, I->NBond)) != NULL);
@@ -3649,7 +3649,7 @@ static PyObject *ObjectMoleculeAtomAsPyList(ObjectMolecule * I)
       if (ai->name) lexIDs.insert(ai->name);
       ++ai;
     }
-    for (auto it = lexIDs.begin(); it != lexIDs.end(); ++it){ // need to calculate totalstlen so we can allocate
+    for (std::set<int>::const_iterator it = lexIDs.begin(); it != lexIDs.end(); ++it){ // need to calculate totalstlen so we can allocate
       const char *lexstr = LexStr(G, *it);
       int lexlen = strlen(lexstr);
       totalstlen += lexlen + 1;
@@ -3661,14 +3661,14 @@ static PyObject *ObjectMoleculeAtomAsPyList(ObjectMolecule * I)
     char *strpl = (char*)((char*)strinfo + (1 + lexIDs.size()) * sizeof(int));
     /* write map of lex ids and strings into binary data string as an array of ids
        and null-terminated strings */
-    for (auto it = lexIDs.begin(); it != lexIDs.end(); ++it){
+    for (std::set<int>::const_iterator it = lexIDs.begin(); it != lexIDs.end(); ++it){
       *(strval++) = *it;
       const char *strptr = LexStr(G, *it);
       strcpy(strpl, strptr);
       strpl += strlen(strptr) + 1;
     }
 
-    auto version = AtomInfoVERSION;
+    int version = AtomInfoVERSION;
     if (pse_export_version && pse_export_version < 1810) {
       if (pse_export_version < 1770) {
         version = 176;
@@ -3678,8 +3678,8 @@ static PyObject *ObjectMoleculeAtomAsPyList(ObjectMolecule * I)
     }
 
     AtomInfoTypeConverter converter(G, I->NAtom);
-    auto blob = converter.allocCopy(version, I->AtomInfo);
-    auto blobsize = VLAGetByteSize(blob);
+    void* blob = converter.allocCopy(version, I->AtomInfo);
+    unsigned int blobsize = VLAGetByteSize(blob);
 
     result = PyList_New(3);
     PyList_SetItem(result, 0, PyInt_FromLong(version));
@@ -3735,12 +3735,12 @@ static int ObjectMoleculeAtomFromPyList(ObjectMolecule * I, PyObject * list)
     ok = PConvPyIntToInt(verobj, &atomInfo_version);
 
     CPythonVal *strlookupobj = CPythonVal_PyList_GetItem(G, list, 2);
-    auto strval_1 = PyBytes_AsSomeString(strlookupobj);
+    SomeString strval_1 = PyBytes_AsSomeString(strlookupobj);
     int *strval = (int*)strval_1.data();
 
     AtomInfoTypeConverter converter(G, I->NAtom);
 
-    auto& oldIDtoLexID = converter.lexidxmap;
+    std::map<int, int>& oldIDtoLexID = converter.lexidxmap;
     int nstrings = *(strval++);
     char *strpl = (char*)(strval + nstrings);
     int strcnt = nstrings;
@@ -3756,7 +3756,7 @@ static int ObjectMoleculeAtomFromPyList(ObjectMolecule * I, PyObject * list)
     }
 
     CPythonVal *strobj = CPythonVal_PyList_GetItem(G, list, 1);
-    auto strval_2 = PyBytes_AsSomeString(strobj);
+    SomeString strval_2 = PyBytes_AsSomeString(strobj);
 
     VLACheck(I->AtomInfo, AtomInfoType, I->NAtom + 1);
     converter.copy(I->AtomInfo, strval_2.data(), atomInfo_version);
@@ -3772,7 +3772,7 @@ static int ObjectMoleculeAtomFromPyList(ObjectMolecule * I, PyObject * list)
       }
     }
     // need to decrement since we call LexIdx() above on each
-    for (auto it = oldIDtoLexID.begin(); it != oldIDtoLexID.end(); ++it){
+    for (std::map<int, int>::const_iterator it = oldIDtoLexID.begin(); it != oldIDtoLexID.end(); ++it){
       LexDec(G, it->second);
     }
     CPythonVal_Free(verobj);
@@ -3959,7 +3959,7 @@ bool is_distance_bonded(
     bool connect_bonded,
     bool unbond_cations)
 {
-  auto dst = (float) diff3f(v1, v2);
+  float dst = (float) diff3f(v1, v2);
   dst -= (ai1->vdw + ai2->vdw) / 2;
 
   cutoff += connect_cutoff_adjustment(ai1, ai2);

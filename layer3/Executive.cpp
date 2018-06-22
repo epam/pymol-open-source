@@ -3468,7 +3468,7 @@ int ExecutiveSetName(PyMOLGlobals * G, const char *old_name, const char *new_nam
   SpecRec *rec = NULL;
   CExecutive *I = G->Executive;
   int found = false;
-  auto ignore_case = SettingGet<bool>(G, cSetting_ignore_case);
+  bool ignore_case = SettingGet<bool>(G, cSetting_ignore_case);
 
   ObjectNameType name;
   UtilNCopy(name, new_name, sizeof(ObjectNameType));
@@ -4426,7 +4426,7 @@ PyObject *ExecutiveGetVisAsPyDict(PyMOLGlobals * G)
         PyList_SetItem(list, 2, PConvAutoNone(Py_None));
         PyList_SetItem(list, 3, PConvAutoNone(Py_None));
       } else {
-        auto vla = getRepArrayFromBitmask(rec->obj->visRep);
+        int* vla = getRepArrayFromBitmask(rec->obj->visRep);
         PyList_SetItem(list, 2, PConvIntVLAToPyList(vla));
         VLAFreeP(vla);
 
@@ -4771,7 +4771,7 @@ int ExecutiveSpectrum(PyMOLGlobals * G, const char *s1, const char *expr, float 
           }
 
           // look up expression definition
-          auto ap = PyMOL_GetAtomPropertyInfo(G->PyMOL, expr);
+          const AtomPropertyInfo* ap = PyMOL_GetAtomPropertyInfo(G->PyMOL, expr);
           if (!ap) {
             PRINTFB(G, FB_Executive, FB_Errors)
               " Spectrum-Error: Unknown expr '%s'\n", expr ENDFB(G);
@@ -4786,8 +4786,8 @@ int ExecutiveSpectrum(PyMOLGlobals * G, const char *s1, const char *expr, float 
           };
 
           for (a = 0, iter.reset(); iter.next(); ++a) {
-            const auto ai = iter.getAtomInfo();
-            const auto raw_ptr = reinterpret_cast<const char*>(ai) + ap->offset;
+            const AtomInfoType* ai = iter.getAtomInfo();
+            const char* raw_ptr = reinterpret_cast<const char*>(ai) + ap->offset;
 
             // numeric values
             switch (ap->Ptype) {
@@ -4828,7 +4828,7 @@ int ExecutiveSpectrum(PyMOLGlobals * G, const char *s1, const char *expr, float 
             }
 
             // lookup or insert value
-            auto& e = enumerated_values[value_e];
+            unsigned int& e = enumerated_values[value_e];
             if (e == 0)
               e = enumerated_values.size();
             value[a] = e - 1.f;
@@ -11034,9 +11034,9 @@ int ExecutiveRMS(PyMOLGlobals * G, const char *s1, const char *s2, int mode, flo
 
   // get coordinates
   {
-    auto sele = sele1;
-    auto state = state1;
-    auto op = &op1;
+    int sele = sele1;
+    int state = state1;
+    ObjectMoleculeOpRec* op = &op1;
 
     // for both selections
     do {

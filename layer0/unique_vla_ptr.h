@@ -31,6 +31,7 @@ public:
   unique_vla_ptr() : m_vla(NULL) {}
   unique_vla_ptr(T * vla) : m_vla(vla) {}
 
+#ifndef _PYMOL_NO_CXX11
   // move constructor
   unique_vla_ptr(unique_vla_ptr<T> && other) : m_vla(NULL) {
     swap(other);
@@ -41,6 +42,7 @@ public:
     swap(other);
     return *this;
   }
+#endif // _PYMOL_NO_CXX11
 
   // data access
   const T * get() const { return m_vla; }

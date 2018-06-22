@@ -123,6 +123,6 @@ typedef float aliased_float;
 #include "ov_types.h"
 
 // alternative to std::swap if references are not allowed (e.g. bit fields)
-#define SWAP_NOREF(a, b) {auto _t=(a);(a)=(b);(b)=_t;}
+#define SWAP_NOREF(type, a, b) {type _t=(a);(a)=(b);(b)=_t;}
 
 #endif

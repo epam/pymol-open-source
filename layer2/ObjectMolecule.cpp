@@ -110,8 +110,8 @@ void ObjectMoleculeInferHBondFromChem(ObjectMolecule * I);
  */
 static
 int BondTypeInOrder(PyMOLGlobals * G, const BondType * bonds, int i1, int i2) {
-  auto lhs = bonds[i1].index;
-  auto rhs = bonds[i2].index;
+  const int* lhs = bonds[i1].index;
+  const int* rhs = bonds[i2].index;
   return lhs[0] < rhs[0] || (lhs[0] == rhs[0] && lhs[1] < rhs[1]);
 }
 
@@ -123,7 +123,7 @@ static
 void ObjectMoleculeRemoveDuplicateBonds(PyMOLGlobals * G, ObjectMolecule * I) {
   // make sure index pairs are in order
   for (int i = 0; i < I->NBond; ++i) {
-    auto& bond = I->Bond[i];
+    BondType& bond = I->Bond[i];
     if (bond.index[0] > bond.index[1])
       std::swap(bond.index[0], bond.index[1]);
   }
@@ -136,11 +136,11 @@ void ObjectMoleculeRemoveDuplicateBonds(PyMOLGlobals * G, ObjectMolecule * I) {
   // purge duplicated bonds and mark for removal
   for (int i = 0, j = -1; i < I->NBond; ++i) {
     int b = sorted[i];
-    auto ptr = I->Bond + sorted[i];
+    BondType* ptr = I->Bond + sorted[i];
 
     bool equal = false;
     if (j != -1) {
-      const auto& other = I->Bond[j];
+      const BondType& other = I->Bond[j];
       if (ptr->index[0] == other.index[0] &&
           ptr->index[1] == other.index[1])
         equal = true;
@@ -161,7 +161,7 @@ void ObjectMoleculeRemoveDuplicateBonds(PyMOLGlobals * G, ObjectMolecule * I) {
   // remove purged bonds from array
   int j = 0;
   for (int i = 0; i < I->NBond; ++i) {
-    auto& bond = I->Bond[i];
+    BondType& bond = I->Bond[i];
     if (bond.index[0] != bond.index[1]) {
       if (j != i)
         std::swap(I->Bond[j], bond);
@@ -196,7 +196,7 @@ bool ObjectMoleculeSetNotDiscrete(PyMOLGlobals * G, ObjectMolecule * I) {
   // merge duplicate atoms
   for (int i = 0, j = -1; i < I->NAtom; ++i) {
     int atm = aindex[i];
-    auto ai = I->AtomInfo + atm;
+    AtomInfoType* ai = I->AtomInfo + atm;
 
     if (j == -1 || !AtomInfoMatch(G, ai, I->AtomInfo + j, false, false)) {
       j = atm;
@@ -210,7 +210,7 @@ bool ObjectMoleculeSetNotDiscrete(PyMOLGlobals * G, ObjectMolecule * I) {
 
   // point coordsets to merged atoms
   for (int state = 0; state < I->NCSet; ++state) {
-    auto cs = I->CSet[state];
+    CoordSet* cs = I->CSet[state];
     if (!cs)
       continue;
 
@@ -222,7 +222,7 @@ bool ObjectMoleculeSetNotDiscrete(PyMOLGlobals * G, ObjectMolecule * I) {
 
   // point bonds to merged atoms
   for (int i = 0; i < I->NBond; ++i) {
-    auto& bond = I->Bond[i];
+    BondType& bond = I->Bond[i];
     bond.index[0] = outdex[bond.index[0]];
     bond.index[1] = outdex[bond.index[1]];
   }
@@ -878,7 +878,7 @@ static int ObjectMoleculeFixSeleHydrogens(ObjectMolecule * I, int sele, int stat
           if(SelectorIsMember(I->Obj.G, ai0->selEntry, sele)) {
             for(StateIterator iter(I->Obj.G, I->Obj.Setting, state, I->NCSet);
                 iter.next();) {
-              auto cs = I->CSet[iter.state];
+              CoordSet* cs = I->CSet[iter.state];
               if (!cs)
                 continue;
 
@@ -2639,7 +2639,7 @@ int ObjectMoleculeGetPhiPsi(ObjectMolecule * I, int ca, float *phi, float *psi, 
   float v_c[3];
   float v_cm[3];
   float v_np[3];
-  auto G = I->Obj.G;
+  PyMOLGlobals* G = I->Obj.G;
 
   ai = I->AtomInfo;
 
@@ -8138,7 +8138,7 @@ static CoordSet *ObjectMoleculeMOLStr2CoordSet(PyMOLGlobals * G, const char *buf
     }
   }
   while(*p) {                   /* read M  CHG records */
-    auto p_line = p;
+    const char* p_line = p;
     p = ncopy(cc, p, 6);
     if(cc[5] == ' ')
       cc[5] = 0;
@@ -8229,8 +8229,8 @@ std::vector<signed char> get_bond_order_sums(ObjectMolecule * obj) {
 
   // bond order sums as if all aromatic bonds were single bonds
   for (int b = 0; b < obj->NBond; ++b) {
-    auto bond = obj->Bond + b;
-    auto order = bond->order;
+    BondType* bond = obj->Bond + b;
+    signed char order = bond->order;
     orders[b] = order;
     if (order > 3)
       order = 1;
@@ -8261,8 +8261,8 @@ std::vector<signed char> get_bond_order_sums(ObjectMolecule * obj) {
   for (int secondpass = 0; secondpass < 2; ++secondpass) {
     for (int b = 0; b < obj->NBond; ++b) {
       if (orders[b] == 4) {
-        auto atm1 = obj->Bond[b].index[0];
-        auto atm2 = obj->Bond[b].index[1];
+        int atm1 = obj->Bond[b].index[0];
+        int atm2 = obj->Bond[b].index[1];
         if (secondpass ?
             (freevalences[atm1] >= 1 && freevalences[atm2] >= 1 ) :
             (freevalences[atm1] == 1 && freevalences[atm2] == 1)) {
@@ -8289,7 +8289,7 @@ static void ObjectMoleculeMOL2SetFormalCharges(PyMOLGlobals *G, ObjectMolecule *
   // check if structure has explicit hydrogens
   bool has_hydrogens = false;
   for (int at = 0; at < obj->NAtom; ++at) {
-    auto ai = obj->AtomInfo + at;
+    AtomInfoType* ai = obj->AtomInfo + at;
     if (ai->isHydrogen()) {
       has_hydrogens = true;
       break;
@@ -8304,14 +8304,14 @@ static void ObjectMoleculeMOL2SetFormalCharges(PyMOLGlobals *G, ObjectMolecule *
   // Unfortunately, aromatic bonds (type 4) can't be used to determine
   // formal charges. The following uses a heuristic to guess bond orders
   // for aromatic bonds.
-  auto valences = get_bond_order_sums(obj);
+  std::vector<signed char> valences = get_bond_order_sums(obj);
 
   // (period currently incompatible with G->lex_const)
   lexidx_t lex_N_4   = LexBorrow(G, "N.4");
 
   for (int at = 0; at < obj->NAtom; ++at) {
     int fcharge = 0;
-    auto ai = obj->AtomInfo + at;
+    AtomInfoType* ai = obj->AtomInfo + at;
 
     if (ai->protons == cAN_N) {
       if (ai->textType == lex_N_4) {
@@ -8912,7 +8912,7 @@ static CoordSet *ObjectMoleculeMOL2Str2CoordSet(PyMOLGlobals * G,
 
   if (has_non_hetatm) {
     // contains "residues" (assume polymer) so ignore hetatm for surfacing
-    for (auto ai = atInfo, ai_end = atInfo + nAtom; ai != ai_end; ++ai) {
+    for (AtomInfoType *ai = atInfo, *ai_end = atInfo + nAtom; ai != ai_end; ++ai) {
       if (ai->hetatm) {
         ai->flags |= cAtomFlag_ignore;
       }

@@ -880,7 +880,7 @@ PyObject *AtomInfoAsPyList(PyMOLGlobals * G, const AtomInfoType * I)
   PyList_SetItem(result, 39, PyInt_FromLong(0 /* atomic_color */));
   PyList_SetItem(result, 40, PyInt_FromLong((int) I->has_setting));
 
-  const float anisou_stack[] {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+  const float anisou_stack[] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   const float * anisou = I->anisou ? I->anisou : anisou_stack;
   for (int i = 0; i < 6; ++i) {
     PyList_SetItem(result, 41 + i, PyFloat_FromDouble(anisou[i]));
@@ -1137,7 +1137,7 @@ void AtomInfoCombine(PyMOLGlobals * G, AtomInfoType * dst, AtomInfoType * src, i
     dst->rank = src->rank;
   dst->temp1 = src->temp1;
 
-  SWAP_NOREF(dst->has_setting, src->has_setting);
+  SWAP_NOREF(bool, dst->has_setting, src->has_setting);
   std::swap(dst->unique_id, src->unique_id);
 #ifdef _PYMOL_IP_EXTRAS
   std::swap(dst->prop_id, src->prop_id);
@@ -2363,7 +2363,7 @@ static int get_protons(const char * symbol)
   }
 
   // find in lookup dictionary
-  auto it = lookup.find(symbol);
+  std::map<const char *, int, cstrless_t>::const_iterator it = lookup.find(symbol);
 
   if (it != lookup.end()) {
     return it->second;
@@ -2878,7 +2878,7 @@ void AtomInfoGetAlignedPDBAtomName(PyMOLGlobals * G,
   // default is "literal=0" and "reformat=0" (no reformatting)
 
   const char * ai_name = LexStr(G, ai->name);
-  auto ai_name_len = strlen(ai_name);
+  size_t ai_name_len = strlen(ai_name);
   bool start_column_1 = false;
 
   UtilNCopy(name, ai_name, 5);

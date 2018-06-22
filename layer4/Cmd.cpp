@@ -730,7 +730,7 @@ static PyObject * CmdGetCCP4Str(PyObject * self, PyObject * args)
   } else {
     API_SETUP_PYMOL_GLOBALS;
     if (G && APIEnterNotModal(G)) {
-      auto v = ObjectMapGetCCP4Str(G, name, state, quiet);
+      std::vector<char> v = ObjectMapGetCCP4Str(G, name, state, quiet);
       PyObject * result = v.empty() ? NULL :
         PyBytes_FromStringAndSize(&v.front(), v.size());
 
@@ -2667,10 +2667,10 @@ static PyObject *CmdGetObjectSettings(PyObject * self, PyObject * args)
   if(!obj) {
     ErrMessage(G, "GetObjectSettings", "named object not found.");
   } else if (obj->fGetSettingHandle) {
-    auto handle = obj->fGetSettingHandle(obj, -1);
+    CSetting ** handle = obj->fGetSettingHandle(obj, -1);
 
     if (state != -1) {
-      auto handle_state = obj->fGetSettingHandle(obj, state);
+      CSetting ** handle_state = obj->fGetSettingHandle(obj, state);
 
       // only accept handle if different from object-level settings
       handle = (handle_state == handle) ? NULL : handle_state;
@@ -2700,7 +2700,7 @@ static PyObject *CmdGetUnusedName(PyObject * self, PyObject * args)
     API_HANDLE_ERROR;
   }
   if (ok && (ok = APIEnterNotModal(G))) {
-    auto result = PConvToPyObject(ExecutiveGetUnusedName(G, prefix, alwaysnumber));
+    PyObject * result = PConvToPyObject(ExecutiveGetUnusedName(G, prefix, alwaysnumber));
     APIExit(G);
     return result;
   } else {

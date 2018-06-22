@@ -118,8 +118,8 @@ static int sulfurCountOxygenNeighbors(ObjectMolecule * obj, int atm) {
  * Pre-condition: ObjectMoleculeVerifyChemistry
  */
 const char * getMOL2Type(ObjectMolecule * obj, int atm) {
-  auto G = obj->Obj.G;
-  auto ai = obj->AtomInfo + atm;
+  PyMOLGlobals* G = obj->Obj.G;
+  AtomInfoType* ai = obj->AtomInfo + atm;
 
   switch (ai->protons) {
     case cAN_C:

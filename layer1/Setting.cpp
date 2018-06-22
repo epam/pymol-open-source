@@ -215,7 +215,7 @@ inline bool type_upcast(int &type) {
 bool SettingUniqueGetTypedValuePtr(PyMOLGlobals * G, int unique_id, int setting_id,
                                       int setting_type, void * value)
 {
-  auto entry = SettingFindSettingUniqueEntry(G, unique_id, setting_id);
+  SettingUniqueEntry* entry = SettingFindSettingUniqueEntry(G, unique_id, setting_id);
   if (!entry)
     return false;
 
@@ -1513,7 +1513,7 @@ void SettingRestoreDefault(CSetting * I, int index, const CSetting * src)
   }
 
   // 2) from SettingInfo
-  auto &rec = SettingInfo[index];
+  const SettingInfoEntry &rec = SettingInfo[index];
 
   switch (rec.type) {
     case cSetting_blank:
@@ -1849,7 +1849,7 @@ const char * SettingGetName(int index)
 void SettingGenerateSideEffects(PyMOLGlobals * G, int index, const char *sele, int state, int quiet)
 {
   const char *inv_sele = (sele && sele[0]) ? sele : cKeywordAll;
-  auto &rec = SettingInfo[index];
+  const SettingInfoEntry &rec = SettingInfo[index];
 
   if (rec.level == cSettingLevel_unused) {
     const char * name = rec.name;
@@ -3010,7 +3010,7 @@ StateIterator::StateIterator(PyMOLGlobals * G, CSetting * set, int state_, int n
  */
 bool CPyMOLInitSetting(OVLexicon * Lex, OVOneToOne * Setting) {
   for(int index = 0; index < cSetting_INIT; ++index) {
-    auto &rec = SettingInfo[index];
+    const SettingInfoEntry &rec = SettingInfo[index];
 
     if (rec.level == cSettingLevel_unused)
       continue;
@@ -3035,7 +3035,7 @@ PyObject * SettingGetSettingIndices() {
   PyObject * dict = PyDict_New();
 
   for(int index = 0; index < cSetting_INIT; ++index) {
-    auto &rec = SettingInfo[index];
+    const SettingInfoEntry &rec = SettingInfo[index];
 
     if (rec.level == cSettingLevel_unused)
       continue;

@@ -2443,7 +2443,7 @@ static int ObjectMapCCP4StrToMap(ObjectMap * I, char *CCP4Str, int bytes, int st
 
     if(skew) {
       double matrix[16];
-      auto i_float = (const float *) i;
+      const float* i_float = (const float *) i;
 
       // SKWMAT          Skew matrix S (in order S11, S12, S13, S21 etc)
       copy33f44d(i_float, matrix);
@@ -2721,8 +2721,8 @@ std::vector<char> ObjectMapStateToCCP4Str(const ObjectMapState * ms, int quiet)
   if (!ms || !ms->Active)
     return buffer; // empty
 
-  auto G = ms->State.G;
-  auto field = ms->Field->data;
+  PyMOLGlobals* G = ms->State.G;
+  CField* field = ms->Field->data;
 
   if (field->type != cFieldFloat ||
       field->base_size != 4) {
@@ -2732,9 +2732,9 @@ std::vector<char> ObjectMapStateToCCP4Str(const ObjectMapState * ms, int quiet)
   }
 
   buffer.resize(1024 + field->size, 0);
-  auto buffer_s = reinterpret_cast<char*>(&buffer.front());
-  auto buffer_i = reinterpret_cast<int32_t*>(&buffer.front());
-  auto buffer_f = reinterpret_cast<float*>(&buffer.front());
+  char* buffer_s = reinterpret_cast<char*>(&buffer.front());
+  int32_t* buffer_i = reinterpret_cast<int32_t*>(&buffer.front());
+  float* buffer_f = reinterpret_cast<float*>(&buffer.front());
 
   buffer_i[0] = ms->FDim[2]; // NC / NX
   buffer_i[1] = ms->FDim[1]; // NR / NY
@@ -2758,7 +2758,7 @@ std::vector<char> ObjectMapStateToCCP4Str(const ObjectMapState * ms, int quiet)
 
   // Cell
   if (ms->Symmetry && ms->Symmetry->Crystal) {
-    auto crystal = ms->Symmetry->Crystal;
+    CCrystal* crystal = ms->Symmetry->Crystal;
     buffer_f[10] = crystal->Dim[0];     // X length / CELL A
     buffer_f[11] = crystal->Dim[1];     // Y length
     buffer_f[12] = crystal->Dim[2];     // Z length
@@ -2815,7 +2815,7 @@ std::vector<char> ObjectMapStateToCCP4Str(const ObjectMapState * ms, int quiet)
 
   // origin (stored with skew transformation)
   if (ms->Origin && lengthsq3f(ms->Origin) > R_SMALL4) {
-    auto skwtrn = buffer_f + 34;
+    float* skwtrn = buffer_f + 34;
     add3f(ms->Origin, skwtrn, skwtrn);          // add to SKWTRN
 
     if (!buffer_i[24]) {

@@ -6105,17 +6105,17 @@ bool call_raw_image_callback(PyMOLGlobals * G) {
 
 #ifndef _PYMOL_NOPY
   int blocked = PAutoBlock(G);
-  auto raw_image_callback =
+  PyObject* raw_image_callback =
     PyObject_GetAttrString(G->P_inst->cmd, "raw_image_callback");
 
   if (raw_image_callback != Py_None) {
 #ifdef _PYMOL_NUMPY
-    auto& image = G->Scene->Image;
+    ImageType*& image = G->Scene->Image;
 
     // RGBA image as uint8 numpy array
     import_array1(0);
     npy_intp dims[3] = {image->width, image->height, 4};
-    auto py = PyArray_SimpleNew(3, dims, NPY_UINT8);
+    PyObject* py = PyArray_SimpleNew(3, dims, NPY_UINT8);
     memcpy(PyArray_DATA((PyArrayObject *)py), image->data, dims[0] * dims[1] * 4);
 
     PYOBJECT_CALLFUNCTION(raw_image_callback, "O", py);
@@ -7992,7 +7992,7 @@ void SceneProgramLighting(PyMOLGlobals * G)
   spec_value = SceneGetSpecularValue(G, spec_value, 8);
 
   // for programmable color quantification
-  auto pick_shading = SettingGet<bool>(G, cSetting_pick_shading);
+  bool pick_shading = SettingGet<bool>(G, cSetting_pick_shading);
   if (pick_shading) {
     n_light = 1;
     direct = 0.f;
@@ -8240,7 +8240,7 @@ void SceneRenderAllObject(PyMOLGlobals * G, CScene *I, SceneUnitContext * contex
 	info->state = ObjectGetCurrentState(rec->obj, false);
 	rec->obj->fRender(rec->obj, info);
       } else if(grid->slot) {
-        auto obj = rec->obj;
+        CObject* obj = rec->obj;
         if (grid->mode == 2) {
           if((info->state = state + grid->slot - 1) >= 0)
             obj->fRender(obj, info);
@@ -8353,7 +8353,7 @@ void sharp3d_end_stereo(void);
 
 int GetPowerOfTwoLargeEnough(float val){
   int ret, incr = 0;
-  while ((ret = pow(2, incr++)) < val);
+  while ((ret = pow(2.0, incr++)) < val);
   return ret;
 }
 

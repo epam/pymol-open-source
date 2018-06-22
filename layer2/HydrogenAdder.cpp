@@ -121,7 +121,7 @@ bool get_planer_normal_cs(
 int ObjectMoleculeSetMissingNeighborCoords(
     ObjectMolecule* I, CoordSet* cs, unsigned atm, bool h_fix)
 {
-  auto G = I->Obj.G;
+  PyMOLGlobals * G = I->Obj.G;
   int n_present = 0;
   float cbuf[4 * 3];
   int present_atm = -1;
@@ -265,12 +265,12 @@ int ObjectMoleculeSetMissingNeighborCoords(
  */
 int ObjectMoleculeAddSeleHydrogensRefactored(ObjectMolecule* I, int sele, int state)
 {
-  auto G = I->Obj.G;
-  auto const n_atom_old = I->NAtom;
+  PyMOLGlobals * G = I->Obj.G;
+  int const n_atom_old = I->NAtom;
 
   bool seleFlag = false;
   for (unsigned atm = 0; atm < n_atom_old; atm++) {
-    const auto ai = I->AtomInfo + atm;
+    const AtomInfoType* ai = I->AtomInfo + atm;
     if (SelectorIsMember(G, ai->selEntry, sele)) {
       seleFlag = true;
       break;
@@ -290,7 +290,7 @@ int ObjectMoleculeAddSeleHydrogensRefactored(ObjectMolecule* I, int sele, int st
 
   // add hydrogens (without coordinates)
   for (unsigned atm = 0; atm < n_atom_old; ++atm) {
-    const auto ai = I->AtomInfo + atm;
+    const AtomInfoType* ai = I->AtomInfo + atm;
 
     if (ai->isMetal())
       continue;
@@ -309,11 +309,11 @@ int ObjectMoleculeAddSeleHydrogensRefactored(ObjectMolecule* I, int sele, int st
 
     for (int i = 0; i < nimplicit; ++i) {
       // bond
-      auto bond = I->Bond + I->NBond++;
+      BondType* bond = I->Bond + I->NBond++;
       BondTypeInit2(bond, atm, I->NAtom, 1);
 
       // atom
-      auto atom = I->AtomInfo + I->NAtom++;
+      AtomInfoType* atom = I->AtomInfo + I->NAtom++;
       atom->protons = cAN_H;
       atom->geom = cAtomInfoSingle;
       atom->valence = 1;
@@ -344,11 +344,11 @@ int ObjectMoleculeAddSeleHydrogensRefactored(ObjectMolecule* I, int sele, int st
       continue;
 
     for (unsigned idx = 0; idx < cs->NIndex; ++idx) {
-      auto atm = cs->IdxToAtm[idx];
+      int atm = cs->IdxToAtm[idx];
       if (atm >= n_atom_old)
         continue;
 
-      const auto ai = I->AtomInfo + atm;
+      const AtomInfoType* ai = I->AtomInfo + atm;
       if (!SelectorIsMember(G, ai->selEntry, sele))
         continue;
 

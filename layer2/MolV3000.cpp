@@ -40,10 +40,10 @@ bool MOLV3000ReadLine(const char * &p, std::string &out) {
 
     // find beginning of next line
     p += 7;
-    auto next = ParseNextLine(p);
+    const char* next = ParseNextLine(p);
 
     // find end of line
-    auto last = next;
+    const char* last = next;
     if (last > p && last[-1] == '\n') --last;
     if (last > p && last[-1] == '\r') --last;
 
@@ -72,8 +72,8 @@ bool MOLV3000ReadKeyValue(const char *& p,
   // skip whitespace
   while (*p && (*p == ' ' || *p == '\t')) ++p;
 
-  auto begin = p;
-  auto termchars = " \t";
+  const char* begin = p;
+  const char* termchars = " \t";
 
   // parse key
   for (;; ++p) {
@@ -130,10 +130,10 @@ const char * MOLV3000Parse(PyMOLGlobals * G,
   std::string key, value;
 
   while (MOLV3000ReadLine(buffer, line)) {
-    auto p = line.c_str();
+    const char* p = line.c_str();
 
     // save position after "V30"
-    auto p_data = p;
+    const char* p_data = p;
 
     p = ParseWordCopy(cc, p, sizeof(cc));
     bool is_end = (strcasecmp(cc, "END") == 0);
@@ -152,7 +152,7 @@ const char * MOLV3000Parse(PyMOLGlobals * G,
       int index, p_offset;
       char type[4];
       float xyz[3];
-      auto n = sscanf(p_data, "%d %3s %f %f %f%n %*d%n", &index, type,
+      int n = sscanf(p_data, "%d %3s %f %f %f%n %*d%n", &index, type,
             xyz, xyz + 1, xyz + 2, &p_offset, &p_offset);
 
       if (n != 5) {
@@ -195,7 +195,7 @@ const char * MOLV3000Parse(PyMOLGlobals * G,
       }
 
       int index, type, atom1, atom2, p_offset;
-      auto n = sscanf(p_data, "%d %d %d %d%n", &index, &type,
+      int n = sscanf(p_data, "%d %d %d %d%n", &index, &type,
           &atom1, &atom2, &p_offset);
 
       if (n != 4) {

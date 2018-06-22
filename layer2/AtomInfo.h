@@ -17,6 +17,8 @@ Z* -------------------------------------------------------------------
 #ifndef _H_AtomInfo
 #define _H_AtomInfo
 
+#include <stdint.h>
+
 #include"Rep.h"
 #include"Setting.h"
 #include"Version.h"

@@ -41,7 +41,7 @@ union SettingInfoItem {
   }
 };
 
-const static struct {
+const static struct SettingInfoEntry {
   const char * name;
   unsigned char type;
   unsigned char level;

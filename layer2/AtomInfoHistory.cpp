@@ -14,6 +14,9 @@
 template <typename A>   inline float get_anisou_factor() { return 1.f; }
 template <>             inline float get_anisou_factor<AtomInfoType_1_8_1>() { return 10000.f; }
 
+template <typename A> struct anisou_traits { typedef float type; };
+template <>           struct anisou_traits<AtomInfoType_1_8_1> { typedef short type; };
+
 template <typename D, typename S>
 void AtomInfoTypeConverter::copy1(D *dest, const S *src) {
   COPY_ATTR(resv);
@@ -62,8 +65,8 @@ void AtomInfoTypeConverter::copy1(D *dest, const S *src) {
   COPY_ATTR_ARR_2(ssType);
 
   if (src->has_anisou()){
-    auto d_U = dest->get_anisou();
-    auto s_U = src->get_anisou();
+    anisou_traits<D>::type *d_U = dest->get_anisou();
+    const anisou_traits<S>::type *s_U = src->get_anisou();
     if (d_U) {
       for (int i = 0; i < 6; ++i) {
         d_U[i] = s_U[i] * (get_anisou_factor<D>() / get_anisou_factor<S>());

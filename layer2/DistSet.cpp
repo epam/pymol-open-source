@@ -127,7 +127,7 @@ int DistSetMoveWithObject(DistSet * I, struct ObjectMolecule *obj)
     varDst += 3 * memb->offset;
 
     for(i = 0; i < N; i++) {
-      auto eoo = ExecutiveUniqueIDAtomDictGet(G, memb->id[i]);
+      const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, memb->id[i]);
 
       if(!eoo || (obj && obj != eoo->obj))
         continue;

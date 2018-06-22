@@ -1527,7 +1527,7 @@ PyMOLreturn_status PyMOL_CmdRampNew(CPyMOL * I, const char *name, const char *ma
 /*
  * Supported file formats and they internal codes
  */
-struct {
+struct ContentTypeTableType {
   const char * name;
   int code_buffer;
   int code_filename;
@@ -1626,7 +1626,7 @@ static PyMOLreturn_status Loader(CPyMOL * I, const char *content, const char *co
     {
       int pymol_content_type = cLoadTypeUnknown;
 
-      for (auto it = ContentTypeTable; it->name; ++it) {
+      for (const ContentTypeTableType* it = ContentTypeTable; it->name; ++it) {
         if (strcmp(it->name, content_format) == 0) {
           pymol_content_type = content_is_filename ?
             it->code_filename : it->code_buffer;

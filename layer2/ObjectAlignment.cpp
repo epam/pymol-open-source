@@ -65,7 +65,7 @@ static int GroupOrderKnown(PyMOLGlobals * G,
     /* find lowest offset within the cur group */
     c = cur_start;
     while((id = curVLA[c++])) {
-      auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+      const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
       if (eoo && eoo->obj == guide) {
         if((cur_offset < 0) || (eoo->atm < cur_offset))
           cur_offset = eoo->atm;
@@ -75,7 +75,7 @@ static int GroupOrderKnown(PyMOLGlobals * G,
     /* find lowest offset within the new group */
     c = new_start;
     while((id = newVLA[c++])) {
-      auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+      const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
       if (eoo && eoo->obj == guide) {
         if((new_offset < 0) || (eoo->atm < new_offset))
           new_offset = eoo->atm;
@@ -478,7 +478,7 @@ static int *AlignmentMerge(PyMOLGlobals * G, int *curVLA, int *newVLA,
               int cur = cur_start;
               int id;
               while((id = curVLA[cur])) {
-                auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+                const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
                 if (eoo) {
                   obj = eoo->obj;
                   if(obj == flush) {
@@ -495,7 +495,7 @@ static int *AlignmentMerge(PyMOLGlobals * G, int *curVLA, int *newVLA,
               int cur = cur_start;
               int id;
               while((id = curVLA[cur])) {
-                auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+                const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
                 if (eoo) {
                   obj = eoo->obj;
                   if(obj == flush) {
@@ -585,7 +585,7 @@ static int *AlignmentMerge(PyMOLGlobals * G, int *curVLA, int *newVLA,
                 ObjectMolecule *obj, *last_obj = NULL;
                 c = cur_start;
                 while((id = curVLA[c++])) {
-                  auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+                  const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
                   if (eoo) {
                     obj = eoo->obj;
                     if(obj != last_obj) {
@@ -750,7 +750,7 @@ static int ObjectAlignmentStateFromPyList(PyMOLGlobals * G, ObjectAlignmentState
     strcpy(I->guide, PyString_AsString(PyList_GetItem(list, 1)));
 
     if (I->alignVLA)
-    for (auto it = I->alignVLA, it_end = I->alignVLA + VLAGetSize(I->alignVLA);
+    for (int *it = I->alignVLA, *it_end = I->alignVLA + VLAGetSize(I->alignVLA);
         it != it_end; ++it) {
       if (*it)
         *it = SettingUniqueConvertOldSessionID(G, *it);
@@ -931,7 +931,7 @@ void ObjectAlignmentUpdate(ObjectAlignment * I)
                 gvert_valid = false;
                 zero3f(mean);
                 while((id = vla[c++])) {
-                  auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+                  const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
                   if (eoo) {
                     if(ObjectMoleculeGetAtomVertex(eoo->obj, a,
                                                    eoo->atm, vert)) {
@@ -952,7 +952,7 @@ void ObjectAlignmentUpdate(ObjectAlignment * I)
 
                   c = b;
                   while((id = vla[c++])) {
-                    auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+                    const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
                     if (eoo) {
                       if(ObjectMoleculeGetAtomVertex(eoo->obj, a,
                                                      eoo->atm, vert)) {
@@ -973,7 +973,7 @@ void ObjectAlignmentUpdate(ObjectAlignment * I)
                   int first_flag = true;
                   c = b;
                   while((id = vla[c++])) {
-                    auto eoo = ExecutiveUniqueIDAtomDictGet(G, id);
+                    const ExecutiveObjectOffset* eoo = ExecutiveUniqueIDAtomDictGet(G, id);
                     if (eoo) {
                       if(ObjectMoleculeGetAtomVertex(eoo->obj, a,
                                                      eoo->atm, vert)) {

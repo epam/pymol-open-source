@@ -245,7 +245,7 @@ PyObject * PConvToPyObject(const std::set<T> &v) {
   size_t i = 0, n = v.size();
   PyObject * o = PyList_New(n);
 
-  for (auto it = v.begin(); it != v.end(); ++it) {
+  for (std::set<T>::const_iterator it = v.begin(); it != v.end(); ++it) {
     PyList_SET_ITEM(o, i++, PConvToPyObject(*it));
   }
 
@@ -262,7 +262,7 @@ PyObject * PConvToPyObject(const std::map<K, V> &v) {
   size_t i = 0, n = v.size();
   PyObject * o = PyList_New(n * 2);
 
-  for (auto it = v.begin(); it != v.end(); ++it) {
+  for (std::map<K, V>::const_iterator it = v.begin(); it != v.end(); ++it) {
     PyList_SET_ITEM(o, i++, PConvToPyObject(it->first));
     PyList_SET_ITEM(o, i++, PConvToPyObject(it->second));
   }

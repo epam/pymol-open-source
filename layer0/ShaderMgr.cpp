@@ -178,7 +178,7 @@ void CShaderPrg_Reload_CallComputeColorForLight(PyMOLGlobals * G, char *name){
   reparr[3] = "";
   reparr[1] = PyMolAlloc(char, 5);
 
-  auto pick_shading = SettingGet<bool>(G, cSetting_pick_shading);
+  bool pick_shading = SettingGet<bool>(G, cSetting_pick_shading);
   if (pick_shading) {
     light_count = 1;
   }

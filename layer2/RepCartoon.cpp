@@ -299,7 +299,7 @@ static void do_ring(PyMOLGlobals * G, nuc_acid_data *ndata, bool is_picking, int
   int nf = false;
   int ring_mode = ndata->ring_mode;
   int finder = ndata->ring_finder;
-  const auto& nuc_flag = ndata->nuc_flag;
+  int* nuc_flag = ndata->nuc_flag;
 
   /* first, make sure all atoms have known coordinates */
   {
@@ -1460,7 +1460,7 @@ static void nuc_acid(PyMOLGlobals * G, nuc_acid_data *ndata, int a, int a1, Atom
   float *v_o, *v_c;
   float *v1;
   int cur_car;
-  const auto& nuc_flag = ndata->nuc_flag;
+  int* nuc_flag = ndata->nuc_flag;
 
   if(ndata->a2 < 0) {
     ndata->nSeg++;
@@ -2100,8 +2100,8 @@ void ComputeCartoonAtomColors(PyMOLGlobals *G, ObjectMolecule *obj, CoordSet *cs
     c1 = c2 = cartoon_color;
   }
 
-  auto ai1 = obj->AtomInfo + atom_index1;
-  auto ai2 = obj->AtomInfo + atom_index2;
+  AtomInfoType* ai1 = obj->AtomInfo + atom_index1;
+  AtomInfoType* ai2 = obj->AtomInfo + atom_index2;
 
   AtomSettingGetIfDefined(G, ai1, cSetting_cartoon_color, &c1);
   AtomSettingGetIfDefined(G, ai2, cSetting_cartoon_color, &c2);
@@ -2836,7 +2836,7 @@ void RepCartoonGeneratePASS1(PyMOLGlobals *G, RepCartoon *I, ObjectMolecule *obj
     SettingGet_i(G, cs->Setting, obj->Obj.Setting, cSetting_cartoon_trace_atoms);
   trace_mode =
     SettingGet_i(G, cs->Setting, obj->Obj.Setting, cSetting_trace_atoms_mode);
-  auto gap_cutoff =
+  int gap_cutoff =
     SettingGet_i(G, cs->Setting, obj->Obj.Setting, cSetting_cartoon_gap_cutoff);
 
   // iterate over (sorted) atoms
@@ -3742,7 +3742,7 @@ Rep *RepCartoonNew(CoordSet * cs, int state)
 
   I->LastVisib = PyMolCalloc(char, cs->NAtIndex);
   
-  auto cartoon_all_alt =
+  bool cartoon_all_alt =
     SettingGet_b(G, cs->Setting, obj->Obj.Setting, cSetting_cartoon_all_alt);
 
   ndata.next_alt = 0;

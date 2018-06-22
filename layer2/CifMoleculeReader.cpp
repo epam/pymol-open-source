@@ -113,7 +113,7 @@ struct CifContentInfo {
     if (chains_filter.empty())
       return false;
 
-    auto result = OVLexicon_BorrowFromCString(G->Lexicon, chain);
+    OVreturn_word result = OVLexicon_BorrowFromCString(G->Lexicon, chain);
     if (OVreturn_IS_OK(result))
       return is_excluded_chain(result.word);
 
@@ -190,7 +190,7 @@ static T VLAGetFirstNonNULL(T * vla) {
  */
 template <typename Map, typename Key, typename T>
 inline bool find1(Map& dict, T& value1, const Key& key1) {
-  auto it = dict.find(key1);
+  Map::const_iterator it = dict.find(key1);
   if (it == dict.end())
     return false;
   value1 = it->second;
@@ -401,12 +401,12 @@ static void ConnectComponent(ObjectMolecule * I, int i_start, int i_end,
   if (i_end - i_start < 2)
     return;
 
-  auto G = I->Obj.G;
+  PyMOLGlobals* G = I->Obj.G;
   AtomInfoType *a1, *a2, *ai = I->AtomInfo;
   int order;
 
   // get residue bond dictionary
-  auto res_dict = bond_dict->get(G, LexStr(G, ai[i_start].resn));
+  const res_bond_dict_t* res_dict = bond_dict->get(G, LexStr(G, ai[i_start].resn));
   if (res_dict == NULL)
     return;
 
@@ -570,7 +570,7 @@ static oper_collection_t parse_oper_expression(const std::string &expr) {
   vector<string> a_vec = strsplit(expr, ')');
 
   // loop over chunks (still include leading '(')
-  for (auto a_it = a_vec.begin(); a_it != a_vec.end(); ++a_it) {
+  for (vector<string>::const_iterator a_it = a_vec.begin(); a_it != a_vec.end(); ++a_it) {
     const char * a_chunk = a_it->c_str();
 
     // finish chunk
@@ -633,7 +633,7 @@ static bool get_assembly_chains(PyMOLGlobals * G,
 
     const char * asym_id_list = arr_asym_id_list->as_s(i);
     std::vector<std::string> chains = strsplit(asym_id_list, ',');
-    for (auto it = chains.begin(); it != chains.end(); ++it) {
+    for (std::vector<std::string>::const_iterator it = chains.begin(); it != chains.end(); ++it) {
       assembly_chains.insert(LexIdx(G, it->c_str()));
     }
   }
@@ -709,8 +709,8 @@ CoordSet ** read_pdbx_struct_assembly(PyMOLGlobals * G,
     oper_collection_t collection = parse_oper_expression(oper_expr);
     std::vector<std::string> chains = strsplit(asym_id_list, ',');
     std::set<lexidx_t> chains_set;
-    for (auto it = chains.begin(); it != chains.end(); ++it) {
-      auto result = OVLexicon_BorrowFromCString(G->Lexicon, it->c_str());
+    for (std::vector<std::string>::const_iterator it = chains.begin(); it != chains.end(); ++it) {
+      OVreturn_word result = OVLexicon_BorrowFromCString(G->Lexicon, it->c_str());
       if (OVreturn_IS_OK(result)) {
         chains_set.insert(result.word);
       }
@@ -718,7 +718,7 @@ CoordSet ** read_pdbx_struct_assembly(PyMOLGlobals * G,
 
     // new coord set VLA
     int ncsets = 1;
-    for (auto c_it = collection.begin(); c_it != collection.end(); ++c_it) {
+    for (oper_collection_t::const_iterator c_it = collection.begin(); c_it != collection.end(); ++c_it) {
       ncsets *= c_it->size();
     }
 
@@ -737,7 +737,7 @@ CoordSet ** read_pdbx_struct_assembly(PyMOLGlobals * G,
     c_csets[0] = CoordSetCopyFilterChains(cset, atInfo, chains_set);
 
     // build new coord sets
-    for (auto c_it = collection.rbegin(); c_it != collection.rend(); ++c_it) {
+    for (oper_collection_t::const_reverse_iterator c_it = collection.rbegin(); c_it != collection.rend(); ++c_it) {
       // copy
       int j = c_src_len;
       while (j < c_src_len * c_it->size()) {
@@ -749,7 +749,7 @@ CoordSet ** read_pdbx_struct_assembly(PyMOLGlobals * G,
 
       // transform
       j = 0;
-      for (auto s_it = c_it->begin(); s_it != c_it->end(); ++s_it) {
+      for (std::vector<std::string>::const_iterator s_it = c_it->begin(); s_it != c_it->end(); ++s_it) {
         const float * matrix = oper_list[*s_it].data();
 
         // cartesian product
@@ -1083,7 +1083,7 @@ static CoordSet ** read_atom_site(PyMOLGlobals * G, cif_data * data,
 
   // set up coordinate sets
   CoordSet ** csets = VLACalloc(CoordSet*, ncsets);
-  for (auto it = atoms_per_model.begin(); it != atoms_per_model.end(); ++it) {
+  for (std::map<int, int>::const_iterator it = atoms_per_model.begin(); it != atoms_per_model.end(); ++it) {
     csets[it->first] = cset = CoordSetNew(G);
     cset->Coord = VLAlloc(float, 3 * it->second);
     cset->IdxToAtm = VLAlloc(int, it->second);
@@ -1216,7 +1216,7 @@ static bool read_entity_poly(PyMOLGlobals * G, const cif_data * data, CifContent
 
       if (arr_seq_one_letter) {
         // sequences
-        auto& entity_sequence = info.sequences[entity_id];
+        seqvec_t& entity_sequence = info.sequences[entity_id];
         const char * one = arr_seq_one_letter->as_s(i);
         for (int i = 0; *one; ++one) {
           if (strchr(" \t\r\n", *one)) // skip whitespace
@@ -1421,7 +1421,7 @@ static bool add_missing_ca(PyMOLGlobals * G,
 
       if (info.is_polypeptide(entity_id) && !info.is_excluded_chain(atInfo[i].segi)) {
         // get new sequence
-        auto it = info.sequences.find(entity_id);
+        std::map<std::string, seqvec_t>::const_iterator it = info.sequences.find(entity_id);
         if (it != info.sequences.end()) {
           current_seq = &it->second;
         }
@@ -2025,9 +2025,9 @@ static BondType * read_pymol_bond(PyMOLGlobals * G, cif_data * data,
   }
 
   for (int i = 0; i < nrows; i++) {
-    auto key1 = col_ID_1->as_i(i);
-    auto key2 = col_ID_2->as_i(i);
-    auto order_value = col_order->as_i(i);
+    int key1 = col_ID_1->as_i(i);
+    int key2 = col_ID_2->as_i(i);
+    int order_value = col_order->as_i(i);
 
     int i1, i2;
     if (find2(id_dict, i1, key1, i2, key2)) {
@@ -2268,10 +2268,10 @@ ObjectMolecule *ObjectMoleculeReadCifStr(PyMOLGlobals * G, ObjectMolecule * I,
   auto cif = std::make_shared<cif_file>(filename, st);
 #else
   cif_file _cif_stack(filename, st);
-  auto cif = &_cif_stack;
+  cif_file* cif = &_cif_stack;
 #endif
 
-  for (auto it = cif->datablocks.begin(); it != cif->datablocks.end(); ++it) {
+  for (m_str_cifdatap_t::const_iterator it = cif->datablocks.begin(); it != cif->datablocks.end(); ++it) {
     ObjectMolecule * obj = ObjectMoleculeReadCifData(G, it->second, discrete, quiet);
 
     if (!obj) {
@@ -2304,8 +2304,8 @@ ObjectMolecule *ObjectMoleculeReadCifStr(PyMOLGlobals * G, ObjectMolecule * I,
  * Bond dictionary getter, with on-demand download of residue dictionaries
  */
 const bond_dict_t::mapped_type * bond_dict_t::get(PyMOLGlobals * G, const char * resn, bool try_download) {
-  auto key = make_key(resn);
-  auto it = find(key);
+  key_type key = make_key(resn);
+  const_iterator it = find(key);
 
   if (it != end())
     return &it->second;
@@ -2330,7 +2330,7 @@ const bond_dict_t::mapped_type * bond_dict_t::get(PyMOLGlobals * G, const char *
       // update
       if ((downloaded = (filename && filename[0]))) {
         cif_file cif(filename);
-        for (auto it = cif.datablocks.begin(); it != cif.datablocks.end(); ++it)
+        for (m_str_cifdatap_t::const_iterator it = cif.datablocks.begin(); it != cif.datablocks.end(); ++it)
           read_chem_comp_bond_dict(it->second, *this);
       }
 

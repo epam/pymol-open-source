@@ -1418,7 +1418,7 @@ int SelectorClassifyAtoms(PyMOLGlobals * G, int sele, int preserve,
       if(preserve) {
         printf("NOT IMPLEMENTED\n");
       } else {
-        auto visRep_polymer_obj = visRep_polymer;
+        int visRep_polymer_obj = visRep_polymer;
         if (obj->NAtom < 50) {
           // prevent single residue objects from disappearing
           visRep_polymer_obj |= visRep_organic;
@@ -4015,7 +4015,7 @@ void SelectorUpdateObjectSele(PyMOLGlobals * G, ObjectMolecule * obj)
 
       // for file formats other than PDB
       if (obj->need_hetatm_classification) {
-        for (auto ai = obj->AtomInfo, ai_end = ai + obj->NAtom;
+        for (AtomInfoType * ai = obj->AtomInfo, * ai_end = ai + obj->NAtom;
             ai != ai_end; ++ai) {
           if (!(ai->flags & cAtomFlag_polymer)) {
             ai->hetatm = true;
@@ -9066,7 +9066,7 @@ static int SelectorSelect1(PyMOLGlobals * G, EvalElem * base, int quiet)
     obj = NULL;
 
     {
-      auto state_arg = state;
+      int state_arg = state;
       for(a = cNDummyAtoms; a < I_NAtom; a++) {
         base[0].sele[a] = false;
         obj = i_obj[i_table[a].model];
@@ -9196,7 +9196,7 @@ static int SelectorSelect1(PyMOLGlobals * G, EvalElem * base, int quiet)
         base_0_sele_a = &base[0].sele[cNDummyAtoms];
 
         for(a = cNDummyAtoms; a < I_NAtom; a++) {
-          auto& resn = i_obj[table_a->model]->AtomInfo[table_a->atom].resn;
+          const lexidx_t& resn = i_obj[table_a->model]->AtomInfo[table_a->atom].resn;
           if((*base_0_sele_a =
               WordMatcherMatchAlpha(matcher, LexStr(G, resn))))
             c++;

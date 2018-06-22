@@ -1237,7 +1237,7 @@ int RepCylBondPopulateAdjacentAtoms(int **adjacent_atoms, ObjectMolecule *obj, C
       AtomInfoType *ati1 = obj->AtomInfo + b1;
       AtomInfoType *ati2 = obj->AtomInfo + b2;
 
-      auto bd_stick_color = BondSettingGetWD(G, b, cSetting_stick_color, stick_color);
+      int bd_stick_color = BondSettingGetWD(G, b, cSetting_stick_color, stick_color);
 
       if(bd_stick_color < 0) {
 	if(bd_stick_color == cColorObject) {
@@ -1482,7 +1482,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
       if((!variable_alpha) && AtomInfoCheckBondSetting(G, b, cSetting_stick_transparency))
         variable_alpha = true;
 
-      auto bd_valence_flag = BondSettingGetWD(G, b, cSetting_valence, valence_flag);
+      int bd_valence_flag = BondSettingGetWD(G, b, cSetting_valence, valence_flag);
 
       if(bd_valence_flag) {
         valence_found = true;
@@ -1662,11 +1662,11 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
         float bd_radius_full;
 	float bd_alpha;
 
-        auto bd_stick_color = BondSettingGetWD(G, b, cSetting_stick_color, stick_color);
-        auto bd_radius = BondSettingGetWD(G, b, cSetting_stick_radius, radius);
+        int bd_stick_color = BondSettingGetWD(G, b, cSetting_stick_color, stick_color);
+        float bd_radius = BondSettingGetWD(G, b, cSetting_stick_radius, radius);
 
         if(variable_alpha){
-          auto bd_transp = BondSettingGetWD(G, b, cSetting_stick_transparency, transp);
+          float bd_transp = BondSettingGetWD(G, b, cSetting_stick_transparency, transp);
 	  bd_alpha = (1.0F - bd_transp);
 	}
 
@@ -2091,7 +2091,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
           if(s1 || s2) {
             float overlap_r, nub_r;
 
-            auto bd_radius = BondSettingGetWD(G, b, cSetting_stick_radius, radius);
+            float bd_radius = BondSettingGetWD(G, b, cSetting_stick_radius, radius);
 
             overlap_r = overlap * bd_radius;
             nub_r = nub * bd_radius;

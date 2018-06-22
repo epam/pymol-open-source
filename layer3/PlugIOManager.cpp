@@ -719,8 +719,8 @@ ObjectCGO *PlugIOManagerLoadGraphics(PyMOLGlobals * G, ObjectCGO *origObj,
 #define CHECK_BEGINEND(type) cgo_check_beginend(type, beginend, cgo)
 
   // translate to CGO
-  for (auto g = graphics, g_end = graphics + nelem; g != g_end; ++g) {
-    auto g_current = g;
+  for (const molfile_graphics_t *g = graphics, *g_end = graphics + nelem; g != g_end; ++g) {
+    const molfile_graphics_t * g_current = g;
     const float * tnormals = NULL;
     const float * tcolors = NULL;
 
@@ -903,7 +903,7 @@ const char * PlugIOManagerFindPluginByExt(PyMOLGlobals * G, const char * ext, in
   if (!mask)
     mask = 0xF;
 
-  for (auto it = I->PluginVLA, it_end = it + I->NPlugin; it != it_end; ++it) {
+  for (molfile_plugin_t **it = I->PluginVLA, **it_end = it + I->NPlugin; it != it_end; ++it) {
     const molfile_plugin_t * p = *it;
 
     if (WordMatchCommaExact(G, p->filename_extension, ext, true) >= 0)

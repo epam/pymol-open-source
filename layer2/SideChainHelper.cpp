@@ -20,15 +20,15 @@ void SideChainHelperMarkNonCartoonBonded(bool * marked,
     bool cartoon_side_chain_helper,
     bool ribbon_side_chain_helper)
 {
-  auto G = obj->Obj.G;
+  PyMOLGlobals* G = obj->Obj.G;
   int a1, a2;
 
-  auto b = obj->Bond;
-  auto b_end = b + obj->NBond;
+  const BondType* b = obj->Bond;
+  const BondType* b_end = b + obj->NBond;
 
   for(; b < b_end; ++b) {
-    auto b1 = b->index[0];
-    auto b2 = b->index[1];
+    int b1 = b->index[0];
+    int b2 = b->index[1];
 
     if (obj->DiscreteFlag) {
       if((cs == obj->DiscreteCSet[b1]) && (cs == obj->DiscreteCSet[b2])) {
@@ -46,8 +46,8 @@ void SideChainHelperMarkNonCartoonBonded(bool * marked,
     if (a1 < 0 || a2 < 0)
       continue;
 
-    auto ati1 = obj->AtomInfo + b1;
-    auto ati2 = obj->AtomInfo + b2;
+    const AtomInfoType* ati1 = obj->AtomInfo + b1;
+    const AtomInfoType* ati2 = obj->AtomInfo + b2;
 
     if (!(ati1->flags & ati2->flags & cAtomFlag_polymer))
       continue;

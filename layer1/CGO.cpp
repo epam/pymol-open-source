@@ -1782,7 +1782,7 @@ CGO *CGOCombineBeginEnd(const CGO * I, int est)
   int ok = true;
   if (!I)
       return NULL;
-  auto pc = I->op;
+  float* pc = I->op;
   cgo = CGONewSized(I->G, 0);
   ok &= cgo ? true : false;
 

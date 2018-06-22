@@ -182,7 +182,7 @@ typedef struct _CObjectUpdateThreadInfo CObjectUpdateThreadInfo;
 // object and object-state level setting
 template <typename V> void SettingSet(int index, V value, CObject * obj, int state=-1) {
   if (obj->fGetSettingHandle) {
-    auto handle = obj->fGetSettingHandle(obj, state);
+    CSetting ** handle = obj->fGetSettingHandle(obj, state);
     if (handle)
       SettingSet(obj->G, handle, index, value);
   }

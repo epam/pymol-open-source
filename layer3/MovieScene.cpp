@@ -148,7 +148,7 @@ bool MovieSceneOrder(PyMOLGlobals * G, const char * names, bool sort,
     names_list = strsplit(names);
 
     // check that all given names are existing scenes
-    for (auto it = names_list.begin(); it != names_list.end(); ++it) {
+    for (std::vector<std::string>::const_iterator it = names_list.begin(); it != names_list.end(); ++it) {
       if (G->scenes->dict.find(*it) == G->scenes->dict.end()) {
         PRINTFB(G, FB_Scene, FB_Errors)
           " Error: scene '%s' is not defined.\n", it->c_str() ENDFB(G);
@@ -190,7 +190,7 @@ bool MovieSceneOrder(PyMOLGlobals * G, const char * names, bool sort,
       new_order.insert(new_order.end(), names_list.begin(), names_list.end());
     }
 
-    for (auto it = G->scenes->order.begin(); it != G->scenes->order.end(); ++it) {
+    for (std::vector<std::string>::const_iterator it = G->scenes->order.begin(); it != G->scenes->order.end(); ++it) {
       if (!names_set.count(*it)) {
         new_order.push_back(*it);
       } else if (loc == 'c' /* current */ && *it == names_list[0]) {
@@ -230,7 +230,7 @@ static bool MovieSceneStore(PyMOLGlobals * G, const char * name,
     bool store_frame,
     const char * sele)
 {
-  auto scenes = G->scenes;
+  CMovieScenes * scenes = G->scenes;
   std::string key(name);
 
   // new key?
@@ -349,7 +349,7 @@ static void MovieSceneRecallFrame(PyMOLGlobals * G, int frame)
  * Scene animation duration from settings
  */
 static float get_scene_animation_duration(PyMOLGlobals * G) {
-  auto enabled = SettingGetGlobal_i(G, cSetting_scene_animation);
+  int enabled = SettingGetGlobal_i(G, cSetting_scene_animation);
   if (enabled < 0)
     enabled = SettingGetGlobal_b(G, cSetting_animation);
 
@@ -377,8 +377,8 @@ bool MovieSceneRecall(PyMOLGlobals * G, const char * name, float animate,
     bool recall_frame,
     const char * sele)
 {
-  auto scenes = G->scenes;
-  auto it = scenes->dict.find(name);
+  CMovieScenes * scenes = G->scenes;
+  std::map<std::string, MovieScene>::iterator it = scenes->dict.find(name);
 
   if (it == scenes->dict.end()) {
     PRINTFB(G, FB_Scene, FB_Errors)
@@ -410,7 +410,7 @@ bool MovieSceneRecall(PyMOLGlobals * G, const char * name, float animate,
     // fill atomdata dict
     for (SeleAtomIterator iter(G, sele); iter.next();) {
       AtomInfoType * ai = iter.getAtomInfo();
-      auto it = scene.atomdata.find(ai->unique_id);
+      std::map<int, MovieSceneAtom>::iterator it = scene.atomdata.find(ai->unique_id);
       if (it == scene.atomdata.end())
         continue;
 
@@ -442,7 +442,7 @@ bool MovieSceneRecall(PyMOLGlobals * G, const char * name, float animate,
   // objectdata
   for (ObjectIterator iter(G); iter.next();) {
     CObject * obj = iter.getObject();
-    auto it = scene.objectdata.find(obj->Name);
+    std::map<std::string, MovieSceneObject>::iterator it = scene.objectdata.find(obj->Name);
     if (it == scene.objectdata.end())
       continue;
 
@@ -472,7 +472,7 @@ bool MovieSceneRecall(PyMOLGlobals * G, const char * name, float animate,
   }
 
   // invalidate
-  for (auto it = objectstoinvalidate.begin();
+  for (std::map<CObject *, int>::const_iterator it = objectstoinvalidate.begin();
       it != objectstoinvalidate.end(); ++it) {
     it->first->invalidate(cRepAll, it->second ? cRepInvVisib : cRepInvColor, -1);
   }
@@ -518,7 +518,7 @@ static bool MovieSceneRename(PyMOLGlobals * G, const char * name, const char * n
     return true;
   }
 
-  auto it = G->scenes->dict.find(name);
+  std::map<std::string, MovieScene>::iterator it = G->scenes->dict.find(name);
 
   if (it != G->scenes->dict.end()) {
     if (new_name[0])
@@ -526,10 +526,10 @@ static bool MovieSceneRename(PyMOLGlobals * G, const char * name, const char * n
     G->scenes->dict.erase(it);
 
     // does a scene named "new_name" already exist?
-    auto old_new = std::find(G->scenes->order.begin(), G->scenes->order.end(), new_name);
+    std::vector<std::string>::iterator old_new = std::find(G->scenes->order.begin(), G->scenes->order.end(), new_name);
 
     // replace in or remove from "G->scenes->order" list
-    auto v_it = std::find(G->scenes->order.begin(), G->scenes->order.end(), name);
+    std::vector<std::string>::iterator v_it = std::find(G->scenes->order.begin(), G->scenes->order.end(), name);
     if (v_it == G->scenes->order.end()) {
       printf("this is a bug, name must be in G->scenes->order\n");
     } else {
@@ -567,7 +567,7 @@ static bool MovieScenePrintOrder(PyMOLGlobals * G) {
   PRINTFB(G, FB_Scene, FB_Details)
     " scene: current order:\n" ENDFB(G);
 
-  for (auto it = G->scenes->order.begin(); it != G->scenes->order.end(); ++it) {
+  for (std::vector<std::string>::const_iterator it = G->scenes->order.begin(); it != G->scenes->order.end(); ++it) {
     PRINTFB(G, FB_Scene, FB_Details)
       " %s", it->c_str() ENDFB(G);
   }
@@ -593,7 +593,7 @@ static const char * MovieSceneGetNextKey(PyMOLGlobals * G, bool next) {
   if (!current_name[0])
     scene_loop = true;
 
-  auto it = std::find(G->scenes->order.begin(), G->scenes->order.end(), current_name);
+  std::vector<std::string>::const_iterator it = std::find(G->scenes->order.begin(), G->scenes->order.end(), current_name);
 
   if (next) {
     if (it < G->scenes->order.end() - 1) {
@@ -625,7 +625,7 @@ static bool MovieSceneOrderBeforeAfter(PyMOLGlobals * G, const char * key, bool 
   const char * key2 = SettingGetGlobal_s(G, cSetting_scene_current_name);
 
   if (before) {
-    auto it = std::find(G->scenes->order.begin(), G->scenes->order.end(), key);
+    std::vector<std::string>::const_iterator it = std::find(G->scenes->order.begin(), G->scenes->order.end(), key);
     if (it == G->scenes->order.begin()) {
       location = "top";
       key = "";
@@ -658,7 +658,7 @@ bool MovieSceneFunc(PyMOLGlobals * G, const char * key,
     bool hand,
     const char * sele)
 {
-  auto scenes = G->scenes;
+  const CMovieScenes * scenes = G->scenes;
   std::string prev_name;
   short beforeafter = 0;
   bool status = false;
@@ -810,7 +810,7 @@ static bool PConvFromPyObject(PyMOLGlobals * G, PyObject * obj, MovieScene &out)
 
   // restore atomdata dict but with converted ids
   PConvFromPyObject(G, PyList_GetItem(obj, 4), atomdata_old_ids);
-  for (auto it = atomdata_old_ids.begin(); it != atomdata_old_ids.end(); ++it) {
+  for (std::map<int, MovieSceneAtom>::iterator it = atomdata_old_ids.begin(); it != atomdata_old_ids.end(); ++it) {
     int unique_id = SettingUniqueConvertOldSessionID(G, it->first);
     std::swap(out.atomdata[unique_id], it->second);
   }

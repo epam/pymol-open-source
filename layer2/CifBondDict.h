@@ -54,7 +54,7 @@ public:
   }
 
   mapped_type get(const char * name1, const char * name2) const {
-    auto it = find(make_key(name1, name2));
+    const_iterator it = find(make_key(name1, name2));
     if (it == end())
       return -1;
     return it->second;

@@ -428,7 +428,7 @@ static int get_and_check_setting_index(PyMOLGlobals * G, PyObject * key) {
  */
 static
 PyObject *SettingWrapperObjectSubScript(PyObject *obj, PyObject *key){
-  auto& wobj = reinterpret_cast<SettingPropertyWrapperObject*>(obj)->wobj;
+  WrapperObject*& wobj = reinterpret_cast<SettingPropertyWrapperObject*>(obj)->wobj;
   int setting_id;
   PyObject *ret = NULL;
 
@@ -436,7 +436,7 @@ PyObject *SettingWrapperObjectSubScript(PyObject *obj, PyObject *key){
     return NULL;
   }
 
-  auto G = wobj->G;
+  PyMOLGlobals* G = wobj->G;
 
   if ((setting_id = get_and_check_setting_index(G, key)) == -1) {
     return NULL;
@@ -475,14 +475,14 @@ PyObject *SettingWrapperObjectSubScript(PyObject *obj, PyObject *key){
  */
 static
 int SettingWrapperObjectAssignSubScript(PyObject *obj, PyObject *key, PyObject *val){
-  auto& wobj = reinterpret_cast<SettingPropertyWrapperObject*>(obj)->wobj;
+  WrapperObject*& wobj = reinterpret_cast<SettingPropertyWrapperObject*>(obj)->wobj;
 
   if (!check_wrapper_scope(wobj)) {
     return -1;
   }
 
   int setting_id;
-  auto G = wobj->G;
+  PyMOLGlobals* G = wobj->G;
 
   if (wobj->read_only){
     PyErr_SetString(PyExc_TypeError, "Use alter/alter_state to modify settings");
@@ -517,7 +517,7 @@ int SettingWrapperObjectAssignSubScript(PyObject *obj, PyObject *key, PyObject *
  */
 static PyObject* SettingWrapperObjectIter(PyObject *self)
 {
-  auto& wobj = reinterpret_cast<SettingPropertyWrapperObject*>(self)->wobj;
+  WrapperObject*& wobj = reinterpret_cast<SettingPropertyWrapperObject*>(self)->wobj;
 
   if (!check_wrapper_scope(wobj)) {
     return NULL;
@@ -678,7 +678,7 @@ PyObject * WrapperObjectSubScript(PyObject *obj, PyObject *key){
         break;
       case ATOM_PROP_STEREO:
         {
-          auto mmstereotype = AtomInfoGetStereoAsStr(wobj->atomInfo);
+          const char* mmstereotype = AtomInfoGetStereoAsStr(wobj->atomInfo);
           ret = PyString_FromString(mmstereotype);
         }
         break;
@@ -784,7 +784,7 @@ int WrapperObjectAssignSubScript(PyObject *obj, PyObject *key, PyObject *val){
 	break;
       case cPType_int_as_string:
 	{
-          auto dest = reinterpret_cast<lexidx_t*>
+          lexidx_t* dest = reinterpret_cast<lexidx_t*>
             (((char*)wobj->atomInfo) + ap->offset);
           PyObject *valobj = PyObject_Str(val);
 	  const char *valstr = PyString_AS_STRING(valobj);

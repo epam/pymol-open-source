@@ -924,7 +924,7 @@ Rep *RepWireBondNew(CoordSet * cs, int state)
     if((a1 >= 0) && (a2 >= 0)) {
       if((!variable_width) && AtomInfoCheckBondSetting(G, b, cSetting_line_width))
         variable_width = true;
-      auto bd_valence_flag = BondSettingGetWD(G, b, cSetting_valence, valence_flag);
+      int bd_valence_flag = BondSettingGetWD(G, b, cSetting_valence, valence_flag);
       if(bd_valence_flag) {
 
         valence_found = true;
@@ -1041,8 +1041,8 @@ Rep *RepWireBondNew(CoordSet * cs, int state)
           float bd_line_width = line_width;
           int terminal = false;
 
-          auto bd_valence_flag = BondSettingGetWD(G, b, cSetting_valence, valence_flag);
-          auto bd_line_color = BondSettingGetWD(G, b, cSetting_line_color, line_color);
+          int bd_valence_flag = BondSettingGetWD(G, b, cSetting_valence, valence_flag);
+          int bd_line_color = BondSettingGetWD(G, b, cSetting_line_color, line_color);
 
           if(fancy && bd_valence_flag && (b->order > 1)) {
             terminal = IsBondTerminal(obj, b1, b2);

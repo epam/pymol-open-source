@@ -59,10 +59,10 @@ FILE * pymol_fopen(const char * filename, const char * mode) {
     std::vector<wchar_t> wmode(mode, mode + strlen(mode) + 1);
 
     if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-          filename, len_filename, wfilename.data(), wfilename.size()))
+          filename, len_filename, &wfilename.front(), wfilename.size()))
       return NULL;
 
-    fp = _wfopen(wfilename.data(), wmode.data());
+    fp = _wfopen(&wfilename.front(), &wmode.front());
   }
 
   return fp;

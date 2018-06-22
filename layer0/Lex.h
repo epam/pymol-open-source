@@ -49,6 +49,6 @@ inline void LexAssign(PyMOLGlobals * G, lexidx_t& i, const char * s) {
  * `s` is not in the lexicon, return -1.
  */
 inline lexidx_t LexBorrow(PyMOLGlobals * G, const char * s) {
-  auto result = OVLexicon_BorrowFromCString(G->Lexicon, s);
+  OVreturn_word result = OVLexicon_BorrowFromCString(G->Lexicon, s);
   return (result.status == OVstatus_SUCCESS) ? result.word : -1;
 }

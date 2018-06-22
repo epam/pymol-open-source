@@ -101,6 +101,9 @@ enum {
 struct BondRef {
   BondType * ref;
   int id1, id2;
+
+  BondRef(BondType * ref, int id1, int id2) : ref(ref), id1(id1), id2(id2) {
+  }
 };
 
 // for re-indexed atoms
@@ -108,6 +111,13 @@ struct AtomRef {
   AtomInfoType * ref;
   float coord[3];
   int id;
+
+  AtomRef(AtomInfoType * ref, float x, float y, float z, int id)
+  : ref(ref), id(id) {
+    coord[0] = x;
+    coord[1] = y;
+    coord[2] = z;
+  }
 };
 
 /*
@@ -362,7 +372,7 @@ void MoleculeExporter::setRefObject(const char * ref_object, int ref_state) {
   if (!ref_object || !ref_object[0])
     return;
 
-  auto base = ExecutiveFindObjectByName(G, ref_object);
+  CObject* base = ExecutiveFindObjectByName(G, ref_object);
   if (!base)
     return;
 
@@ -377,7 +387,7 @@ void MoleculeExporter::setRefObject(const char * ref_object, int ref_state) {
 }
 
 void MoleculeExporter::updateMatrix(matrix_t& matrix, bool history) {
-  const auto& ref = m_mat_ref.ptr;
+  const double* ref = m_mat_ref.ptr;
   if (ObjectGetTotalMatrix(reinterpret_cast<CObject*>(m_iter.obj),
         m_iter.state, history, matrix.storage)) {
     if (ref) {
@@ -390,14 +400,14 @@ void MoleculeExporter::updateMatrix(matrix_t& matrix, bool history) {
 }
 
 void MoleculeExporter::populateBondRefs() {
-  auto& obj = m_last_obj;
+  const ObjectMolecule* obj = m_last_obj;
   int id1, id2;
 
-  for (auto bond = obj->Bond, bond_end = obj->Bond + obj->NBond;
+  for (BondType *bond = obj->Bond, *bond_end = obj->Bond + obj->NBond;
       bond != bond_end; ++bond) {
 
-    auto atm1 = bond->index[0];
-    auto atm2 = bond->index[1];
+    int atm1 = bond->index[0];
+    int atm2 = bond->index[1];
 
     if (!(id1 = getTmpID(atm1)) ||
         !(id2 = getTmpID(atm2)))
@@ -410,7 +420,7 @@ void MoleculeExporter::populateBondRefs() {
       std::swap(id1, id2);
 
     // emit bond
-    m_bonds.emplace_back(BondRef { bond, id1, id2 });
+    m_bonds.emplace_back(BondRef(bond, id1, id2));
   }
 }
 
@@ -463,8 +473,8 @@ struct MoleculeExporterPDB : public MoleculeExporter {
 
     std::map<int, std::vector<int>> conect;
 
-    for (auto bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
-      auto& bond = *bond_it;
+    for (std::vector<BondRef>::iterator bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
+      BondRef& bond = *bond_it;
       int order = m_conect_nodup ? 1 : bond.ref->order;
       for (int i = 0; i < 2; ++i) {
         for (int d = 0; d < order; ++d) {
@@ -476,8 +486,8 @@ struct MoleculeExporterPDB : public MoleculeExporter {
 
     m_bonds.clear();
 
-    for (auto rec_it = conect.begin(); rec_it != conect.end(); ++rec_it) {
-      const auto& rec = *rec_it;
+    for (std::map<int, std::vector<int>>::const_iterator rec_it = conect.begin(); rec_it != conect.end(); ++rec_it) {
+      const std::pair<int, std::vector<int>>& rec = *rec_it;
       for (int i = 0, i_end = rec.second.size(); i != i_end;) {
         m_offset += VLAprintf(m_buffer, m_offset, "CONECT%5d", rec.first);
         // up to 4 bonds per record
@@ -492,11 +502,11 @@ struct MoleculeExporterPDB : public MoleculeExporter {
   }
 
   void writeCryst1() {
-    const auto& sym = m_iter.cs->Symmetry ? m_iter.cs->Symmetry : m_iter.obj->Symmetry;
+    const CSymmetry* sym = m_iter.cs->Symmetry ? m_iter.cs->Symmetry : m_iter.obj->Symmetry;
 
     if (sym && sym->Crystal) {
-      const auto& dim   = sym->Crystal->Dim;
-      const auto& angle = sym->Crystal->Angle;
+      const float* dim   = sym->Crystal->Dim;
+      const float* angle = sym->Crystal->Angle;
       m_offset += VLAprintf(m_buffer, m_offset,
           "CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-11s%4d\n",
           dim[0], dim[1], dim[2], angle[0], angle[1], angle[2],
@@ -540,7 +550,7 @@ struct MoleculeExporterPDB : public MoleculeExporter {
   }
 
   bool isExcludedBond(int atm1, int atm2) {
-    const auto& atInfo = m_last_obj->AtomInfo;
+    const AtomInfoType* atInfo = m_last_obj->AtomInfo;
     return !(m_conect_all || atInfo[atm1].hetatm || atInfo[atm2].hetatm);
   }
 };
@@ -589,11 +599,11 @@ struct MoleculeExporterCIF : public MoleculeExporter {
   }
 
   void writeCellSymmetry() {
-    const auto& sym = m_iter.cs->Symmetry ? m_iter.cs->Symmetry : m_iter.obj->Symmetry;
+    const CSymmetry* sym = m_iter.cs->Symmetry ? m_iter.cs->Symmetry : m_iter.obj->Symmetry;
 
     if (sym && sym->Crystal) {
-      const auto& dim   = sym->Crystal->Dim;
-      const auto& angle = sym->Crystal->Angle;
+      const float* dim   = sym->Crystal->Dim;
+      const float* angle = sym->Crystal->Angle;
       m_offset += VLAprintf(m_buffer, m_offset, "#\n"
           "_cell.entry_id %s\n"
           "_cell.length_a %.3f\n"
@@ -740,8 +750,8 @@ struct MoleculeExporterPMCIF : public MoleculeExporterCIF {
         "_pymol_bond.atom_site_id_2\n"
         "_pymol_bond.order\n");
 
-    for (auto bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
-      const auto& bond = *bond_it;
+    for (std::vector<BondRef>::const_iterator bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
+      const BondRef& bond = *bond_it;
       m_offset += VLAprintf(m_buffer, m_offset, "%d %d %d\n",
           bond.id1, bond.id2, bond.ref->order);
     }
@@ -767,12 +777,12 @@ struct MoleculeExporterMOL : public MoleculeExporter {
   }
 
   void writeAtom() {
-    const auto ai = m_iter.getAtomInfo();
+    AtomInfoType* ai = m_iter.getAtomInfo();
 
     if (ai->stereo)
       m_chiral_flag = 1;
 
-    m_atoms.emplace_back(AtomRef { ai, { m_coord[0], m_coord[1], m_coord[2] }, getTmpID() });
+    m_atoms.emplace_back(AtomRef(ai, m_coord[0], m_coord[1], m_coord[2], getTmpID()));
   }
 
   void writeCTabV3000() {
@@ -784,9 +794,9 @@ struct MoleculeExporterMOL : public MoleculeExporter {
         m_atoms.size(), m_bonds.size(), m_chiral_flag);
 
     // write atoms
-    for (auto atom_it = m_atoms.begin(); atom_it != m_atoms.end(); ++atom_it) {
-      const auto& atom = *atom_it;
-      auto ai = atom.ref;
+    for (std::vector<AtomRef>::const_iterator atom_it = m_atoms.begin(); atom_it != m_atoms.end(); ++atom_it) {
+      const AtomRef& atom = *atom_it;
+      const AtomInfoType* ai = atom.ref;
 
       m_offset += VLAprintf(m_buffer, m_offset, "M  V30 %d %s %.4f %.4f %.4f 0",
           atom.id, elemGetter(ai), atom.coord[0], atom.coord[1], atom.coord[2]);
@@ -808,8 +818,8 @@ struct MoleculeExporterMOL : public MoleculeExporter {
 
     // write bonds
     int n_bonds = 0;
-    for (auto bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
-      const auto& bond = *bond_it;
+    for (std::vector<BondRef>::const_iterator bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
+      const BondRef& bond = *bond_it;
       m_offset += VLAprintf(m_buffer, m_offset, "M  V30 %d %d %d %d\n",
           ++n_bonds, bond.ref->order, bond.id1, bond.id2);
     }
@@ -830,9 +840,9 @@ struct MoleculeExporterMOL : public MoleculeExporter {
         (int) m_atoms.size(), (int) m_bonds.size(), m_chiral_flag);
 
     // write atoms
-    for (auto atom_it = m_atoms.begin(); atom_it != m_atoms.end(); ++atom_it) {
-      const auto& atom = *atom_it;
-      auto ai = atom.ref;
+    for (std::vector<AtomRef>::const_iterator atom_it = m_atoms.begin(); atom_it != m_atoms.end(); ++atom_it) {
+      const AtomRef& atom = *atom_it;
+      const AtomInfoType* ai = atom.ref;
       int chg = ai->formalCharge;
       m_offset += VLAprintf(m_buffer, m_offset,
           "%10.4f%10.4f%10.4f %-3s 0  %1d  %1d  0  0  0  0  0  0  0  0  0\n",
@@ -843,8 +853,8 @@ struct MoleculeExporterMOL : public MoleculeExporter {
     m_atoms.clear();
 
     // write bonds
-    for (auto bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
-      const auto& bond = *bond_it;
+    for (std::vector<BondRef>::const_iterator bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
+      const BondRef& bond = *bond_it;
       m_offset += VLAprintf(m_buffer, m_offset, "%3d%3d%3d%3d  0  0  0\n",
           bond.id1, bond.id2, bond.ref->order, (int) bond.ref->stereo);
     }
@@ -904,6 +914,10 @@ struct MOL2_SubSt {
   AtomInfoType * ai;
   int root_id;
   const char * resn;
+
+  MOL2_SubSt(AtomInfoType * ai, int root_id, const char * resn)
+  : ai(ai), root_id(root_id), resn(resn) {
+  }
 };
 
 static const char MOL2_bondTypes[][3] = {
@@ -949,12 +963,12 @@ struct MoleculeExporterMOL2 : public MoleculeExporter {
   }
 
   void writeAtom() {
-    const auto ai = m_iter.getAtomInfo();
+    AtomInfoType* ai = m_iter.getAtomInfo();
 
     if (m_substs.empty() ||
         !AtomInfoSameResidue(G, ai, m_substs.back().ai)) {
-      m_substs.emplace_back(MOL2_SubSt { ai, getTmpID(),
-          ai->resn ? LexStr(G, ai->resn) : "UNK" });
+      m_substs.emplace_back(MOL2_SubSt(ai, getTmpID(),
+          ai->resn ? LexStr(G, ai->resn) : "UNK"));
     }
 
     // RTI ATOM
@@ -986,8 +1000,8 @@ struct MoleculeExporterMOL2 : public MoleculeExporter {
     m_offset += VLAprintf(m_buffer, m_offset, "@<TRIPOS>BOND\n");
 
     int bond_id = 0;
-    for (auto bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
-      const auto& bond = *bond_it;
+    for (std::vector<BondRef>::const_iterator bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
+      const BondRef& bond = *bond_it;
       m_offset += VLAprintf(m_buffer, m_offset, "%d %d %d %s\n",
           ++bond_id,
           bond.id1,
@@ -1004,9 +1018,9 @@ struct MoleculeExporterMOL2 : public MoleculeExporter {
     m_offset += VLAprintf(m_buffer, m_offset, "@<TRIPOS>SUBSTRUCTURE\n");
 
     int subst_id = 0;
-    for (auto subst_it = m_substs.begin(); subst_it != m_substs.end(); ++subst_it) {
-      const auto& subst = *subst_it;
-      const auto& ai = subst.ai;
+    for (std::vector<MOL2_SubSt>::const_iterator subst_it = m_substs.begin(); subst_it != m_substs.end(); ++subst_it) {
+      const MOL2_SubSt& subst = *subst_it;
+      const AtomInfoType* ai = subst.ai;
       m_offset += VLAprintf(m_buffer, m_offset, "%d\t%s%d%.1s\t%d\t%s\t1 %s\t%s\n",
           ++subst_id,
           subst.resn, ai->resv, &ai->inscode,     // subst_name
@@ -1088,7 +1102,7 @@ struct MoleculeExporterMAE : public MoleculeExporter {
   }
 
   void writeAtom() {
-    const auto ai = m_iter.getAtomInfo();
+    const AtomInfoType * ai = m_iter.getAtomInfo();
     const float * rgb = ColorGet(G, ai->color);
 
     char inscode[3] = { ai->inscode, 0 };
@@ -1144,8 +1158,8 @@ struct MoleculeExporterMAE : public MoleculeExporter {
           ":::\n", (int) m_bonds.size());
 
       int b = 0;
-      for (auto bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
-        const auto& bond = *bond_it;
+      for (std::vector<BondRef>::const_iterator bond_it = m_bonds.begin(); bond_it != m_bonds.end(); ++bond_it) {
+        const BondRef& bond = *bond_it;
         int order = bond.ref->order;
         if (order > 3) {
           ++m_n_arom_bonds;
@@ -1201,7 +1215,7 @@ struct MoleculeExporterXYZ : public MoleculeExporter {
   }
 
   void writeAtom() {
-    const auto ai = m_iter.getAtomInfo();
+    const AtomInfoType* ai = m_iter.getAtomInfo();
 
     m_offset += VLAprintf(m_buffer, m_offset,
         "%s %f %f %f\n", ai->elem, m_coord[0], m_coord[1], m_coord[2]);
@@ -1328,7 +1342,7 @@ protected:
     m_bond_list = PyList_New(nBond);
 
     for (size_t b = 0; b < nBond; ++b) {
-      const auto& bond = m_bonds[b];
+      const BondRef& bond = m_bonds[b];
       PyList_SetItem(m_bond_list, b, Py_BuildValue("iii",
             bond.id1 - 1, bond.id2 - 1, bond.ref->order));
     }
@@ -1484,7 +1498,7 @@ protected:
         break;
       }
 
-      const auto& bond = m_bonds[b];
+      const BondRef& bond = m_bonds[b];
       int index[] = { bond.id1 - 1, bond.id2 - 1 };
       PConvInt2ToPyObjAttr(bnd, "index", index);
       PConvIntToPyObjAttr(bnd, "order",     bond.ref->order);

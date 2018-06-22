@@ -131,7 +131,7 @@ int PConvPyListToStrVLAList(PyObject * obj, char **vla, int *n_str)
         l = PyString_Size(t);
         nn_ch = n_ch + l + 1;
         VLACheck(*vla, char, nn_ch);
-        auto strval = PyString_AsSomeString(t);
+        SomeString strval = PyString_AsSomeString(t);
         UtilNCopy((*vla) + n_ch, strval.c_str(), l + 1);
         n_ch = nn_ch;
       } else {
@@ -229,7 +229,7 @@ int PConvPyStrToLexRef(PyObject * obj, OVLexicon * lex, int *lex_ref)
   } else if(!PyString_Check(obj)) {
     ok = false;
   } else {
-    auto strval = PyString_AsSomeString(obj);
+    SomeString strval = PyString_AsSomeString(obj);
     if(!strval.c_str()) {
       ok = false;
     } else {
@@ -269,7 +269,7 @@ int PConvPyStrToStr(PyObject * obj, char *ptr, int size)
     if(size)
       *ptr = 0;
   } else {
-    auto strval = PyString_AsSomeString(obj);
+    SomeString strval = PyString_AsSomeString(obj);
     UtilNCopy(ptr, strval.c_str(), size);
   }
   return (ok);
@@ -398,16 +398,16 @@ int PConvPyObjectToStrMaxLen(PyObject * object, char *value, int ln)
     result = false;
 #if PY_MAJOR_VERSION >= 3
   } else if(PyBytes_Check(object)) {
-    auto strval = PyBytes_AsSomeString(object);
+    SomeString strval = PyBytes_AsSomeString(object);
     strncpy(value, strval.c_str(), ln);
 #endif
   } else if(PyString_Check(object)) {
-    auto strval = PyString_AsSomeString(object);
+    SomeString strval = PyString_AsSomeString(object);
     strncpy(value, strval.c_str(), ln);
   } else {
     tmp = PyObject_Str(object);
     if(tmp) {
-      auto strval = PyString_AsSomeString(tmp);
+      SomeString strval = PyString_AsSomeString(tmp);
       strncpy(value, strval.c_str(), ln);
       Py_DECREF(tmp);
     } else
@@ -427,12 +427,12 @@ int PConvPyObjectToStrMaxClean(PyObject * object, char *value, int ln)
   if(!object)
     result = false;
   else if(PyString_Check(object)) {
-    auto strval = PyString_AsSomeString(object);
+    SomeString strval = PyString_AsSomeString(object);
     strncpy(value, strval.c_str(), ln);
   } else {
     tmp = PyObject_Str(object);
     if(tmp) {
-      auto strval = PyString_AsSomeString(tmp);
+      SomeString strval = PyString_AsSomeString(tmp);
       strncpy(value, strval.c_str(), ln);
       Py_DECREF(tmp);
     } else
@@ -539,7 +539,7 @@ int PConvPyListToFloatArrayImpl(PyObject * obj, float **f, bool as_vla)
       (*f) = PyMolAlloc(float, l);
     }
 
-    auto strval = PyBytes_AsSomeString(obj);
+    SomeString strval = PyBytes_AsSomeString(obj);
     memcpy(*f, strval.data(), slen);
   } else if(!PyList_Check(obj)) {
     *f = NULL;
@@ -677,7 +677,7 @@ int PConvPyListToIntArrayImpl(PyObject * obj, int **f, bool as_vla)
       (*f) = PyMolAlloc(int, l);
     }
 
-    auto strval = PyBytes_AsSomeString(obj);
+    SomeString strval = PyBytes_AsSomeString(obj);
     memcpy(*f, strval.data(), slen);
   } else if(!PyList_Check(obj)) {
     *f = NULL;
@@ -1141,8 +1141,8 @@ int PConvPyListToStringVLA(PyObject * obj, char **vla_ptr)
       for(a = 0; a < l; a++) {
         i = PyList_GetItem(obj, a);
         if(PyString_Check(i)) {
-          auto strval = PyString_AsSomeString(i);
-          auto p = strval.c_str();
+          SomeString strval = PyString_AsSomeString(i);
+          const char* p = strval.c_str();
           while(*p)
             *(q++) = *(p++);
           *(q++) = 0;

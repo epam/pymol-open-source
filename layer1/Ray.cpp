@@ -255,7 +255,7 @@ static void RayGetSphereNormalPerspective(CRay * I, RayInfo * r)
 static void fill(unsigned int *buffer, unsigned int value, size_t cnt)
 {
   // std::fill_n(buffer, cnt, value);
-  for (auto it_end = buffer + cnt; buffer != it_end;) {
+  for (unsigned int* it_end = buffer + cnt; buffer != it_end;) {
     *(buffer++) = value;
   }
 }
@@ -1157,7 +1157,7 @@ void RayRenderVRML2(CRay * I, int width, int height,
   }
   if(!identity) {
     float light[3];
-    auto lightv = SettingGet<const float*>(I->G, cSetting_light);
+    const float* lightv = SettingGet<const float*>(I->G, cSetting_light);
     copy3f(lightv, light);
     normalize3f(light);
     sprintf(buffer,
@@ -7276,7 +7276,7 @@ CRay *RayNew(PyMOLGlobals * G, int antialias)
 
   I->Wobble = SettingGet_i(I->G, NULL, NULL, cSetting_ray_texture);
   {
-    auto v = SettingGet<const float*>(I->G, cSetting_ray_texture_settings);
+    const float* v = SettingGet<const float*>(I->G, cSetting_ray_texture_settings);
     int color = SettingGetGlobal_color(I->G, cSetting_ray_interior_color);
     copy3f(v, I->WobbleParam);
     v = ColorGet(I->G, color);
