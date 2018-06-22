@@ -728,7 +728,7 @@ static void SeqDraw(Block * block ORTHOCGOARG)
 int SeqInit(PyMOLGlobals * G)
 {
   CSeq *I = NULL;
-  if((I = (G->Seq = Calloc(CSeq, 1)))) {
+  if((I = (G->Seq = PyMolCalloc(CSeq, 1)))) {
 
     I->Block = OrthoNewBlock(G, NULL);
     I->Block->fClick = SeqClick;
@@ -793,7 +793,7 @@ void SeqFree(PyMOLGlobals * G)
   if(I->ScrollBar)
     ScrollBarFree(I->ScrollBar);
   OrthoFreeBlock(G, I->Block);
-  FreeP(G->Seq);
+  PyMolFreeP(G->Seq);
 }
 
 Block *SeqGetBlock(PyMOLGlobals * G)

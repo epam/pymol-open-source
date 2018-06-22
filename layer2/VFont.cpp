@@ -264,7 +264,7 @@ static void VFontRecFree(PyMOLGlobals * G, VFontRec * I)
 int VFontInit(PyMOLGlobals * G)
 {
   CVFont *I = NULL;
-  if((I = (G->VFont = Calloc(CVFont, 1)))) {
+  if((I = (G->VFont = PyMolCalloc(CVFont, 1)))) {
 
     CVFont *I = G->VFont;
     I->Font = VLAlloc(VFontRec *, 10);
@@ -283,7 +283,7 @@ void VFontFree(PyMOLGlobals * G)
     VFontRecFree(G, I->Font[a]);
   }
   VLAFreeP(I->Font);
-  FreeP(G->VFont);
+  PyMolFreeP(G->VFont);
 }
 
 int VFontLoad(PyMOLGlobals * G, float size, int face, int style, int can_load_new)

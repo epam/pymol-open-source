@@ -286,7 +286,7 @@ int MatchMatrixFromFile(CMatch * I, const char *fname, int quiet)
       ok = false;
     }
   } else {
-    buffer = Alloc(char, BLOSUM62_ROWS * BLOSUM62_COLS);
+    buffer = PyMolAlloc(char, BLOSUM62_ROWS * BLOSUM62_COLS);
     if(buffer) {
       p = buffer;
       a = 0;
@@ -321,7 +321,7 @@ int MatchMatrixFromFile(CMatch * I, const char *fname, int quiet)
     if(!n_entry)
       ok = false;
     else {
-      code = (char *) Calloc(char, n_entry * sizeof(int));
+      code = (char *) PyMolCalloc(char, n_entry * sizeof(int));
 
       /* read codes */
 
@@ -372,7 +372,7 @@ int MatchMatrixFromFile(CMatch * I, const char *fname, int quiet)
         " Match: read scoring matrix.\n" ENDFB(G);
     }
   }
-  FreeP(code);
+  PyMolFreeP(code);
   return (ok);
 }
 
@@ -610,18 +610,18 @@ int MatchAlign(CMatch * I, float gap_penalty, float ext_penalty,
     I->score = mxv;
     I->n_pair = cnt;
     VLASize(I->pair, int, (p - I->pair));
-    FreeP(score);
-    FreeP(point);
+    PyMolFreeP(score);
+    PyMolFreeP(point);
   }
   return (ok);
 }
 
 void MatchFree(CMatch * I)
 {
-  FreeP(I->da);
-  FreeP(I->db);
-  FreeP(I->mat);
-  FreeP(I->smat);
+  PyMolFreeP(I->da);
+  PyMolFreeP(I->db);
+  PyMolFreeP(I->mat);
+  PyMolFreeP(I->smat);
   VLAFreeP(I->pair);
   OOFreeP(I);
 }

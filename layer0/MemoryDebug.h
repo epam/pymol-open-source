@@ -71,13 +71,13 @@ typedef struct VLARec {
 #define VLAInsert(ptr,type,index,count) {ptr=(type*)VLAInsertRaw(ptr,index,count);}
 #define VLADelete(ptr,type,index,count) {ptr=(type*)VLADeleteRaw(ptr,index,count);}
 
-#define Alloc(type,size) (type*)mmalloc(sizeof(type)*(size))
-#define Calloc(type,size) (type*)mcalloc(sizeof(type),size)
-#define Realloc(ptr,type,size) (type*)mrealloc(ptr,sizeof(type)*(size))
+#define PyMolAlloc(type,size) (type*)mmalloc(sizeof(type)*(size))
+#define PyMolCalloc(type,size) (type*)mcalloc(sizeof(type),size)
+#define PyMolRealloc(ptr,type,size) (type*)mrealloc(ptr,sizeof(type)*(size))
 
-#define FreeP(ptr) {if(ptr) {mfree(ptr);ptr=NULL;}}
-#define DeleteP(ptr) {if(ptr) {delete ptr;ptr=NULL;}}
-#define DeleteAP(ptr) {if(ptr) {delete[] ptr;ptr=NULL;}}
+#define PyMolFreeP(ptr) {if(ptr) {mfree(ptr);ptr=NULL;}}
+#define PyMolDeleteP(ptr) {if(ptr) {delete ptr;ptr=NULL;}}
+#define PyMolDeleteAP(ptr) {if(ptr) {delete[] ptr;ptr=NULL;}}
 
 void *VLAExpand(void *ptr, ov_size rec);        /* NOTE: rec is index (total-1) */
 void *MemoryReallocForSure(void *ptr, unsigned int newSize);

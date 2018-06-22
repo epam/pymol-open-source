@@ -27,7 +27,7 @@ int FeedbackInit(PyMOLGlobals * G, int quiet)
   int a;
 
   CFeedback *I;
-  I = (G->Feedback = Calloc(CFeedback, 1));
+  I = (G->Feedback = PyMolCalloc(CFeedback, 1));
 
   I->Stack = VLAlloc(char, FB_Total);
   I->Depth = 0;
@@ -64,7 +64,7 @@ void FeedbackFree(PyMOLGlobals * G)
   CFeedback *I = G->Feedback;
 
   VLAFreeP(I->Stack);
-  FreeP(G->Feedback);
+  PyMolFreeP(G->Feedback);
 
 }
 

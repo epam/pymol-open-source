@@ -1843,7 +1843,7 @@ static const CPyMOLOptions Defaults = {
 CPyMOLOptions *PyMOLOptions_New(void)
 {
   CPyMOLOptions *result = NULL;
-  result = Calloc(CPyMOLOptions, 1);
+  result = PyMolCalloc(CPyMOLOptions, 1);
   if(result)
     *result = Defaults;
   return result;
@@ -1912,7 +1912,7 @@ CPyMOLOptions *PyMOLOptions_NewWithPython(int argc, char *argv[])
 
 void PyMOLOptions_Free(CPyMOLOptions * options)
 {
-  FreeP(options);
+  PyMolFreeP(options);
 }
 
 void PyMOL_ResetProgress(CPyMOL * I)
@@ -1964,9 +1964,9 @@ static CPyMOL *_PyMOL_New(void)
 
   /* allocate global container */
 
-  if((result = Calloc(CPyMOL, 1))) {    /* all values initialized to zero */
+  if((result = PyMolCalloc(CPyMOL, 1))) {    /* all values initialized to zero */
 
-    if((result->G = Calloc(PyMOLGlobals, 1))) {
+    if((result->G = PyMolCalloc(PyMOLGlobals, 1))) {
 
       result->G->PyMOL = result;        /* store the instance pointer */
 
@@ -1989,7 +1989,7 @@ static CPyMOL *_PyMOL_New(void)
       /* continue initialization */
 
     } else {
-      FreeP(result);
+      PyMolFreeP(result);
     }
   }
   return result;
@@ -2008,7 +2008,7 @@ CPyMOL *PyMOL_New(void)
 {
   CPyMOL *result = _PyMOL_New();
   if(result && result->G) {
-    result->G->Option = Calloc(CPyMOLOptions, 1);
+    result->G->Option = PyMolCalloc(CPyMOLOptions, 1);
     if(result->G->Option)
       (*result->G->Option) = Defaults;
     _PyMOL_Config(result);
@@ -2020,7 +2020,7 @@ CPyMOL *PyMOL_NewWithOptions(const CPyMOLOptions * option)
 {
   CPyMOL *result = _PyMOL_New();
   if(result && result->G) {
-    result->G->Option = Calloc(CPyMOLOptions, 1);
+    result->G->Option = PyMolCalloc(CPyMOLOptions, 1);
     if(result->G->Option)
       *(result->G->Option) = *option;
     _PyMOL_Config(result);
@@ -2199,13 +2199,13 @@ void PyMOL_Free(CPyMOL * I)
     PyMOLOptions_Free(I->G->Option);
 
 #ifndef _PYMOL_NOPY
-  FreeP(I->G->P_inst);
+  PyMolFreeP(I->G->P_inst);
   if(I->G == SingletonPyMOLGlobals)
     SingletonPyMOLGlobals = NULL;
 #endif
 
-  FreeP(I->G);
-  FreeP(I);
+  PyMolFreeP(I->G);
+  PyMolFreeP(I);
   return;
 #if !defined(_PYMOL_ACTIVEX) && !defined(_MACPYMOL_XCODE)
   PYMOL_API_UNLOCK;
@@ -2750,7 +2750,7 @@ char *PyMOL_GetClickString(CPyMOL * I, int reset)
   if(reset)
     I->ClickReadyFlag = false;
   if(ready) {
-    result = Alloc(char, OrthoLineLength + 1);
+    result = PyMolAlloc(char, OrthoLineLength + 1);
     if(result) {
       WordType butstr = "left", modstr = "", posstr = "";
       result[0] = 0;
@@ -2880,7 +2880,7 @@ PyMOLreturn_int_array PyMOL_GetImageDataReturned(CPyMOL * I,
 
 int PyMOL_FreeResultString(CPyMOL * I, char *st)
 {
-  PYMOL_API_LOCK FreeP(st);
+  PYMOL_API_LOCK PyMolFreeP(st);
   PYMOL_API_UNLOCK return get_status_ok((st != NULL));
 }
 

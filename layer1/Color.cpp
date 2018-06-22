@@ -799,7 +799,7 @@ void ColorFree(PyMOLGlobals * G)
 {
   CColor *I = G->Color;
   if(I->ColorTable) {
-    FreeP(I->ColorTable);
+    PyMolFreeP(I->ColorTable);
   }
   VLAFreeP(I->Color);
   VLAFreeP(I->Ext);
@@ -807,7 +807,7 @@ void ColorFree(PyMOLGlobals * G)
     OVLexicon_Del(I->Lex);
   if(I->Idx)
     OVOneToOne_Del(I->Idx);
-  FreeP(I);
+  PyMolFreeP(I);
 }
 
 
@@ -2484,7 +2484,7 @@ int ColorTableLoad(PyMOLGlobals * G, char *fname, float gamma, int quiet)
 
     if(!strcmp(fname, "rgb")) {
       if(I->ColorTable) {
-        FreeP(I->ColorTable);
+        PyMolFreeP(I->ColorTable);
         I->ColorTable = NULL;
         PRINTFB(G, FB_Color, FB_Actions)
           " Color: purged table; restoring RGB colors.\n" ENDFB(G);
@@ -2497,13 +2497,13 @@ int ColorTableLoad(PyMOLGlobals * G, char *fname, float gamma, int quiet)
       unsigned int *pixel, mask, *p;
       unsigned int rc;
 
-      FreeP(I->ColorTable);
+      PyMolFreeP(I->ColorTable);
       if(I->BigEndian)
         mask = 0x000000FF;
       else
         mask = 0xFF000000;
 
-      table = Alloc(unsigned int, 512 * 512);
+      table = PyMolAlloc(unsigned int, 512 * 512);
 
       p = (unsigned int *) table;
       for(x = 0; x < width; x++)
@@ -2561,13 +2561,13 @@ int ColorTableLoad(PyMOLGlobals * G, char *fname, float gamma, int quiet)
       blue_max = SettingGetGlobal_f(G, cSetting_pymol_space_max_blue);
       min_factor = SettingGetGlobal_f(G, cSetting_pymol_space_min_factor);
 
-      FreeP(I->ColorTable);
+      PyMolFreeP(I->ColorTable);
       if(I->BigEndian)
         mask = 0x000000FF;
       else
         mask = 0xFF000000;
 
-      table = Alloc(unsigned int, 512 * 512);
+      table = PyMolAlloc(unsigned int, 512 * 512);
 
       p = (unsigned int *) table;
       for(x = 0; x < width; x++)
@@ -2663,7 +2663,7 @@ int ColorTableLoad(PyMOLGlobals * G, char *fname, float gamma, int quiet)
           width = (signed int) u_width;
           height = (signed int) u_height;
           if((width == 512) && (height == 512)) {
-            FreeP(I->ColorTable);
+            PyMolFreeP(I->ColorTable);
             I->ColorTable = table;
             if(!quiet) {
               PRINTFB(G, FB_Color, FB_Actions)
@@ -2687,11 +2687,11 @@ int ColorTableLoad(PyMOLGlobals * G, char *fname, float gamma, int quiet)
       } else {
         PRINTFB(G, FB_Color, FB_Actions)
           " Color: purged table; colors unchanged.\n" ENDFB(G);
-        FreeP(I->ColorTable);
+        PyMolFreeP(I->ColorTable);
       }
     }
     if(!ok) {
-      FreeP(table);
+      PyMolFreeP(table);
     }
   }
   if(ok) {
@@ -2895,7 +2895,7 @@ int ColorInit(PyMOLGlobals * G)
 {
   CColor *I = NULL;
 
-  if((I = (G->Color = Calloc(CColor, 1)))) {
+  if((I = (G->Color = PyMolCalloc(CColor, 1)))) {
     unsigned int test;
     unsigned char *testPtr;
 

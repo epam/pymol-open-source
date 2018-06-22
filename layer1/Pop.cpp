@@ -53,7 +53,7 @@ void PopFree(PyMOLGlobals * G)
 {
   CPop *I = G->Pop;
   OrthoFreeBlock(G, I->Block);
-  FreeP(G->Pop);
+  PyMolFreeP(G->Pop);
 }
 
 
@@ -61,7 +61,7 @@ void PopFree(PyMOLGlobals * G)
 int PopInit(PyMOLGlobals * G)
 {
   CPop *I = NULL;
-  if((I = (G->Pop = Calloc(CPop, 1)))) {
+  if((I = (G->Pop = PyMolCalloc(CPop, 1)))) {
 
     I->Block = OrthoNewBlock(G, NULL);
     I->Block->fReshape = PopReshape;

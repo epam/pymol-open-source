@@ -180,7 +180,7 @@ void BondTypeInit2(BondType *bond, int i1, int i2, int order)
 int AtomInfoInit(PyMOLGlobals * G)
 {
   CAtomInfo *I = NULL;
-  if((I = (G->AtomInfo = Calloc(CAtomInfo, 1)))) {
+  if((I = (G->AtomInfo = PyMolCalloc(CAtomInfo, 1)))) {
     AtomInfoPrimeColors(G);
     I->NextUniqueID = 1;
     return 1;
@@ -192,7 +192,7 @@ void AtomInfoFree(PyMOLGlobals * G)
 {
   CAtomInfo *I = G->AtomInfo;
   OVOneToAny_DEL_AUTO_NULL(I->ActiveIDs);
-  FreeP(G->AtomInfo);
+  PyMolFreeP(G->AtomInfo);
 }
 
 
@@ -1102,7 +1102,7 @@ void AtomInfoPurge(PyMOLGlobals * G, AtomInfoType * ai)
   }
 #ifdef _PYMOL_IP_EXTRAS
 #endif
-  DeleteAP(ai->anisou);
+  PyMolDeleteAP(ai->anisou);
 }
 
 
@@ -1926,8 +1926,8 @@ int AtomInfoGetColor(PyMOLGlobals * G, const AtomInfoType * at1)
 
 void AtomInfoFreeSortedIndexes(PyMOLGlobals * G, int **index, int **outdex)
 {
-  FreeP(*index);
-  FreeP(*outdex);
+  PyMolFreeP(*index);
+  PyMolFreeP(*outdex);
 }
 
 static int AtomInfoNameCompare(PyMOLGlobals * G, const char *name1, const char *name2)

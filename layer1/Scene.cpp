@@ -625,9 +625,9 @@ static void ScenePurgeImage(PyMOLGlobals * G)
     I->Image = NULL;
   } else {
     if(I->Image) {
-      FreeP(I->Image->data);
+      PyMolFreeP(I->Image->data);
     }
-    FreeP(I->Image);
+    PyMolFreeP(I->Image);
   }
   I->CopyType = false;
   OrthoInvalidateDoDraw(G); // right now, need to invalidate since text could be shown
@@ -1724,7 +1724,7 @@ static int SceneMakeSizedImage(PyMOLGlobals * G, int width, int height, int anti
       int draw_both = SceneMustDrawBoth(G);
       /* note here we're treating the buffer as 32-bit unsigned ints, not chars */
 
-      final_image = Alloc(unsigned int, final_buffer_size);
+      final_image = PyMolAlloc(unsigned int, final_buffer_size);
 
       if(!final_image) {
         ok = false;
@@ -1824,7 +1824,7 @@ static int SceneMakeSizedImage(PyMOLGlobals * G, int width, int height, int anti
 
           {
             unsigned char *p = (unsigned char *) final_image;
-            unsigned char *buffer = Alloc(unsigned char, 4 * width * height);
+            unsigned char *buffer = PyMolAlloc(unsigned char, 4 * width * height);
             unsigned char *q = buffer;
             unsigned char *pp, *ppp, *pppp;
             int a, b, c, d;
@@ -1878,13 +1878,13 @@ static int SceneMakeSizedImage(PyMOLGlobals * G, int width, int height, int anti
               p += factor_row_bytes;
             }
 
-            FreeP(final_image);
+            PyMolFreeP(final_image);
             final_image = (unsigned int *) buffer;
           }
         }
         ScenePurgeImage(G);
 
-        I->Image = Calloc(ImageType, 1);
+        I->Image = PyMolCalloc(ImageType, 1);
         I->Image->data = (unsigned char *) final_image;
         final_image = NULL;
         I->Image->size = final_buffer_size * 4; /* in bytes, not 32-bit words */
@@ -1901,7 +1901,7 @@ static int SceneMakeSizedImage(PyMOLGlobals * G, int width, int height, int anti
 
         I->MovieOwnsImageFlag = false;
       }
-      FreeP(final_image);
+      PyMolFreeP(final_image);
     }
   } else {
     ok = false;
@@ -1930,9 +1930,9 @@ static unsigned char *SceneImagePrepare(PyMOLGlobals * G, int prior_only)
 
       buffer_size = 4 * I->Width * I->Height;
       if(save_stereo)
-        image = Alloc(unsigned char, buffer_size * 2);
+        image = PyMolAlloc(unsigned char, buffer_size * 2);
       else
-        image = Alloc(unsigned char, buffer_size);
+        image = PyMolAlloc(unsigned char, buffer_size);
       CHECKOK(ok, image);
       if (!ok)
 	return NULL;
@@ -1949,7 +1949,7 @@ static unsigned char *SceneImagePrepare(PyMOLGlobals * G, int prior_only)
                         GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *) (image + buffer_size));
       }
       ScenePurgeImage(G);
-      I->Image = Calloc(ImageType, 1);
+      I->Image = PyMolCalloc(ImageType, 1);
       I->Image->needs_alpha_reset = true;
       I->Image->data = image;
       I->Image->height = I->Height;
@@ -1978,9 +1978,9 @@ static void SceneImageFinish(PyMOLGlobals * G, GLvoid *image)
   CScene *I = G->Scene;
   if(I->Image) {
     if(I->Image->data != (unsigned char *) image)       /* purge the image if this isn't the active copy */
-      FreeP(image);
+      PyMolFreeP(image);
   } else {
-    FreeP(image);
+    PyMolFreeP(image);
   }
 }
 
@@ -2142,7 +2142,7 @@ int ScenePNG(PyMOLGlobals * G, char *png, float dpi, int quiet,
 
     if((image == I->Image->data) && I->Image->stereo) {
       width = I->Image->width;
-      save_image = Alloc(unsigned char, I->Image->size * 2);
+      save_image = PyMolAlloc(unsigned char, I->Image->size * 2);
       interlace((unsigned int *) save_image, (unsigned int *) I->Image->data, width,
                 height);
       width *= 2;
@@ -2161,7 +2161,7 @@ int ScenePNG(PyMOLGlobals * G, char *png, float dpi, int quiet,
         png ENDFB(G);
     }
     if(save_image && (save_image != image))
-      FreeP(save_image);
+      PyMolFreeP(save_image);
   }
   SceneImageFinish(G, image);
   return (image != NULL);
@@ -2781,7 +2781,7 @@ int SceneLoadPNG(PyMOLGlobals * G, const char *fname, int movie_flag, int stereo
     I->CopyType = false;
     OrthoInvalidateDoDraw(G); // right now, need to invalidate since text could be shown
   }
-  I->Image = Calloc(ImageType, 1);
+  I->Image = PyMolCalloc(ImageType, 1);
   if(MyPNGRead(fname,
                (unsigned char **) &I->Image->data,
                (unsigned int *) &I->Image->width, (unsigned int *) &I->Image->height)) {
@@ -2793,7 +2793,7 @@ int SceneLoadPNG(PyMOLGlobals * G, const char *fname, int movie_flag, int stereo
     if((stereo > 0) || ((stereo < 0) &&
                         (I->Image->width == 2 * I->Width) &&
                         (I->Image->height == I->Height))) {
-      unsigned char *tmp = Alloc(unsigned char, I->Image->size);
+      unsigned char *tmp = PyMolAlloc(unsigned char, I->Image->size);
       if(tmp) {
         I->Image->width /= 2;
         I->Image->stereo = true;
@@ -2801,7 +2801,7 @@ int SceneLoadPNG(PyMOLGlobals * G, const char *fname, int movie_flag, int stereo
         deinterlace((unsigned int *) tmp,
                     (unsigned int *) I->Image->data,
                     I->Image->width, I->Image->height, (stereo == 2));
-        FreeP(I->Image->data);
+        PyMolFreeP(I->Image->data);
         I->Image->data = tmp;
       }
     }
@@ -3203,7 +3203,7 @@ int SceneDrawImageOverlay(PyMOLGlobals * G  ORTHOCGOARG){
 	
 	if(tmp_height && tmp_width) {
 	  unsigned int buffer_size = tmp_height * tmp_width * 4;
-	  unsigned char *buffer = Alloc(unsigned char, buffer_size);
+	  unsigned char *buffer = PyMolAlloc(unsigned char, buffer_size);
 	  
 	  if(buffer && data) {
 	    unsigned char *p = data;
@@ -3282,7 +3282,7 @@ int SceneDrawImageOverlay(PyMOLGlobals * G  ORTHOCGOARG){
 	    PyMOLDrawPixels(tmp_width, tmp_height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	    drawn = true;
 	  }
-	  FreeP(buffer);
+	  PyMolFreeP(buffer);
 	}
 	{
 	  char buffer[255];
@@ -3323,7 +3323,7 @@ int SceneDrawImageOverlay(PyMOLGlobals * G  ORTHOCGOARG){
       }
 
       unsigned int n_word = tmp_height * tmp_width;
-      unsigned int *tmp_buffer = Alloc(unsigned int, n_word);
+      unsigned int *tmp_buffer = PyMolAlloc(unsigned int, n_word);
       ColorGetBkrdContColor(G, rgba, false);
       color_word = ColorGet32BitWord(G, rgba);
       
@@ -3399,12 +3399,12 @@ int SceneDrawImageOverlay(PyMOLGlobals * G  ORTHOCGOARG){
 	PyMOLDrawPixels(tmp_width, tmp_height, GL_RGBA, GL_UNSIGNED_BYTE, tmp_buffer);
 	drawn = true;
       }
-      FreeP(tmp_buffer);
+      PyMolFreeP(tmp_buffer);
     } else if(I->CopyForced) {        /* near-exact fit */
       unsigned int color_word;
       float rgba[4] = { 0.0F, 0.0F, 0.0F, 1.0F };
       unsigned int n_word = height * width;
-      unsigned int *tmp_buffer = Alloc(unsigned int, n_word);
+      unsigned int *tmp_buffer = PyMolAlloc(unsigned int, n_word);
       ColorGetBkrdContColor(G, rgba, false);
       color_word = ColorGet32BitWord(G, rgba);
       
@@ -3447,7 +3447,7 @@ int SceneDrawImageOverlay(PyMOLGlobals * G  ORTHOCGOARG){
 		    (int) ((I->Height - height) / 2 + I->Block->rect.bottom), -10);
       PyMOLDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmp_buffer);
       drawn = true;
-      FreeP(tmp_buffer);
+      PyMolFreeP(tmp_buffer);
     } else {                  /* not a forced copy, so don't show/blend alpha */
       glRasterPos3i((int) ((I->Width - width) / 2 + I->Block->rect.left),
 		    (int) ((I->Height - height) / 2 + I->Block->rect.bottom), -10);
@@ -3542,7 +3542,7 @@ unsigned int SceneFindTriplet(PyMOLGlobals * G, int x, int y, GLenum gl_buffer)
       debug = true;
 
     glReadBuffer(gl_buffer);
-    extra_safe_buffer = Alloc(pix, w * h * 21);
+    extra_safe_buffer = PyMolAlloc(pix, w * h * 21);
     buffer = extra_safe_buffer + (w * h * 10);
 
     PyMOLReadPixels(x - cRangeVal, y - cRangeVal, cRangeVal * 2 + 1, cRangeVal * 2 + 1, GL_RGBA,
@@ -3607,7 +3607,7 @@ unsigned int SceneFindTriplet(PyMOLGlobals * G, int x, int y, GLenum gl_buffer)
             }
           }
         }
-    FreeP(extra_safe_buffer);
+    PyMolFreeP(extra_safe_buffer);
   }
   return (result);
 }
@@ -3655,7 +3655,7 @@ unsigned int *SceneReadTriplets(PyMOLGlobals * G, int x, int y, int w, int h,
        ReadPixels implementations tend to trash RAM surrounding the
        target block */
 
-    extra_safe_buffer = Alloc(pix, w * h * 11);
+    extra_safe_buffer = PyMolAlloc(pix, w * h * 11);
     buffer = extra_safe_buffer + (w * h * 5);
 
     result = VLAlloc(unsigned int, w * h);
@@ -3694,7 +3694,7 @@ unsigned int *SceneReadTriplets(PyMOLGlobals * G, int x, int y, int w, int h,
           cc += 2;
         }
       }
-    FreeP(extra_safe_buffer);
+    PyMolFreeP(extra_safe_buffer);
     VLASize(result, unsigned int, cc);
   }
   return (result);
@@ -6141,7 +6141,7 @@ static int SceneDeferredImage(DeferredImage * di)
   SceneMakeSizedImage(G, di->width, di->height, di->antialias);
   if(di->filename) {
     ScenePNG(G, di->filename, di->dpi, di->quiet, false, di->format);
-    FreeP(di->filename);
+    PyMolFreeP(di->filename);
   } else if(call_raw_image_callback(G)) {
   } else if(G->HaveGUI && SettingGetGlobal_b(G, cSetting_auto_copy_images)) {
 #ifdef _PYMOL_IP_EXTRAS
@@ -6160,7 +6160,7 @@ static int SceneDeferredImage(DeferredImage * di)
 int SceneDeferImage(PyMOLGlobals * G, int width, int height,
                     const char *filename, int antialias, float dpi, int format, int quiet)
 {
-  DeferredImage *di = Calloc(DeferredImage, 1);
+  DeferredImage *di = PyMolCalloc(DeferredImage, 1);
   if(di) {
     DeferredInit(G, &di->deferred);
     di->G = G;
@@ -6173,7 +6173,7 @@ int SceneDeferImage(PyMOLGlobals * G, int width, int height,
     di->quiet = quiet;
     if(filename) {
       int stlen = strlen(filename);
-      di->filename = Alloc(char, stlen + 1);
+      di->filename = PyMolAlloc(char, stlen + 1);
       strcpy(di->filename, filename);
     }
   }
@@ -6184,7 +6184,7 @@ int SceneDeferImage(PyMOLGlobals * G, int width, int height,
 int SceneDeferClick(Block * block, int button, int x, int y, int mod)
 {
   PyMOLGlobals *G = block->G;
-  DeferredMouse *dm = Calloc(DeferredMouse, 1);
+  DeferredMouse *dm = PyMolCalloc(DeferredMouse, 1);
   if(dm) {
     DeferredInit(G, &dm->deferred);
     dm->block = block;
@@ -6203,7 +6203,7 @@ static int SceneDeferClickWhen(Block * block, int button, int x, int y, double w
                                int mod)
 {
   PyMOLGlobals *G = block->G;
-  DeferredMouse *dm = Calloc(DeferredMouse, 1);
+  DeferredMouse *dm = PyMolCalloc(DeferredMouse, 1);
   if(dm) {
     DeferredInit(G, &dm->deferred);
     dm->block = block;
@@ -6227,7 +6227,7 @@ static int SceneDeferredDrag(DeferredMouse * dm)
 int SceneDeferDrag(Block * block, int x, int y, int mod)
 {
   PyMOLGlobals *G = block->G;
-  DeferredMouse *dm = Calloc(DeferredMouse, 1);
+  DeferredMouse *dm = PyMolCalloc(DeferredMouse, 1);
   if(dm) {
     DeferredInit(G, &dm->deferred);
     dm->block = block;
@@ -6250,7 +6250,7 @@ static int SceneDeferredRelease(DeferredMouse * dm)
 int SceneDeferRelease(Block * block, int button, int x, int y, int mod)
 {
   PyMOLGlobals *G = block->G;
-  DeferredMouse *dm = Calloc(DeferredMouse, 1);
+  DeferredMouse *dm = PyMolCalloc(DeferredMouse, 1);
   if(dm) {
     DeferredInit(G, &dm->deferred);
     dm->block = block;
@@ -6641,7 +6641,7 @@ int SceneDeferRay(PyMOLGlobals * G,
                   int mode,
                   float angle, float shift, int quiet, int show_timing, int antialias)
 {
-  DeferredRay *dr = Calloc(DeferredRay, 1);
+  DeferredRay *dr = PyMolCalloc(DeferredRay, 1);
   if(dr) {
     DeferredInit(G, &dr->deferred);
     dr->G = G;
@@ -7083,7 +7083,7 @@ bool SceneRay(PyMOLGlobals * G,
       case 0:                  /* mode 0 is built-in */
         {
           unsigned int buffer_size = 4 * ray_width * ray_height;
-          unsigned int *buffer = (unsigned int*) Alloc(unsigned int, ray_width * ray_height);
+          unsigned int *buffer = (unsigned int*) PyMolAlloc(unsigned int, ray_width * ray_height);
           unsigned int background;
           ErrChkPtr(G, buffer);
 
@@ -7091,17 +7091,17 @@ bool SceneRay(PyMOLGlobals * G,
 
           /*    RayRenderColorTable(ray,ray_width,ray_height,buffer); */
           if(!I->grid.active) {
-            I->Image = Calloc(ImageType, 1);
+            I->Image = PyMolCalloc(ImageType, 1);
             I->Image->data = (unsigned char *) buffer;
             I->Image->size = buffer_size;
             I->Image->width = ray_width;
             I->Image->height = ray_height;
           } else {
             if(!I->Image) {     /* alloc on first pass */
-              I->Image = Calloc(ImageType, 1);
+              I->Image = PyMolCalloc(ImageType, 1);
               if(I->Image) {
                 unsigned int tot_size = 4 * tot_width * tot_height;
-                I->Image->data = Alloc(unsigned char, tot_size);
+                I->Image->data = PyMolAlloc(unsigned char, tot_size);
                 I->Image->size = tot_size;
                 I->Image->width = tot_width;
                 I->Image->height = tot_height;
@@ -7132,7 +7132,7 @@ bool SceneRay(PyMOLGlobals * G,
                 dst += (tot_width - ray_width);
               }
             }
-            FreeP(buffer);
+            PyMolFreeP(buffer);
           }
           I->DirtyFlag = false;
           I->CopyType = true;
@@ -7267,7 +7267,7 @@ bool SceneRay(PyMOLGlobals * G,
       case cStereo_quadbuffer:
       case cStereo_geowall:
         /* merge the two images into one pointer */
-        I->Image->data = Realloc(I->Image->data, unsigned char, I->Image->size * 2);
+        I->Image->data = PyMolRealloc(I->Image->data, unsigned char, I->Image->size * 2);
         UtilCopyMem(I->Image->data + I->Image->size, stereo_image->data, I->Image->size);
         I->Image->stereo = true;
         break;
@@ -7276,7 +7276,7 @@ bool SceneRay(PyMOLGlobals * G,
         {
           /* merge the two images into one */
 
-          unsigned char *merged_image = Alloc(unsigned char, I->Image->size * 2);
+          unsigned char *merged_image = PyMolAlloc(unsigned char, I->Image->size * 2);
           unsigned int *q = (unsigned int *) merged_image;
           unsigned int *l;
           unsigned int *r;
@@ -7299,7 +7299,7 @@ bool SceneRay(PyMOLGlobals * G,
             for(b = 0; b < width; b++)
               *(q++) = *(r++);
           }
-          FreeP(I->Image->data);
+          PyMolFreeP(I->Image->data);
           I->Image->data = merged_image;
           I->Image->width *= 2;
           I->Image->size *= 2;
@@ -7409,7 +7409,7 @@ bool SceneRay(PyMOLGlobals * G,
         {
           /* merge the two images into one */
 
-          unsigned char *merged_image = Alloc(unsigned char, I->Image->size);
+          unsigned char *merged_image = PyMolAlloc(unsigned char, I->Image->size);
           unsigned int *q = (unsigned int *) merged_image;
           unsigned int *l;
           unsigned int *r;
@@ -7462,14 +7462,14 @@ bool SceneRay(PyMOLGlobals * G,
               }
             }
           }
-          FreeP(I->Image->data);
+          PyMolFreeP(I->Image->data);
           I->Image->data = merged_image;
         }   
         break;
       }
     }
-    FreeP(stereo_image->data);
-    FreeP(stereo_image);
+    PyMolFreeP(stereo_image->data);
+    PyMolFreeP(stereo_image);
   }
   timing = UtilGetSeconds(G) - timing;
   if(mode != 2) {               /* don't show timings for tests */
@@ -7528,8 +7528,8 @@ void SceneCopy(PyMOLGlobals * G, GLenum buffer, int force, int entire_window)
       ScenePurgeImage(G);
       buffer_size = 4 * w * h;
       if(buffer_size) {
-        I->Image = Calloc(ImageType, 1);
-        I->Image->data = Alloc(unsigned char, buffer_size);
+        I->Image = PyMolCalloc(ImageType, 1);
+        I->Image->data = PyMolAlloc(unsigned char, buffer_size);
         I->Image->size = buffer_size;
         I->Image->width = w;
         I->Image->height = h;
@@ -7730,7 +7730,7 @@ void SceneUpdate(PyMOLGlobals * G, int force)
             }
 
           if(cnt) {
-            CObjectUpdateThreadInfo *thread_info = Alloc(CObjectUpdateThreadInfo, cnt);
+            CObjectUpdateThreadInfo *thread_info = PyMolAlloc(CObjectUpdateThreadInfo, cnt);
             if(thread_info) {
               cnt = 0;
               while(ListIterate(I->Obj, rec, next)) {
@@ -7738,7 +7738,7 @@ void SceneUpdate(PyMOLGlobals * G, int force)
                   thread_info[cnt++].obj = rec->obj;
               }
               SceneObjectUpdateSpawn(G, thread_info, n_thread, cnt);
-              FreeP(thread_info);
+              PyMolFreeP(thread_info);
             }
           }
         } else

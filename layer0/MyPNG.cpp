@@ -166,7 +166,7 @@ int MyPNGWrite(PyMOLGlobals * G, const char *file_name, const unsigned char *dat
       png_bytep *row_pointers;
       int fd = 0;
 
-      row_pointers = Alloc(png_bytep, height);
+      row_pointers = PyMolAlloc(png_bytep, height);
 
       /* open the file, allowing use of an encoded file descriptor, with
          approach adapted from TJO: chr(1) followed by ascii-format integer */
@@ -302,7 +302,7 @@ int MyPNGWrite(PyMOLGlobals * G, const char *file_name, const unsigned char *dat
   case cMyPNG_FormatPPM:
     {
       FILE *fil = pymol_fopen(file_name, "wb");
-      unsigned char *buffer = Alloc(unsigned char, 3 * width * height);
+      unsigned char *buffer = PyMolAlloc(unsigned char, 3 * width * height);
 
       if(fil && buffer) {
         fprintf(fil, "P6\n");
@@ -328,7 +328,7 @@ int MyPNGWrite(PyMOLGlobals * G, const char *file_name, const unsigned char *dat
       if(fil) {
         fclose(fil);
       }
-      FreeP(buffer);
+      PyMolFreeP(buffer);
     }
     return 1;
     break;

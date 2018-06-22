@@ -129,7 +129,7 @@ void ObjectMoleculeRemoveDuplicateBonds(PyMOLGlobals * G, ObjectMolecule * I) {
   }
 
   // get sorted indices
-  int * sorted = Alloc(int, I->NBond);
+  int * sorted = PyMolAlloc(int, I->NBond);
   UtilSortIndexGlobals(G, I->NBond, I->Bond, sorted,
       (UtilOrderFnGlobals *) BondTypeInOrder);
 
@@ -156,7 +156,7 @@ void ObjectMoleculeRemoveDuplicateBonds(PyMOLGlobals * G, ObjectMolecule * I) {
     }
   }
 
-  FreeP(sorted);
+  PyMolFreeP(sorted);
 
   // remove purged bonds from array
   int j = 0;
@@ -263,8 +263,8 @@ int ObjectMoleculeSetDiscrete(PyMOLGlobals * G, ObjectMolecule * I, int discrete
   maxnatom = I->NAtom * I->NCSet;
 
   // mapping (for bonds): atom_old -> atom_new
-  ok_assert(1, aostate2an = Alloc(int, I->NAtom));
-  ok_assert(1, bondseen = Calloc(char , I->NBond));
+  ok_assert(1, aostate2an = PyMolAlloc(int, I->NAtom));
+  ok_assert(1, bondseen = PyMolCalloc(char , I->NBond));
 
   // discrete setup
   I->DiscreteFlag = discrete;
@@ -712,7 +712,7 @@ int ObjectMoleculeXferValences(ObjectMolecule * Ia, int sele1, int sele2,
     int max_match = Ia->NAtom + Ia->NBond;
     if(max_match < (Ib->NAtom + Ib->NBond))
       max_match = (Ib->NAtom + Ib->NBond);
-    matched = Calloc(int, max_match * 4);
+    matched = PyMolCalloc(int, max_match * 4);
   }
 
   {
@@ -801,7 +801,7 @@ int ObjectMoleculeXferValences(ObjectMolecule * Ia, int sele1, int sele2,
       }
     }
   }
-  FreeP(matched);
+  PyMolFreeP(matched);
   return match_found;
 }
 
@@ -947,7 +947,7 @@ void M4XAlignPurge(M4XAlignType * align)
 {
   VLAFreeP(align->id_at_point);
   VLAFreeP(align->fitness);
-  FreeP(align);
+  PyMolFreeP(align);
 }
 
 void ObjectMoleculeOpRecInit(ObjectMoleculeOpRec * op)
@@ -1042,7 +1042,7 @@ ObjectMolecule *ObjectMoleculeLoadTRJFile(PyMOLGlobals * G, ObjectMolecule * I,
     }
 
     if(sele0 >= 0) {            /* build array of cross-references */
-      xref = Alloc(int, I->NAtom);
+      xref = PyMolAlloc(int, I->NAtom);
       c = 0;
       for(a = 0; a < I->NAtom; a++) {
         if(SelectorIsMember(G, I->AtomInfo[a].selEntry, sele0)) {
@@ -1359,7 +1359,7 @@ ObjectMolecule *ObjectMoleculeLoadTRJFile(PyMOLGlobals * G, ObjectMolecule * I,
         break;
       }
     }
-    FreeP(xref);
+    PyMolFreeP(xref);
     mfree(buffer);
   }
   if(cs)
@@ -1910,7 +1910,7 @@ static CoordSet *ObjectMoleculeTOPStr2CoordSet(PyMOLGlobals * G, const char *buf
       p = findflag(G, buffer, "RESIDUE_LABEL", "20a4");
     }
 
-    resn = Alloc(ResName, NRES);
+    resn = PyMolAlloc(ResName, NRES);
 
     b = 0;
     for(a = 0; a < NRES; a++) {
@@ -1980,7 +1980,7 @@ static CoordSet *ObjectMoleculeTOPStr2CoordSet(PyMOLGlobals * G, const char *buf
         " TOPStr2CoordSet: read residues.\n" ENDFB(G);
     }
 
-    FreeP(resn);
+    PyMolFreeP(resn);
 
     if(!amber7) {
       /* skip bond force constants */
@@ -3347,7 +3347,7 @@ int ObjectMoleculeAddSeleHydrogens(ObjectMolecule * I, int sele, int state)
 	  CHECKOK(ok, cs->Coord);
 	  if (ok){
 	    cs->NIndex = nH;
-	    index = Alloc(int, nH);
+	    index = PyMolAlloc(int, nH);
 	    CHECKOK(ok, index);
 	    if (ok){
 	      for(a = 0; a < nH; a++) {
@@ -3408,7 +3408,7 @@ int ObjectMoleculeAddSeleHydrogens(ObjectMolecule * I, int sele, int state)
 		ok &= CoordSetMerge(I, tcs, cs);
             }
           }
-          FreeP(index);
+          PyMolFreeP(index);
           cs->fFree();
           if (ok)
 	    ok &= ObjectMoleculeSort(I);
@@ -3614,7 +3614,7 @@ int ObjectMoleculeFuse(ObjectMolecule * I, int index0, ObjectMolecule * src,
     }
 
     if (ok)
-      backup = Alloc(float, cs->NIndex * 3);      /* make untransformed copy of coordinate set */
+      backup = PyMolAlloc(float, cs->NIndex * 3);      /* make untransformed copy of coordinate set */
     CHECKOK(ok, backup);
     if (ok){
       for(a = 0; a < cs->NIndex; a++) {
@@ -3736,7 +3736,7 @@ int ObjectMoleculeFuse(ObjectMolecule * I, int index0, ObjectMolecule * src,
   }
   if(cs)
     cs->fFree();
-  FreeP(backup);
+  PyMolFreeP(backup);
   return ok;
 }
 
@@ -4203,10 +4203,10 @@ void ObjectMoleculeCreateSpheroid(ObjectMolecule * I, int average)
 
   nRow = I->NAtom * sp->nDot;
 
-  center = Alloc(float, I->NAtom * 3);
-  count = Alloc(int, I->NAtom);
-  fsum = Alloc(float, nRow);
-  max_sq = Alloc(float, I->NAtom);
+  center = PyMolAlloc(float, I->NAtom * 3);
+  count = PyMolAlloc(int, I->NAtom);
+  fsum = PyMolAlloc(float, nRow);
+  max_sq = PyMolAlloc(float, I->NAtom);
 
   spheroid_smooth = SettingGetGlobal_f(I->Obj.G, cSetting_spheroid_smooth);
   spheroid_fill = SettingGetGlobal_f(I->Obj.G, cSetting_spheroid_fill);
@@ -4229,7 +4229,7 @@ void ObjectMoleculeCreateSpheroid(ObjectMolecule * I, int average)
         " ObjectMolecule: computing spheroid from states %d to %d.\n",
         first + 1, last ENDFB(I->Obj.G);
 
-      spheroid = Alloc(float, nRow);
+      spheroid = PyMolAlloc(float, nRow);
 
       v = center;
       i = count;
@@ -4348,7 +4348,7 @@ void ObjectMoleculeCreateSpheroid(ObjectMolecule * I, int average)
 
       /* now compute surface normals */
 
-      norm = Alloc(float, nRow * 3);
+      norm = PyMolAlloc(float, nRow * 3);
       for(a = 0; a < nRow; a++) {
         zero3f(norm + a * 3);
       }
@@ -4391,15 +4391,15 @@ void ObjectMoleculeCreateSpheroid(ObjectMolecule * I, int average)
 
       if(I->CSet[first]) {
         if(I->CSet[first]->Spheroid)
-          FreeP(I->CSet[first]->Spheroid);
+          PyMolFreeP(I->CSet[first]->Spheroid);
         if(I->CSet[first]->SpheroidNormal)
-          FreeP(I->CSet[first]->SpheroidNormal);
+          PyMolFreeP(I->CSet[first]->SpheroidNormal);
         I->CSet[first]->Spheroid = spheroid;
         I->CSet[first]->SpheroidNormal = norm;
         I->CSet[first]->NSpheroid = nRow;
       } else {
-        FreeP(spheroid);
-        FreeP(norm);
+        PyMolFreeP(spheroid);
+        PyMolFreeP(norm);
       }
 
       for(b = first + 1; b < last; b++) {
@@ -4421,10 +4421,10 @@ void ObjectMoleculeCreateSpheroid(ObjectMolecule * I, int average)
     current++;
   }
   I->NCSet = n_state;
-  FreeP(center);
-  FreeP(count);
-  FreeP(fsum);
-  FreeP(max_sq);
+  PyMolFreeP(center);
+  PyMolFreeP(count);
+  PyMolFreeP(fsum);
+  PyMolFreeP(max_sq);
 
   ObjectMoleculeInvalidate(I, cRepSphere, cRepInvProp, -1);
 }
@@ -4574,7 +4574,7 @@ void ObjectMoleculeSaveUndo(ObjectMolecule * I, int state, int log)
 {
   CoordSet *cs;
   PyMOLGlobals *G = I->Obj.G;
-  FreeP(I->UndoCoord[I->UndoIter]);
+  PyMolFreeP(I->UndoCoord[I->UndoIter]);
   I->UndoState[I->UndoIter] = -1;
   if(state < 0)
     state = 0;
@@ -4583,7 +4583,7 @@ void ObjectMoleculeSaveUndo(ObjectMolecule * I, int state, int log)
   state = state % I->NCSet;
   cs = I->CSet[state];
   if(cs) {
-    I->UndoCoord[I->UndoIter] = Alloc(float, cs->NIndex * 3);
+    I->UndoCoord[I->UndoIter] = PyMolAlloc(float, cs->NIndex * 3);
     memcpy(I->UndoCoord[I->UndoIter], cs->Coord, sizeof(float) * cs->NIndex * 3);
     I->UndoState[I->UndoIter] = state;
     I->UndoNIndex[I->UndoIter] = cs->NIndex;
@@ -4607,7 +4607,7 @@ void ObjectMoleculeUndo(ObjectMolecule * I, int dir)
   CoordSet *cs;
   int state;
 
-  FreeP(I->UndoCoord[I->UndoIter]);
+  PyMolFreeP(I->UndoCoord[I->UndoIter]);
   I->UndoState[I->UndoIter] = -1;
   state = SceneGetState(I->Obj.G);
   if(state < 0)
@@ -4617,7 +4617,7 @@ void ObjectMoleculeUndo(ObjectMolecule * I, int dir)
   state = state % I->NCSet;
   cs = I->CSet[state];
   if(cs) {
-    I->UndoCoord[I->UndoIter] = Alloc(float, cs->NIndex * 3);
+    I->UndoCoord[I->UndoIter] = PyMolAlloc(float, cs->NIndex * 3);
     memcpy(I->UndoCoord[I->UndoIter], cs->Coord, sizeof(float) * cs->NIndex * 3);
     I->UndoState[I->UndoIter] = state;
     I->UndoNIndex[I->UndoIter] = cs->NIndex;
@@ -4640,7 +4640,7 @@ void ObjectMoleculeUndo(ObjectMolecule * I, int dir)
       if(cs->NIndex == I->UndoNIndex[I->UndoIter]) {
         memcpy(cs->Coord, I->UndoCoord[I->UndoIter], sizeof(float) * cs->NIndex * 3);
         I->UndoState[I->UndoIter] = -1;
-        FreeP(I->UndoCoord[I->UndoIter]);
+        PyMolFreeP(I->UndoCoord[I->UndoIter]);
         cs->invalidateRep(cRepAll, cRepInvCoord);
         SceneChanged(I->Obj.G);
       }
@@ -4889,7 +4889,7 @@ void ObjectMoleculePurge(ObjectMolecule * I)
   PRINTFD(I->Obj.G, FB_ObjectMolecule)
     " ObjMolPurge-Debug: step 3, old-to-new mapping\n" ENDFD;
 
-  oldToNew = Alloc(int, I->NAtom);
+  oldToNew = PyMolAlloc(int, I->NAtom);
   ai0 = I->AtomInfo;
   ai1 = I->AtomInfo;
   for(a = 0; a < I->NAtom; a++) {
@@ -4947,7 +4947,7 @@ void ObjectMoleculePurge(ObjectMolecule * I)
     I->NBond += offset;
     VLASize(I->Bond, BondType, I->NBond);
   }
-  FreeP(oldToNew);
+  PyMolFreeP(oldToNew);
 
   PRINTFD(I->Obj.G, FB_ObjectMolecule)
     " ObjMolPurge-Debug: step 5, invalidate...\n" ENDFD;
@@ -5215,10 +5215,10 @@ void ObjectMoleculeGuessValences(ObjectMolecule * I, int state, int *flag1, int 
     cs = I->CSet[state];
   }
   if(cs) {
-    obs_atom = Calloc(ObservedInfo, I->NAtom);
-    obs_bond = Calloc(ObservedInfo, I->NBond);
+    obs_atom = PyMolCalloc(ObservedInfo, I->NAtom);
+    obs_bond = PyMolCalloc(ObservedInfo, I->NBond);
   }
-  flag = Calloc(int, I->NAtom);
+  flag = PyMolCalloc(int, I->NAtom);
   if(flag) {
     if(!flag1) {
       int a, *flag_a = flag;
@@ -5958,9 +5958,9 @@ void ObjectMoleculeGuessValences(ObjectMolecule * I, int state, int *flag1, int 
 	    " ObjectMoleculeGuessValences(%d,%d): Unreasonable connectivity in heteroatom,\n  unsuccessful in guessing valences.\n", warning1, warning2
 	     ENDFB(I->Obj.G);
   }
-  FreeP(obs_bond);
-  FreeP(obs_atom);
-  FreeP(flag);
+  PyMolFreeP(obs_bond);
+  PyMolFreeP(obs_atom);
+  PyMolFreeP(flag);
 }
 
 
@@ -9333,7 +9333,7 @@ int ObjectMoleculeMerge(ObjectMolecule * I, AtomInfoType * ai,
   if(ok && expansionFlag) {           /* expansion flag means we have introduced at least 1 new atom */
     ok &= ObjectMoleculeConnect(I, &nBond, &bond, I->AtomInfo, cs, bondSearchFlag, -1);
     if(nBond) {
-      index = Alloc(int, nBond);
+      index = PyMolAlloc(int, nBond);
       CHECKOK(ok, index);
       c = 0;
       b = 0;
@@ -9395,7 +9395,7 @@ int ObjectMoleculeMerge(ObjectMolecule * I, AtomInfoType * ai,
         }
         I->NBond = nBd;
       }
-      FreeP(index);
+      PyMolFreeP(index);
     }
     VLAFreeP(bond);
   }
@@ -9776,7 +9776,7 @@ void ObjectMoleculeSeleOp(ObjectMolecule * I, int sele, ObjectMoleculeOpRec * op
       }
       break;
     case OMOP_SFIT:            /* state fitting within a single object */
-      vt = Alloc(float, 3 * op->nvv2);  /* temporary (matching) target vertex pointers */
+      vt = PyMolAlloc(float, 3 * op->nvv2);  /* temporary (matching) target vertex pointers */
       cnt = 0;
       for(a = 0; a < I->NAtom; a++) {
         s = I->AtomInfo[a].selEntry;
@@ -9900,7 +9900,7 @@ void ObjectMoleculeSeleOp(ObjectMolecule * I, int sele, ObjectMoleculeOpRec * op
         }
         VLASize(op->f1VLA, float, I->NCSet);    /* NOTE this action is object-specific! */
       }
-      FreeP(vt);
+      PyMolFreeP(vt);
       break;
     case OMOP_SetGeometry:
       for(a = 0; a < I->NAtom; a++) {
@@ -11030,8 +11030,8 @@ void ObjectMoleculeSeleOp(ObjectMolecule * I, int sele, ObjectMoleculeOpRec * op
         break;
       case OMOP_RevalenceByGuessing:
         {
-          int *flag1 = Calloc(int, I->NAtom);
-          int *flag2 = Calloc(int, I->NAtom);
+          int *flag1 = PyMolCalloc(int, I->NAtom);
+          int *flag2 = PyMolCalloc(int, I->NAtom);
           if(flag1 && flag2) {
             int a;
             int *f1 = flag1;
@@ -11050,8 +11050,8 @@ void ObjectMoleculeSeleOp(ObjectMolecule * I, int sele, ObjectMoleculeOpRec * op
               ObjectMoleculeVerifyChemistry(I, target_state);
               ObjectMoleculeInvalidate(I, cRepAll, cRepInvBonds, target_state);
             }
-            FreeP(flag1);
-            FreeP(flag2);
+            PyMolFreeP(flag1);
+            PyMolFreeP(flag2);
           }
         }
         break;
@@ -11258,7 +11258,7 @@ static void ObjectMoleculeUpdate(ObjectMolecule * I)
           if((a<I->NCSet) && I->CSet[a])
             cnt++;
         {
-          CCoordSetUpdateThreadInfo *thread_info = Alloc(CCoordSetUpdateThreadInfo, cnt);
+          CCoordSetUpdateThreadInfo *thread_info = PyMolAlloc(CCoordSetUpdateThreadInfo, cnt);
           if(thread_info) {
             cnt = 0;
             for(a = start; a < stop; a++) {
@@ -11269,7 +11269,7 @@ static void ObjectMoleculeUpdate(ObjectMolecule * I)
               }
             }
             ObjMolCoordSetUpdateSpawn(G, thread_info, n_thread, cnt);
-            FreeP(thread_info);
+            PyMolFreeP(thread_info);
           }
 
         }
@@ -11449,8 +11449,8 @@ int ObjectMoleculeMoveAtomLabel(ObjectMolecule * I, int state, int index, float 
 int ObjectMoleculeInitBondPath(ObjectMolecule * I, ObjectMoleculeBPRec * bp)
 {
   int a;
-  bp->dist = Alloc(int, I->NAtom);
-  bp->list = Alloc(int, I->NAtom);
+  bp->dist = PyMolAlloc(int, I->NAtom);
+  bp->list = PyMolAlloc(int, I->NAtom);
   for(a = 0; a < I->NAtom; a++)
     bp->dist[a] = -1;
   bp->n_atom = 0;
@@ -11461,8 +11461,8 @@ int ObjectMoleculeInitBondPath(ObjectMolecule * I, ObjectMoleculeBPRec * bp)
 /*========================================================================*/
 int ObjectMoleculePurgeBondPath(ObjectMolecule * I, ObjectMoleculeBPRec * bp)
 {
-  FreeP(bp->dist);
-  FreeP(bp->list);
+  PyMolFreeP(bp->dist);
+  PyMolFreeP(bp->list);
   return 1;
 }
 
@@ -12056,7 +12056,7 @@ void ObjectMoleculeFree(ObjectMolecule * I)
   }
   CGOFree(I->UnitCellCGO);
   for(a = 0; a <= cUndoMask; a++)
-    FreeP(I->UndoCoord[a]);
+    PyMolFreeP(I->UndoCoord[a]);
   if(I->Sculpt)
     SculptFree(I->Sculpt);
   if(I->CSTmpl)
@@ -12500,8 +12500,8 @@ int *AtomInfoGetSortedIndex(PyMOLGlobals * G, ObjectMolecule * obj,
   int a;
   CSetting *setting = NULL;
 
-  ok_assert(1, index = Alloc(int, n + 1));
-  ok_assert(1, (*outdex) = Alloc(int, n + 1));
+  ok_assert(1, index = PyMolAlloc(int, n + 1));
+  ok_assert(1, (*outdex) = PyMolAlloc(int, n + 1));
 
   if(obj && obj->DiscreteFlag) {
     for(a = 0; a < n; a++)
@@ -12524,7 +12524,7 @@ int *AtomInfoGetSortedIndex(PyMOLGlobals * G, ObjectMolecule * obj,
   return index;
 
 ok_except1:
-  FreeP(index);
+  PyMolFreeP(index);
   return NULL;
 }
 

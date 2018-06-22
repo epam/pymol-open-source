@@ -371,8 +371,8 @@ int MovieCopyFrame(PyMOLGlobals * G, int frame, int width, int height, int rowby
     }
     if(!I->CacheSave) {
       if(I->Image[i]) {
-        FreeP(I->Image[i]->data);
-        FreeP(I->Image[i]);
+        PyMolFreeP(I->Image[i]->data);
+        PyMolFreeP(I->Image[i]);
       }
     }
   }
@@ -395,8 +395,8 @@ int MoviePurgeFrame(PyMOLGlobals * G, int frame)
       i = MovieFrameToImage(G, a);
       VLACheck(I->Image, ImageType *, i);
       if(I->Image[i]) {
-        FreeP(I->Image[i]->data);
-        FreeP(I->Image[i]);
+        PyMolFreeP(I->Image[i]->data);
+        PyMolFreeP(I->Image[i]);
         I->Image[i] = NULL;
         result = true;
       }
@@ -811,8 +811,8 @@ static void MovieModalPNG(PyMOLGlobals * G, CMovie * I, CMovieModal * M)
         I->Image[M->image]->data ENDFB(G);
     }
     if(I->Image[M->image]) {
-      FreeP(I->Image[M->image]->data);
-      FreeP(I->Image[M->image]);
+      PyMolFreeP(I->Image[M->image]->data);
+      PyMolFreeP(I->Image[M->image]);
     }
     M->timing = UtilGetSeconds(G) - M->timing;
     M->accumTiming += M->timing;
@@ -1054,7 +1054,7 @@ void MovieSetImage(PyMOLGlobals * G, int index, ImageType * image)
 
   VLACheck(I->Image, ImageType *, index);
   if(I->Image[index])
-    FreeP(I->Image[index]);
+    PyMolFreeP(I->Image[index]);
   I->Image[index] = image;
   if(I->NImage < (index + 1))
     I->NImage = index + 1;
@@ -1502,8 +1502,8 @@ void MovieClearImages(PyMOLGlobals * G)
   if(I->Image) {
     for(a = 0; a < I->NImage; a++) {
       if(I->Image[a]) {
-        FreeP(I->Image[a]->data);
-        FreeP(I->Image[a]);
+        PyMolFreeP(I->Image[a]->data);
+        PyMolFreeP(I->Image[a]);
         I->Image[a] = NULL;
       }
     }
@@ -1542,7 +1542,7 @@ void MovieFree(PyMOLGlobals * G)
   VLAFreeP(I->Sequence);
   ScrollBarFree(I->ScrollBar);
   OrthoFreeBlock(G, I->Block);
-  FreeP(G->Movie);
+  PyMolFreeP(G->Movie);
 }
 
 Block *MovieGetBlock(PyMOLGlobals * G)
@@ -1968,7 +1968,7 @@ int MovieInit(PyMOLGlobals * G)
 {
   CMovie *I = NULL;
 
-  if((I = (G->Movie = Calloc(CMovie, 1)))) {
+  if((I = (G->Movie = PyMolCalloc(CMovie, 1)))) {
     int a;
     I->Block = OrthoNewBlock(G, NULL);
     I->Block->fRelease = MovieRelease;

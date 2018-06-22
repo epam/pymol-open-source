@@ -138,7 +138,7 @@ void ButModeFree(PyMOLGlobals * G)
 {
   CButMode *I = G->ButMode;
   OrthoFreeBlock(G, I->Block);
-  FreeP(G->ButMode);
+  PyMolFreeP(G->ButMode);
 }
 
 
@@ -480,7 +480,7 @@ short ButModeDrawFastImpl(Block * block, short definitely ORTHOCGOARG)
 int ButModeInit(PyMOLGlobals * G)
 {
   CButMode *I = NULL;
-  if((I = (G->ButMode = Calloc(CButMode, 1)))) {
+  if((I = (G->ButMode = PyMolCalloc(CButMode, 1)))) {
 
     int a;
 

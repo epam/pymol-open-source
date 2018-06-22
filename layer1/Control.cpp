@@ -411,7 +411,7 @@ void ControlFree(PyMOLGlobals * G)
 {
   CControl *I = G->Control;
   OrthoFreeBlock(G, I->Block);
-  FreeP(G->Control);
+  PyMolFreeP(G->Control);
 }
 
 
@@ -853,7 +853,7 @@ int ControlInit(PyMOLGlobals * G)
 {
   CControl *I = NULL;
 
-  if((I = (G->Control = Calloc(CControl, 1)))) {
+  if((I = (G->Control = PyMolCalloc(CControl, 1)))) {
 
     I->Block = OrthoNewBlock(G, NULL);
     I->Block->fClick = ControlClick;

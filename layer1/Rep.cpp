@@ -188,7 +188,7 @@ void RepInit(PyMOLGlobals * G, Rep * I)
 /*========================================================================*/
 void RepPurge(Rep * I)
 {
-  FreeP(I->P);
+  PyMolFreeP(I->P);
 }
 
 RepIterator::RepIterator(PyMOLGlobals * G, int rep_) {

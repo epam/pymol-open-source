@@ -263,10 +263,10 @@ static void SphereDumpAll(CSphere *I)
 
 void SphereInit(PyMOLGlobals * G)
 {
-  CSphere *I = (G->Sphere = Calloc(CSphere, 1));
+  CSphere *I = (G->Sphere = PyMolCalloc(CSphere, 1));
 
 #ifdef FAST_SPHERE_INIT
-  I->Array = Alloc(SphereRec, Sphere_NSpheres);
+  I->Array = PyMolAlloc(SphereRec, Sphere_NSpheres);
 
   {
     int i;
@@ -312,7 +312,7 @@ static void SpherePurge(SphereRec * I)
   mfree(I->StripLen);
   mfree(I->Sequence);
   mfree(I->Tri);
-  FreeP(I);
+  PyMolFreeP(I);
 }
 #endif
 
@@ -327,9 +327,9 @@ void SphereFree(PyMOLGlobals * G)
   SpherePurge(I->Sphere[3]);
   SpherePurge(I->Sphere[4]);
 #else
-  FreeP(I->Array);
+  PyMolFreeP(I->Array);
 #endif
-  FreeP(I);
+  PyMolFreeP(I);
 }
 
 
@@ -404,9 +404,9 @@ static SphereRec *MakeDotSphere(PyMOLGlobals * G, int level)
   ErrChkPtr(G, S->Dot);
   S->EdgeRef = (EdgeArray *) mmalloc(sizeof(EdgeArray));
   ErrChkPtr(G, S->EdgeRef);
-  S->Tri = Alloc(Triangle, MAXTRI);
+  S->Tri = PyMolAlloc(Triangle, MAXTRI);
   ErrChkPtr(G, S->Tri);
-  TriFlag = Alloc(int, MAXTRI);
+  TriFlag = PyMolAlloc(int, MAXTRI);
   ErrChkPtr(G, TriFlag);
 
   S->NDot = 12;
@@ -464,15 +464,15 @@ static SphereRec *MakeDotSphere(PyMOLGlobals * G, int level)
     //    printf( "MakeDotSphere: Level: %i  S->NTri: %i\n",c, S->NTri); 
   }
   //  printf(" MakeDotSphere: NDot %i S->NTri %i\n",S->NDot,S->NTri);
-  result = Alloc(SphereRec, 1);
+  result = PyMolAlloc(SphereRec, 1);
   ErrChkPtr(G, result);
-  result->dot = Alloc(Vector3f, S->NDot);
+  result->dot = PyMolAlloc(Vector3f, S->NDot);
   ErrChkPtr(G, result->dot);
-  result->area = Alloc(float, S->NDot);
+  result->area = PyMolAlloc(float, S->NDot);
   ErrChkPtr(G, result->area);
-  result->StripLen = Alloc(int, S->NTri * 3);
+  result->StripLen = PyMolAlloc(int, S->NTri * 3);
   ErrChkPtr(G, result->StripLen);
-  result->Sequence = Alloc(int, S->NTri * 3);
+  result->Sequence = PyMolAlloc(int, S->NTri * 3);
   ErrChkPtr(G, result->Sequence);
 
   for(a = 0; a < S->NDot; a++) {
@@ -632,12 +632,12 @@ static SphereRec *MakeDotSphere(PyMOLGlobals * G, int level)
   mfree(S->EdgeRef);
   mfree(TriFlag);
   result->Tri = (int *) S->Tri;
-  result->Tri = Realloc(result->Tri, int, S->NTri * 3);
+  result->Tri = PyMolRealloc(result->Tri, int, S->NTri * 3);
   result->NTri = S->NTri;
-  result->StripLen = Realloc(result->StripLen, int, nStrip);
-  result->Sequence = Realloc(result->Sequence, int, nVertTot);
-  result->dot = Realloc(result->dot, Vector3f, S->NDot);
-  result->area = Realloc(result->area, float, S->NDot);
+  result->StripLen = PyMolRealloc(result->StripLen, int, nStrip);
+  result->Sequence = PyMolRealloc(result->Sequence, int, nVertTot);
+  result->dot = PyMolRealloc(result->dot, Vector3f, S->NDot);
+  result->area = PyMolRealloc(result->area, float, S->NDot);
   result->nDot = S->NDot;
   result->NStrip = nStrip;
   result->NVertTot = nVertTot;

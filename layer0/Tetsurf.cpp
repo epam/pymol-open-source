@@ -317,7 +317,7 @@ static CTetsurf *TetsurfNew(PyMOLGlobals * G)
 #define cM_101_111 0x20000
 #define cM_110_111 0x40000
 
-  CTetsurf *I = Calloc(CTetsurf, 1);
+  CTetsurf *I = PyMolCalloc(CTetsurf, 1);
   int c;
   int nv = 1;
   int last_nv;
@@ -404,7 +404,7 @@ int TetsurfInit(PyMOLGlobals * G)
 /*===========================================================================*/
 static void _TetsurfFree(CTetsurf * I)
 {
-  FreeP(I);
+  PyMolFreeP(I);
 }
 
 void TetsurfFree(PyMOLGlobals * G)

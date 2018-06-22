@@ -69,7 +69,7 @@ PyObject *FieldAsNumPyArray(CField * field, short copy)
     return NULL;
   }
 
-  ok_assert(1, dims = Alloc(npy_intp, field->n_dim));
+  ok_assert(1, dims = PyMolAlloc(npy_intp, field->n_dim));
   copyN(field->dim, dims, field->n_dim);
 
   if(copy) {
@@ -133,8 +133,8 @@ CField *FieldNewCopy(PyMOLGlobals * G, const CField * src)
 
   {
     int a;
-    I->dim = Alloc(unsigned int, src->n_dim);
-    I->stride = Alloc(unsigned int, src->n_dim);
+    I->dim = PyMolAlloc(unsigned int, src->n_dim);
+    I->stride = PyMolAlloc(unsigned int, src->n_dim);
     ok = I->dim && I->stride;
     if(ok)
       for(a = 0; a < src->n_dim; a++) {
@@ -147,17 +147,17 @@ CField *FieldNewCopy(PyMOLGlobals * G, const CField * src)
     unsigned int n_elem = I->size / I->base_size;
     switch (I->type) {
     case cFieldInt:
-      ok = ((I->data = (char *) Alloc(char, n_elem * sizeof(int))) != NULL);
+      ok = ((I->data = (char *) PyMolAlloc(char, n_elem * sizeof(int))) != NULL);
       if(ok)
         memcpy(I->data, src->data, sizeof(int) * n_elem);
       break;
     case cFieldFloat:
-      ok = ((I->data = (char *) Alloc(char, n_elem * sizeof(float))) != NULL);
+      ok = ((I->data = (char *) PyMolAlloc(char, n_elem * sizeof(float))) != NULL);
       if(ok)
         memcpy(I->data, src->data, sizeof(float) * n_elem);
       break;
     default:
-      ok = ((I->data = (char *) Alloc(char, I->size)) != NULL);
+      ok = ((I->data = (char *) PyMolAlloc(char, I->size)) != NULL);
       if(ok)
         memcpy(I->data, src->data, I->size);
       break;
@@ -165,9 +165,9 @@ CField *FieldNewCopy(PyMOLGlobals * G, const CField * src)
   }
   if(!ok) {
     if(I) {
-      FreeP(I->data);
-      FreeP(I->dim);
-      FreeP(I->stride);
+      PyMolFreeP(I->data);
+      PyMolFreeP(I->dim);
+      PyMolFreeP(I->stride);
       OOFreeP(I);
     }
     I = NULL;
@@ -469,8 +469,8 @@ CField *FieldNew(PyMOLGlobals * G, int *dim, int n_dim, unsigned int base_size, 
   OOAlloc(G, CField);
   I->type = type;
   I->base_size = base_size;
-  I->stride = (unsigned int *) Alloc(unsigned int, n_dim);
-  I->dim = (unsigned int *) Alloc(unsigned int, n_dim);
+  I->stride = (unsigned int *) PyMolAlloc(unsigned int, n_dim);
+  I->dim = (unsigned int *) PyMolAlloc(unsigned int, n_dim);
 
   stride = base_size;
   for(a = n_dim - 1; a >= 0; a--) {
@@ -487,9 +487,9 @@ CField *FieldNew(PyMOLGlobals * G, int *dim, int n_dim, unsigned int base_size, 
 void FieldFree(CField * I)
 {
   if(I) {
-    FreeP(I->dim);
-    FreeP(I->stride);
-    FreeP(I->data);
+    PyMolFreeP(I->dim);
+    PyMolFreeP(I->stride);
+    PyMolFreeP(I->data);
   }
   OOFreeP(I);
 }

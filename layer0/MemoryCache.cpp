@@ -36,7 +36,7 @@ struct _CMemoryCache {
 
 void MemoryCacheInit(PyMOLGlobals * G)
 {
-  G->MemoryCache = Calloc(CMemoryCache, 1);
+  G->MemoryCache = PyMolCalloc(CMemoryCache, 1);
 }
 
 void *_MemoryCacheMalloc(PyMOLGlobals * G, unsigned int size, int group_id,
@@ -188,7 +188,7 @@ void MemoryCacheDone(PyMOLGlobals * G)
         mfree(rec->ptr);
     }
   }
-  FreeP(G->MemoryCache);
+  PyMolFreeP(G->MemoryCache);
 }
 #else
 typedef int file_not_empty_as_per_iso_c;

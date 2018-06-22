@@ -46,8 +46,8 @@ void RepNonbondedFree(RepNonbonded * I);
 void RepNonbondedFree(RepNonbonded * I)
 {
   CGOFree(I->shaderCGO);
-  FreeP(I->VP);
-  FreeP(I->V);
+  PyMolFreeP(I->VP);
+  PyMolFreeP(I->V);
   RepPurge(&I->R);
   OOFreeP(I);
 }
@@ -451,7 +451,7 @@ Rep *RepNonbondedNew(CoordSet * cs, int state)
   OOAlloc(G, RepNonbonded);
   obj = cs->Obj;
 
-  active = Alloc(int, cs->NIndex);
+  active = PyMolAlloc(int, cs->NIndex);
   if((obj->RepVisCache & cRepNonbondedBit))
     for(a = 0; a < cs->NIndex; a++) {
       ai = obj->AtomInfo + cs->IdxToAtm[a];
@@ -463,7 +463,7 @@ Rep *RepNonbondedNew(CoordSet * cs, int state)
     }
   if(!nAtom) {
     OOFreeP(I);
-    FreeP(active);
+    PyMolFreeP(active);
     return (NULL);              /* skip if no dots are visible */
   }
 
@@ -539,7 +539,7 @@ Rep *RepNonbondedNew(CoordSet * cs, int state)
     I->VP = (float *) mmalloc(sizeof(float) * nAtom * 21);
     ErrChkPtr(G, I->VP);
 
-    I->R.P = Alloc(Pickable, cs->NIndex + 1);
+    I->R.P = PyMolAlloc(Pickable, cs->NIndex + 1);
     ErrChkPtr(G, I->R.P);
 
     v = I->VP;
@@ -580,12 +580,12 @@ Rep *RepNonbondedNew(CoordSet * cs, int state)
           *(v++) = v1[2] + nonbonded_size;
         }
       }
-    I->R.P = Realloc(I->R.P, Pickable, I->NP + 1);
+    I->R.P = PyMolRealloc(I->R.P, Pickable, I->NP + 1);
     I->R.context.object = (void *) obj;
     I->R.context.state = state;
     I->R.P[0].index = I->NP;
     I->VP = ReallocForSure(I->VP, float, (v - I->VP));
   }
-  FreeP(active);
+  PyMolFreeP(active);
   return (Rep *) I;
 }

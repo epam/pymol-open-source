@@ -32,7 +32,7 @@ void *MemoryReallocForSureSafe(void *ptr, unsigned int new_size, unsigned int ol
     if(tmp && new_size && old_size) {
       memcpy(tmp, ptr, new_size);
     }
-    FreeP(ptr);
+    PyMolFreeP(ptr);
     return tmp;
   } else {
     return mrealloc(ptr, new_size);
@@ -44,7 +44,7 @@ void *MemoryReallocForSure(void *ptr, unsigned int new_size)
   float *tmp = (float*) mmalloc(new_size);
   if(tmp)
     memcpy(tmp, ptr, new_size);
-  FreeP(ptr);
+  PyMolFreeP(ptr);
   return tmp;
 }
 

@@ -107,7 +107,7 @@ static int IsosurfGradients(PyMOLGlobals * G, CSetting * set1, CSetting * set2,
 
 static void _IsosurfFree(CIsosurf * I)
 {
-  FreeP(I);
+  PyMolFreeP(I);
 }
 
 void IsosurfFree(PyMOLGlobals * G)
@@ -168,7 +168,7 @@ Isofield *IsosurfNewFromPyList(PyMOLGlobals * G, PyObject * list)
   /* TO ENABLE BACKWARDS COMPATIBILITY...
      Always check ll when adding new PyList_GetItem's */
   if(ok)
-    ok = ((result = Alloc(Isofield, 1)) != NULL);
+    ok = ((result = PyMolAlloc(Isofield, 1)) != NULL);
   if(ok) {
     result->data = NULL;
     result->points = NULL;
@@ -207,7 +207,7 @@ Isofield *IsosurfNewCopy(PyMOLGlobals * G, const Isofield * src)
 {
   int ok = true;
 
-  Isofield *result = Calloc(Isofield, 1);
+  Isofield *result = PyMolCalloc(Isofield, 1);
 
   copy3f(src->dimensions, result->dimensions);
   result->save_points = src->save_points;
@@ -221,7 +221,7 @@ Isofield *IsosurfNewCopy(PyMOLGlobals * G, const Isofield * src)
       FieldFree(result->data);
     if(result->points)
       FieldFree(result->points);
-    FreeP(result);
+    PyMolFreeP(result);
   }
   return result;
 }
@@ -400,7 +400,7 @@ Isofield *IsosurfFieldAlloc(PyMOLGlobals * G, int *dims)
 
   /* Warning: ...FromPyList also allocs and inits from the heap */
 
-  result = Alloc(Isofield, 1);
+  result = PyMolAlloc(Isofield, 1);
   ErrChkPtr(G, result);
   result->data = FieldNew(G, dims, 3, sizeof(float), cFieldFloat);
   ErrChkPtr(G, result->data);
@@ -471,7 +471,7 @@ static void IsosurfCode(CIsosurf * II, const char *bits1, const char *bits2)
 static CIsosurf *IsosurfNew(PyMOLGlobals * G)
 {
   int c;
-  CIsosurf *I = Calloc(CIsosurf, 1);
+  CIsosurf *I = PyMolCalloc(CIsosurf, 1);
   I->G = G;
   I->VertexCodes = NULL;
   I->ActiveEdges = NULL;
@@ -1155,13 +1155,13 @@ static int IsosurfGradients(PyMOLGlobals * G, CSetting * set1, CSetting * set2,
 
     range_size = range_dim[0] * range_dim[1] * range_dim[2];
 
-    flag = Calloc(int, range_size);
+    flag = PyMolCalloc(int, range_size);
 
     flag_stride[0] = 1;
     flag_stride[1] = range_dim[0];
     flag_stride[2] = range_dim[0] * range_dim[1];
 
-    order = Calloc(int, 3 * range_size);
+    order = PyMolCalloc(int, 3 * range_size);
 
     if(order && flag && (range_dim[0] > 1) && (range_dim[1] > 1) && (range_dim[2] > 1)) {
 
@@ -1526,8 +1526,8 @@ static int IsosurfGradients(PyMOLGlobals * G, CSetting * set1, CSetting * set2,
     }
     /* purge memory */
     VLAFreeP(active_cell);
-    FreeP(order);
-    FreeP(flag);
+    PyMolFreeP(order);
+    PyMolFreeP(flag);
   }
 
   /* restore modified local copies */

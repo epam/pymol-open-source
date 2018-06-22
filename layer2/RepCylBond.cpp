@@ -79,14 +79,14 @@ void RepCylBondFree(RepCylBond * I)
     CGOFree(I->VPcgo);
     I->VPcgo = 0;
   }
-  FreeP(I->VarAlpha);
-  FreeP(I->VarAlphaRay);
-  FreeP(I->VarAlphaSph);
-  FreeP(I->VR);
+  PyMolFreeP(I->VarAlpha);
+  PyMolFreeP(I->VarAlphaRay);
+  PyMolFreeP(I->VarAlphaSph);
+  PyMolFreeP(I->VR);
   VLAFreeP(I->VP);
   //  VLAFreeP(I->V);
-  FreeP(I->VSP);
-  FreeP(I->VSPC);
+  PyMolFreeP(I->VSP);
+  PyMolFreeP(I->VSPC);
   RepPurge(&I->R);
   OOFreeP(I);
 }
@@ -1189,7 +1189,7 @@ static int RepValence(RepCylBond *I, CGO *cgo, int *n_ptr,       /* opengl */
   *vr_ptr = vr;
   *nr_ptr = nr;
   if (dir)
-    FreeP(dir);
+    PyMolFreeP(dir);
   return ok;
 }
 
@@ -1283,14 +1283,14 @@ int RepCylBondPopulateAdjacentAtoms(int **adjacent_atoms, ObjectMolecule *obj, C
       if((s1 || s2)) {
         /* This is a bond that is rendered as a stick */
         if (!adjacent_atoms[a1]){
-	  adjacent_atoms[a1] = Calloc(int, 2);
+	  adjacent_atoms[a1] = PyMolCalloc(int, 2);
 	  CHECKOK(ok, adjacent_atoms[a1]);
 	  if (ok){
 	    adjacent_atoms[a1][0] = 1; adjacent_atoms[a1][1] = a2;
 	  }
 	} else {
 	  int len = adjacent_atoms[a1][0], *ptr = adjacent_atoms[a1], cnt;
-	  adjacent_atoms[a1] = Calloc(int, len+2);
+	  adjacent_atoms[a1] = PyMolCalloc(int, len+2);
 	  CHECKOK(ok, adjacent_atoms[a1]);
 
 	  if (ok){
@@ -1300,19 +1300,19 @@ int RepCylBondPopulateAdjacentAtoms(int **adjacent_atoms, ObjectMolecule *obj, C
 	    }
 	    adjacent_atoms[a1][len+1] = a2;
 	  }
-	  FreeP(ptr);
+	  PyMolFreeP(ptr);
 	}
 
 	if (ok){
 	  if (!adjacent_atoms[a2]){
-	    adjacent_atoms[a2] = Calloc(int, 2);
+	    adjacent_atoms[a2] = PyMolCalloc(int, 2);
 	    CHECKOK(ok, adjacent_atoms[a2]);
 	    if (ok){
 	      adjacent_atoms[a2][0] = 1; adjacent_atoms[a2][1] = a1;
 	    }
 	  } else {
 	    int len = adjacent_atoms[a2][0], *ptr = adjacent_atoms[a2], cnt;
-	    adjacent_atoms[a2] = Calloc(int, len+2);
+	    adjacent_atoms[a2] = PyMolCalloc(int, len+2);
 	    CHECKOK(ok, adjacent_atoms[a2]);
 	    if (ok){
 	      adjacent_atoms[a2][0] = len+1; 
@@ -1321,7 +1321,7 @@ int RepCylBondPopulateAdjacentAtoms(int **adjacent_atoms, ObjectMolecule *obj, C
 	      }
 	      adjacent_atoms[a2][len+1] = a1;
 	    }
-	    FreeP(ptr);
+	    PyMolFreeP(ptr);
 	  }
 	}
       }
@@ -1420,25 +1420,25 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
     return (NULL);              /* skip if no dots are visible */
   }
 
-  marked = Calloc(bool, obj->NAtom);
+  marked = PyMolCalloc(bool, obj->NAtom);
   CHECKOK(ok, marked);
   if (!ok){
     RepCylBondFree(I);
     return NULL;
   }
-  capdrawn = Calloc(short, obj->NAtom);
+  capdrawn = PyMolCalloc(short, obj->NAtom);
   CHECKOK(ok, capdrawn);
   if (!ok){
-    FreeP(marked);
+    PyMolFreeP(marked);
     RepCylBondFree(I);
     return NULL;
   }
   if (SettingGet_f(G, cs->Setting, obj->Obj.Setting, cSetting_stick_good_geometry) || stick_ball_filter_single_atoms){
-    adjacent_atoms = Calloc(int*, obj->NAtom);
+    adjacent_atoms = PyMolCalloc(int*, obj->NAtom);
     CHECKOK(ok, adjacent_atoms);
     if (!ok){
-      FreeP(marked);
-      FreeP(capdrawn);
+      PyMolFreeP(marked);
+      PyMolFreeP(capdrawn);
       RepCylBondFree(I);
       return NULL;
     }
@@ -1576,7 +1576,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
        plus 3 more floats for color */
 
     if(ok && variable_alpha){
-      I->VarAlpha = Alloc(float, maxCyl);
+      I->VarAlpha = PyMolAlloc(float, maxCyl);
       CHECKOK(ok, I->VarAlpha);
     }
     if (ok)
@@ -1587,11 +1587,11 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
 
     vr_size = maxCyl * 11 * 3;
     if(ok && variable_alpha){
-      I->VarAlphaRay = Alloc(float, maxCyl);
+      I->VarAlphaRay = PyMolAlloc(float, maxCyl);
       CHECKOK(ok, I->VarAlphaRay);
     }
     if (ok)
-      I->VR = Alloc(float, vr_size);
+      I->VR = PyMolAlloc(float, vr_size);
     CHECKOK(ok, I->VR);
 
     /* spheres for stick & balls */
@@ -1616,13 +1616,13 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
       sp = G->Sphere->Sphere[ds];
 
       I->SP = sp;
-      I->VSP = Alloc(float, maxCyl * 2 * (3 + sp->NVertTot * 6));
+      I->VSP = PyMolAlloc(float, maxCyl * 2 * (3 + sp->NVertTot * 6));
       CHECKOK(ok, I->VSP);
       if (ok)
-	I->VSPC = Alloc(float, maxCyl * 2 * 7);
+	I->VSPC = PyMolAlloc(float, maxCyl * 2 * 7);
       CHECKOK(ok, I->VSPC);
       if (ok)
-	I->VarAlphaSph = Alloc(float, maxCyl * 2);
+	I->VarAlphaSph = PyMolAlloc(float, maxCyl * 2);
       CHECKOK(ok, I->VarAlphaSph);
     }
     I->NEdge = nEdge;
@@ -1908,7 +1908,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
 	    if (ok){
 	      if(!c1t && !c2t && (c1 == c2) && s1 && s2 && (!ColorCheckRamped(G, c1))) {
 	      } else {
-		cv2 = Alloc(float, 3);
+		cv2 = PyMolAlloc(float, 3);
 		CHECKOK(ok, cv2);
 		if (ok)
 		  copy3f(ColorGet(G, c2), cv2);
@@ -1977,7 +1977,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
 		ok &= RepCylinder(G, I, Vcgo, v1, v2, nEdge, capdraw1, capdraw2, bd_radius, overlap_r,
 				  nub_r, NULL, shader_mode, cv2);
 	      if (cv2){
-		FreeP(cv2);
+		PyMolFreeP(cv2);
 	      }
 	    }
 	  }
@@ -2039,7 +2039,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
 	CHECKOK(ok, I->VarAlphaRay);
       }
     } else {
-      FreeP(I->VarAlphaRay);
+      PyMolFreeP(I->VarAlphaRay);
     }
     if(ok && n_var_alpha_sph) {
       if(I->VarAlphaSph){
@@ -2047,7 +2047,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
 	CHECKOK(ok, I->VarAlphaSph);
       }
     } else {
-      FreeP(I->VarAlphaSph);
+      PyMolFreeP(I->VarAlphaSph);
     }
 
     /* Generating the picking CGO I->VPcgo */
@@ -2130,18 +2130,18 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
 #endif
     }
   }
-  FreeP(other);
-  FreeP(marked);
-  FreeP(capdrawn);
+  PyMolFreeP(other);
+  PyMolFreeP(marked);
+  PyMolFreeP(capdrawn);
 
   if (adjacent_atoms){
     for (a = 0; a < obj->NAtom ; a++){
       if (adjacent_atoms[a]){
-	FreeP(adjacent_atoms[a]);
+	PyMolFreeP(adjacent_atoms[a]);
 	adjacent_atoms[a] = 0;
       }
     }
-    FreeP(adjacent_atoms);
+    PyMolFreeP(adjacent_atoms);
   }
   if (!ok){
     RepCylBondFree(I);
@@ -2326,7 +2326,7 @@ int RepCylinder(PyMOLGlobals *G, RepCylBond *I, CGO *cgo, float *v1arg, float *v
   v2[0] = v2arg[0]; v2[1] = v2arg[1]; v2[2] = v2arg[2]; 
   if (dir){
     if (!*dir){
-      *dir = Alloc(float, 3);
+      *dir = PyMolAlloc(float, 3);
       (*dir)[0] = d[0]; (*dir)[1] = d[1]; (*dir)[2] = d[2];
     } else {
       if (get_angle3f(d, *dir)>=(cPI/2.)){
@@ -2685,7 +2685,7 @@ static void RepCylinderImmediate(float *v1arg, float *v2arg, int nEdge,
 
   if (dir){
     if (!*dir){
-      *dir = Alloc(float, 3);
+      *dir = PyMolAlloc(float, 3);
       (*dir)[0] = d[0]; (*dir)[1] = d[1]; (*dir)[2] = d[2];
     } else {
       if (get_angle3f(d, *dir)>=(cPI/2.)){
@@ -2894,7 +2894,7 @@ void RepCylBondRenderImmediate(CoordSet * cs, RenderInfo * info)
 
               RepCylinderImmediate(v2, avg, nEdge, 1, 0, overlap_r, nub_r, radius, &dir);
 	      if (dir){
-		FreeP(dir);
+		PyMolFreeP(dir);
 		dir = 0;
 	      }
             }

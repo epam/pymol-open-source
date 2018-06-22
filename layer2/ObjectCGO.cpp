@@ -450,7 +450,7 @@ static CGO *ObjectCGOPyListFloatToCGO(PyMOLGlobals * G, PyObject * list)
           CGOStop(cgo);
         }
       }
-      FreeP(raw);
+      PyMolFreeP(raw);
     }
   }
   return (cgo);

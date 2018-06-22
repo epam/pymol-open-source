@@ -3283,10 +3283,10 @@ int BasisMakeMap(CBasis * I, int *vert2prim, CPrimitive * prim, int n_prim,
       int prm_index;
       MapType *map = I->Map;
 
-      prm_spanner = Calloc(int, n_prim);
+      prm_spanner = PyMolCalloc(int, n_prim);
       CHECKOK(ok, prm_spanner);
       if (ok)
-	spanner = Calloc(int, n);
+	spanner = PyMolCalloc(int, n);
       CHECKOK(ok, spanner);
 
       /* figure out which primitives span more than one voxel */
@@ -3328,8 +3328,8 @@ int BasisMakeMap(CBasis * I, int *vert2prim, CPrimitive * prim, int n_prim,
       }
       /* and do the optimized expansion */
       ok &= MapSetupExpressPerp(I->Map, tempVertex, front, n, true, spanner);
-      FreeP(spanner);
-      FreeP(prm_spanner);
+      PyMolFreeP(spanner);
+      PyMolFreeP(prm_spanner);
     } else if(n_voxel < (3 * n)) {
       ok &= MapSetupExpressXY(I->Map, n, true);
     } else {

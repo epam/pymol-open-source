@@ -1022,7 +1022,7 @@ void MainDoReshape(int width, int height)
 static void MainInit(PyMOLGlobals * G)
 {
 
-  CMain *I = (G->Main = Calloc(CMain, 1));
+  CMain *I = (G->Main = PyMolCalloc(CMain, 1));
   /* Data structure is zeroed on start...no need for explicit zero inits */
 
   I->DeferReshapeDeferral = 1;
@@ -1066,7 +1066,7 @@ void MainFree(void)
 
 /* END PROPRIETARY CODE SEGMENT */
 
-  FreeP(G->Main);
+  PyMolFreeP(G->Main);
 
   if(owned_options)
     PyMOLOptions_Free(owned_options);   /* clean up launch options if we're supposed to */

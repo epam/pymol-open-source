@@ -85,12 +85,12 @@ void RepSphereFree(RepSphere * I)
     I->shaderCGO = 0;
   }
 
-  FreeP(I->VC);
-  FreeP(I->V);
-  FreeP(I->VN);
-  FreeP(I->NT);
-  FreeP(I->LastColor);
-  FreeP(I->LastVisib);
+  PyMolFreeP(I->VC);
+  PyMolFreeP(I->V);
+  PyMolFreeP(I->VN);
+  PyMolFreeP(I->NT);
+  PyMolFreeP(I->LastColor);
+  PyMolFreeP(I->LastVisib);
   RepPurge(&I->R);
   OOFreeP(I);
 }
@@ -1475,10 +1475,10 @@ static int RepSphereComputeSphereNormals(RepSphere *I){
   int a;
   MapType *map = NULL;
   float *v0, *v;
-  active = Alloc(int, 2 * n_dot);
+  active = PyMolAlloc(int, 2 * n_dot);
   CHECKOK(ok, active);
   if (ok)
-    v_tmp = Alloc(float, 3 * nc);
+    v_tmp = PyMolAlloc(float, 3 * nc);
   CHECKOK(ok, v_tmp);
   if (ok) {
     float *src = vc + 4;
@@ -1493,7 +1493,7 @@ static int RepSphereComputeSphereNormals(RepSphere *I){
       map = MapNew(G, range, v_tmp, nc, NULL);
       CHECKOK(ok, map);
       if (ok)
-	I->VN = Alloc(float, I->NC * 3);
+	I->VN = PyMolAlloc(float, I->NC * 3);
       CHECKOK(ok, I->VN);
       if(ok && map && I->VN) {
 	float dst;
@@ -1571,9 +1571,9 @@ static int RepSphereComputeSphereNormals(RepSphere *I){
   }
   MapFree(map);
   map = NULL;
-  FreeP(v_tmp);
+  PyMolFreeP(v_tmp);
   map = NULL;
-  FreeP(active);
+  PyMolFreeP(active);
   return ok;
 }
 
@@ -1890,7 +1890,7 @@ Rep *RepSphereNew(CoordSet * cs, int state)
     return NULL;
   obj = cs->Obj;
 
-  marked = Calloc(int, obj->NAtom);
+  marked = PyMolCalloc(int, obj->NAtom);
   CHECKOK(ok, marked);
   if (ok)
     RepInit(G, &I->R);
@@ -1945,11 +1945,11 @@ Rep *RepSphereNew(CoordSet * cs, int state)
   /* raytracing primitives */
 
   if (ok)
-    I->VC = Alloc(float, cs->NIndex * 8);
+    I->VC = PyMolAlloc(float, cs->NIndex * 8);
   CHECKOK(ok, I->VC);
   if (ok){
     I->NC = 0;
-    map_flag = Calloc(int, cs->NIndex);
+    map_flag = PyMolCalloc(int, cs->NIndex);
   }
   CHECKOK(ok, map_flag);
 
@@ -1964,7 +1964,7 @@ Rep *RepSphereNew(CoordSet * cs, int state)
     }
     
     if(SettingGet_b(G, cs->Setting, obj->Obj.Setting, cSetting_pickable)) {
-      I->R.P = Alloc(Pickable, cs->NIndex + 1);
+      I->R.P = PyMolAlloc(Pickable, cs->NIndex + 1);
       CHECKOK(ok, I->R.P);
     }
   }
@@ -1992,7 +1992,7 @@ Rep *RepSphereNew(CoordSet * cs, int state)
       I->VC = ReallocForSure(I->VC, float, 1);
     CHECKOK(ok, I->VC);
     if(ok && I->R.P) {
-      I->R.P = Realloc(I->R.P, Pickable, I->NP + 1);
+      I->R.P = PyMolRealloc(I->R.P, Pickable, I->NP + 1);
       CHECKOK(ok, I->R.P);
       if (ok)
 	I->R.P[0].index = I->NP;
@@ -2030,13 +2030,13 @@ Rep *RepSphereNew(CoordSet * cs, int state)
       float *vc_tmp = NULL;
       Pickable *pk_tmp = NULL;
       int a;
-      ix = Alloc(int, I->NC);
+      ix = PyMolAlloc(int, I->NC);
       CHECKOK(ok, ix);
       if (ok)
-	vc_tmp = Alloc(float, I->NC * 8);
+	vc_tmp = PyMolAlloc(float, I->NC * 8);
       CHECKOK(ok, vc_tmp);
       if (ok)
-	pk_tmp = Alloc(Pickable, I->NP + 1);
+	pk_tmp = PyMolAlloc(Pickable, I->NP + 1);
       CHECKOK(ok, pk_tmp);
 
       if(ok && vc_tmp && pk_tmp && ix) {
@@ -2054,9 +2054,9 @@ Rep *RepSphereNew(CoordSet * cs, int state)
             UtilCopyMem(I->R.P + (a + 1), pk_tmp + ix[a] + 1, sizeof(Pickable));
         }
       }
-      FreeP(vc_tmp);
-      FreeP(ix);
-      FreeP(pk_tmp);
+      PyMolFreeP(vc_tmp);
+      PyMolFreeP(ix);
+      PyMolFreeP(pk_tmp);
     }
     if(ok && (sphere_mode >= 6) && (sphere_mode < 9) && I->NC) {
       /* compute sphere normals in VN to approximate a surface */
@@ -2071,13 +2071,13 @@ Rep *RepSphereNew(CoordSet * cs, int state)
     /* if sp, drawing geometry-based sphere rep */
     if(I->cullFlag && sp) {
       if (ok)
-	I->V = Alloc(float, I->NC * (sp->NVertTot * 31));    /* double check 31 */
+	I->V = PyMolAlloc(float, I->NC * (sp->NVertTot * 31));    /* double check 31 */
       CHECKOK(ok, I->V);
       if (ok)
-	I->NT = Alloc(int, cs->NIndex);
+	I->NT = PyMolAlloc(int, cs->NIndex);
       CHECKOK(ok, I->NT);
       if (ok)
-	visFlag = Alloc(int, sp->nDot);
+	visFlag = PyMolAlloc(int, sp->nDot);
       CHECKOK(ok, visFlag);
       /* hmm...need to compute max(sphere_scale) for all atoms... */
       if (ok)
@@ -2089,9 +2089,9 @@ Rep *RepSphereNew(CoordSet * cs, int state)
 	ok &= MapSetupExpress(map);
     } else if (ok){
       if(sp)
-        I->V = Alloc(float, I->NC * (4 + sp->NVertTot * 6));
+        I->V = PyMolAlloc(float, I->NC * (4 + sp->NVertTot * 6));
       else
-        I->V = Alloc(float, I->NC * 7);    /* one color, one alpha, one vertex per spheres */
+        I->V = PyMolAlloc(float, I->NC * 7);    /* one color, one alpha, one vertex per spheres */
       CHECKOK(ok, I->V);
     }
     /* rendering primitives */
@@ -2119,10 +2119,10 @@ Rep *RepSphereNew(CoordSet * cs, int state)
   }
   if(ok) {
     if(!I->LastVisib)
-      I->LastVisib = Alloc(int, cs->NIndex);
+      I->LastVisib = PyMolAlloc(int, cs->NIndex);
     CHECKOK(ok, I->LastVisib);
     if(ok && !I->LastColor)
-      I->LastColor = Alloc(int, cs->NIndex);
+      I->LastColor = PyMolAlloc(int, cs->NIndex);
     CHECKOK(ok, I->LastColor);
     if (ok){
       lv = I->LastVisib;
@@ -2161,9 +2161,9 @@ Rep *RepSphereNew(CoordSet * cs, int state)
       }
     }
   }
-  FreeP(marked);
-  FreeP(visFlag);
-  FreeP(map_flag);
+  PyMolFreeP(marked);
+  PyMolFreeP(visFlag);
+  PyMolFreeP(map_flag);
   if(map)
     MapFree(map);
   if(!ok) {

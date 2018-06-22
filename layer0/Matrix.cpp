@@ -481,8 +481,8 @@ int *MatrixFilter(float cutoff, int window, int n_pass, int nv, const float *v1,
   int start, finish;
   int cnt;
 
-  flag = Alloc(int, nv);        /* allocate flag matrix */
-  dev = Alloc(float, nv);       /* allocate matrix for storing deviations */
+  flag = PyMolAlloc(int, nv);        /* allocate flag matrix */
+  dev = PyMolAlloc(float, nv);       /* allocate matrix for storing deviations */
 
   for(a = 0; a < nv; a++) {
     flag[a] = true;
@@ -629,7 +629,7 @@ int *MatrixFilter(float cutoff, int window, int n_pass, int nv, const float *v1,
       }
     }
   }
-  FreeP(dev);
+  PyMolFreeP(dev);
   return flag;
 }
 

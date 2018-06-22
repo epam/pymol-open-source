@@ -27,7 +27,7 @@ void PixmapInit(PyMOLGlobals * G, CPixmap * I, int width, int height)
   I->height = height;
   I->width = width;
   if((height >= 0) && (width >= 0)) {
-    I->buffer = Alloc(unsigned char, 4 * height * width);
+    I->buffer = PyMolAlloc(unsigned char, 4 * height * width);
   }
 }
 
@@ -224,7 +224,7 @@ void PixmapInitFromBytemap(PyMOLGlobals * G, CPixmap * I,
 void PixmapPurge(CPixmap * I)
 {
   if(I) {
-    FreeP(I->buffer);
+    PyMolFreeP(I->buffer);
   }
 }
 

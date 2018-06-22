@@ -304,8 +304,8 @@ static void ObjectMeshStateFree(ObjectMeshState * ms)
   ObjectMeshStatePurge(ms);
   VLAFreeP(ms->N);
   VLAFreeP(ms->V);
-  FreeP(ms->VC);
-  FreeP(ms->RC);
+  PyMolFreeP(ms->VC);
+  PyMolFreeP(ms->RC);
 }
 
 static void ObjectMeshFree(ObjectMesh * I)
@@ -465,16 +465,16 @@ static void ObjectMeshStateUpdateColors(ObjectMesh * I, ObjectMeshState * ms)
     int base_n_vert = ms->base_n_V / 3;
 
     if(ms->VC && (ms->VCsize < n_vert)) {
-      FreeP(ms->VC);
-      FreeP(ms->RC);
+      PyMolFreeP(ms->VC);
+      PyMolFreeP(ms->RC);
     }
 
     if(!ms->VC) {
       ms->VCsize = n_vert;
-      ms->VC = Alloc(float, n_vert * 3);
+      ms->VC = PyMolAlloc(float, n_vert * 3);
     }
     if(!ms->RC) {
-      ms->RC = Alloc(int, n_vert);
+      ms->RC = PyMolAlloc(int, n_vert);
     }
     rc = ms->RC;
     vc = ms->VC;
@@ -505,12 +505,12 @@ static void ObjectMeshStateUpdateColors(ObjectMesh * I, ObjectMeshState * ms)
     }
 
     if(one_color_flag && (!ramped_flag)) {
-      FreeP(ms->VC);
-      FreeP(ms->RC);
+      PyMolFreeP(ms->VC);
+      PyMolFreeP(ms->RC);
     } else if((!ramped_flag)
               ||
               (!SettingGet_b(I->Obj.G, NULL, I->Obj.Setting, cSetting_ray_color_ramps))) {
-      FreeP(ms->RC);
+      PyMolFreeP(ms->RC);
     }
   }
 }

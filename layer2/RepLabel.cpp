@@ -55,9 +55,9 @@ static void RepLabelInit(RepLabel *I)
 
 void RepLabelFree(RepLabel * I)
 {
-  FreeP(I->R.P);
-  FreeP(I->V);
-  FreeP(I->L);
+  PyMolFreeP(I->R.P);
+  PyMolFreeP(I->V);
+  PyMolFreeP(I->L);
   if (I->shaderCGO){
     CGOFree(I->shaderCGO);
   }
@@ -224,7 +224,7 @@ Rep *RepLabelNew(CoordSet * cs, int state)
 
   /* raytracing primitives */
 
-  I->L = Alloc(int, cs->NIndex);
+  I->L = PyMolAlloc(int, cs->NIndex);
   ErrChkPtr(G, I->L);
   I->V = (float *) mmalloc(sizeof(float) * cs->NIndex * 9);
   ErrChkPtr(G, I->V);
@@ -235,7 +235,7 @@ Rep *RepLabelNew(CoordSet * cs, int state)
   lab_pos = SettingGet_3fv(G, cs->Setting, obj->Obj.Setting, cSetting_label_position);
 
   if(SettingGet_b(G, cs->Setting, obj->Obj.Setting, cSetting_pickable)) {
-    I->R.P = Alloc(Pickable, cs->NIndex + 1);
+    I->R.P = PyMolAlloc(Pickable, cs->NIndex + 1);
     ErrChkPtr(G, I->R.P);
     rp = I->R.P + 1;            /* skip first record! */
   }
@@ -310,7 +310,7 @@ Rep *RepLabelNew(CoordSet * cs, int state)
     I->V = ReallocForSure(I->V, float, 1);
     I->L = ReallocForSure(I->L, int, 1);
     if(rp) {
-      FreeP(I->R.P);
+      PyMolFreeP(I->R.P);
     }
   }
   return (Rep *) I;

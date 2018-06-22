@@ -218,8 +218,8 @@ Block *PopUpNew(PyMOLGlobals * G, int x, int y, int last_x, int last_y,
   dim[1] = mx + 1;
   I->Command = (char **) UtilArrayCalloc((unsigned int *) (void *) dim, 2, 1);
 
-  I->Code = Alloc(int, I->NLine + 1);
-  I->Sub = Calloc(PyObject *, I->NLine + 1);
+  I->Code = PyMolAlloc(int, I->NLine + 1);
+  I->Sub = PyMolCalloc(PyObject *, I->NLine + 1);
 
   for(a = 0; a < I->NLine; a++) {
     PyObject *command;
@@ -384,10 +384,10 @@ static void PopUpFree(Block * block)
 
   OrthoDetach(G, I->Block);
   OrthoFreeBlock(G, I->Block);
-  FreeP(I->Sub);
-  FreeP(I->Code);
-  FreeP(I->Command);
-  FreeP(I->Text);
+  PyMolFreeP(I->Sub);
+  PyMolFreeP(I->Code);
+  PyMolFreeP(I->Command);
+  PyMolFreeP(I->Text);
   OOFreeP(I);
 
 }

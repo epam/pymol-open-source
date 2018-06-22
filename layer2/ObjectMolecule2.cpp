@@ -424,7 +424,7 @@ int *ObjectMoleculeGetPrioritizedOtherIndexList(ObjectMolecule * I, CoordSet * c
   int a, b;
   int b1, b2, a1, a2, a3;
   OtherRec *o;
-  OtherRec *other = Calloc(OtherRec, cs->NIndex);
+  OtherRec *other = PyMolCalloc(OtherRec, cs->NIndex);
   int *result = NULL;
   int offset;
   int n_alloc = 0;
@@ -462,7 +462,7 @@ int *ObjectMoleculeGetPrioritizedOtherIndexList(ObjectMolecule * I, CoordSet * c
   if (ok){
     n_alloc = 3 * (n_alloc + cs->NIndex);
     o = other;
-    result = Alloc(int, n_alloc);
+    result = PyMolAlloc(int, n_alloc);
     CHECKOK(ok, result);
   }
   if (ok){
@@ -552,7 +552,7 @@ int *ObjectMoleculeGetPrioritizedOtherIndexList(ObjectMolecule * I, CoordSet * c
     bd++;
     ok &= !I->Obj.G->Interrupt;
   }
-  FreeP(other);
+  PyMolFreeP(other);
   return result;
 }
 
@@ -1524,7 +1524,7 @@ int ObjectMoleculeConvertIDsToIndices(ObjectMolecule * I, int *id, int n_id)
       int a, offset;
 
       range = max_id - min_id + 1;
-      lookup = Calloc(int, range);
+      lookup = PyMolCalloc(int, range);
       for(a = 0; a < I->NAtom; a++) {
         offset = I->AtomInfo[a].id - min_id;
         if(!lookup[offset])
@@ -1554,7 +1554,7 @@ int ObjectMoleculeConvertIDsToIndices(ObjectMolecule * I, int *id, int n_id)
     }
   }
 
-  FreeP(lookup);
+  PyMolFreeP(lookup);
   return unique;
 
 }
@@ -1725,7 +1725,7 @@ static void ObjectMoleculePDBStr2CoordSetPASS1(PyMOLGlobals * G, int *ok,
             p = ntrim(cc, p, 6);      /* get context name */
             if(WordMatchExact(G, "ALIGN", cc, true)) {        /* ALIGN is special */
               if(!m4x->align) {
-                m4x->align = Calloc(M4XAlignType, 1);
+                m4x->align = PyMolCalloc(M4XAlignType, 1);
                 CHECKOK(*ok, m4x->align);
                 if (*ok){
                   M4XAlignInit(m4x->align);
@@ -1840,13 +1840,13 @@ static void sshash_free(SSHash *hash) {
   if(!hash)
     return;
   for(a = 0; a <= 255; a++)
-    FreeP(hash->ss[a]);
+    PyMolFreeP(hash->ss[a]);
   VLAFreeP(hash->ss_list);
-  FreeP(hash);
+  PyMolFreeP(hash);
 }
 
 static SSHash * sshash_new() {
-  SSHash *hash = Calloc(SSHash, 1);
+  SSHash *hash = PyMolCalloc(SSHash, 1);
   ok_assert(1, hash);
   hash->n_ss = 1;
   hash->ss_list = VLAlloc(SSEntry, 50);
@@ -1879,7 +1879,7 @@ static int sshash_register_rec(SSHash * hash,
   for (a = 0, chain = ss_chain1; a < 2; a++, chain = ss_chain2) {
     // allocate new array for chain if necc.
     if(!hash->ss[chain]) {
-      ok_assert(1, hash->ss[chain] = Calloc(int, cResvMask + 1));
+      ok_assert(1, hash->ss[chain] = PyMolCalloc(int, cResvMask + 1));
     }
 
     sst = NULL;
@@ -2936,7 +2936,7 @@ CoordSet *ObjectMoleculePDBStr2CoordSet(PyMOLGlobals * G,
           maxAt = atInfo[a].id;
       /* build index */
       maxAt++;
-      idx = Alloc(int, maxAt + 1);
+      idx = PyMolAlloc(int, maxAt + 1);
       CHECKOK(ok, idx);
       if (ok){
 	for(a = 0; a < maxAt; a++) {
@@ -2993,7 +2993,7 @@ CoordSet *ObjectMoleculePDBStr2CoordSet(PyMOLGlobals * G,
         }
       }
       nBond = nReal;
-      FreeP(idx);
+      PyMolFreeP(idx);
     }
   }
   if(ss_found && !quiet) {
@@ -3655,7 +3655,7 @@ static PyObject *ObjectMoleculeAtomAsPyList(ObjectMolecule * I)
       totalstlen += lexlen + 1;
     }
     int strinfolen = totalstlen + sizeof(int) * (lexIDs.size() + 1);
-    void *strinfo = Alloc(unsigned char, strinfolen);
+    void *strinfo = PyMolAlloc(unsigned char, strinfolen);
     int *strval = (int*)strinfo;
     *(strval++) = lexIDs.size(); // first write number of strings into binary data string
     char *strpl = (char*)((char*)strinfo + (1 + lexIDs.size()) * sizeof(int));
@@ -3687,7 +3687,7 @@ static PyObject *ObjectMoleculeAtomAsPyList(ObjectMolecule * I)
     PyList_SetItem(result, 2, PyBytes_FromStringAndSize(reinterpret_cast<const char*>(strinfo), strinfolen));
 
     VLAFreeP(blob);
-    FreeP(strinfo);
+    PyMolFreeP(strinfo);
     return result;
   }
 #endif
@@ -3905,7 +3905,7 @@ PyObject *ObjectMoleculeAsPyList(ObjectMolecule * I)
       }
     }
 
-    dcs = Alloc(int, I->NAtom);
+    dcs = PyMolAlloc(int, I->NAtom);
 
     for(a = 0; a < I->NAtom; a++) {
       cs = I->DiscreteCSet[a];
@@ -3917,7 +3917,7 @@ PyObject *ObjectMoleculeAsPyList(ObjectMolecule * I)
 
     PyList_SetItem(result, 14, PConvIntArrayToPyList(I->DiscreteAtmToIdx, I->NAtom));
     PyList_SetItem(result, 15, PConvIntArrayToPyList(dcs, I->NAtom));
-    FreeP(dcs);
+    PyMolFreeP(dcs);
   } else {
     PyList_SetItem(result, 14, PConvAutoNone(NULL));
     PyList_SetItem(result, 15, PConvAutoNone(NULL));
@@ -4082,7 +4082,7 @@ int ObjectMoleculeConnect(ObjectMolecule * I, int *nbond, BondType ** bond, Atom
       case 2:                  /* distance-based only */  {
           /* distance-based bond location  */
           int violations = 0;
-          int *cnt = Alloc(int, cs->NIndex);
+          int *cnt = PyMolAlloc(int, cs->NIndex);
           int valcnt;
 
 	  CHECKOK(ok, cnt);
@@ -4189,7 +4189,7 @@ int ObjectMoleculeConnect(ObjectMolecule * I, int *nbond, BondType ** bond, Atom
             }
           do_it_again:
             MapFree(map);
-            FreeP(cnt);
+            PyMolFreeP(cnt);
           }
         }
       case 1:                  /* only use explicit connectivity from file (don't do anything) */

@@ -92,27 +92,27 @@ void RepSurfaceFree(RepSurface * I)
     I->shaderCGO = NULL;
   }
   if (I->vertexIndices){
-    FreeP(I->vertexIndices);
+    PyMolFreeP(I->vertexIndices);
   }
   if (I->sum){
-    FreeP(I->sum);
+    PyMolFreeP(I->sum);
   }
   if (I->z_value){
-    FreeP(I->z_value);
+    PyMolFreeP(I->z_value);
   }
   if (I->ix){
-    FreeP(I->ix);
+    PyMolFreeP(I->ix);
   }
-  FreeP(I->VC);
-  FreeP(I->VA);
+  PyMolFreeP(I->VC);
+  PyMolFreeP(I->VA);
   if (I->VAO){
     VLAFreeP(I->VAO);
     I->VAO = 0;
   }
-  FreeP(I->RC);
-  FreeP(I->Vis);
-  FreeP(I->LastColor);
-  FreeP(I->LastVisib);
+  PyMolFreeP(I->RC);
+  PyMolFreeP(I->Vis);
+  PyMolFreeP(I->LastColor);
+  PyMolFreeP(I->LastVisib);
   CGOFree(I->debug);
   VLAFreeP(I->T);
   VLAFreeP(I->S);
@@ -400,7 +400,7 @@ static void RepSurfaceRender(RepSurface * I, RenderInfo * info)
       float radius;
       int t0, t1, t2;
       int spacing = 10;
-      int *cache = Calloc(int, spacing * (I->N + 1));
+      int *cache = PyMolCalloc(int, spacing * (I->N + 1));
       CHECKOK(ok, cache);
 
       radius = SettingGet_f(G, I->R.cs->Setting, I->R.obj->Setting, cSetting_mesh_radius);
@@ -454,7 +454,7 @@ static void RepSurfaceRender(RepSurface * I, RenderInfo * info)
 	    t += 3;
 	  }
 	}
-	FreeP(cache);
+	PyMolFreeP(cache);
       }
     }
     if (ok){
@@ -534,7 +534,7 @@ static void RepSurfaceRender(RepSurface * I, RenderInfo * info)
 		    uint vbuf = CGO_get_int(pc+8);
 		    uint *vertexIndices;
 		    vertexIndices = I->vertexIndices;
-		    //		  vertexIndices = Alloc(uint, nindices);	      
+		    //		  vertexIndices = PyMolAlloc(uint, nindices);	      
 		    if (!vertexIndices){
 		      PRINTFB(I->R.G, FB_RepSurface, FB_Errors) "ERROR: RepSurfaceRender() vertexIndices is not set, nindices=%d\n", nindices ENDFB(I->R.G);
 		    }
@@ -1004,21 +1004,21 @@ static void RepSurfaceRender(RepSurface * I, RenderInfo * info)
             glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
 
             if(I->oneColorFlag) {
-              t_buf = Alloc(float *, I->NT * 6);
+              t_buf = PyMolAlloc(float *, I->NT * 6);
             } else {
-              t_buf = Alloc(float *, I->NT * 12);
+              t_buf = PyMolAlloc(float *, I->NT * 12);
             }
 	    CHECKOK(ok, t_buf);
 	    if (ok){
-	      z_value = Alloc(float, I->NT);
+	      z_value = PyMolAlloc(float, I->NT);
 	      CHECKOK(ok, z_value);
 	    }
 	    if (ok){
-	      ix = Alloc(int, I->NT);
+	      ix = PyMolAlloc(int, I->NT);
 	      CHECKOK(ok, ix);
 	    }
 	    if (ok && use_shader && generate_shader_cgo){
-	      sumarray = Alloc(float, I->NT * 3);
+	      sumarray = PyMolAlloc(float, I->NT * 3);
 	      CHECKOK(ok, sumarray);
 	    }
             zv = z_value;
@@ -1257,9 +1257,9 @@ static void RepSurfaceRender(RepSurface * I, RenderInfo * info)
 	      I->n_tri = n_tri;
 	      I->sum = sumarray;
 	    } else {
-	      FreeP(ix);
-	      FreeP(z_value);
-	      FreeP(t_buf);
+	      PyMolFreeP(ix);
+	      PyMolFreeP(z_value);
+	      PyMolFreeP(t_buf);
 	    }
           } else if (ok) {
             if(info->alpha_cgo) {       /* global transparency sort */
@@ -2354,7 +2354,7 @@ static void RepSurfaceRender(RepSurface * I, RenderInfo * info)
 		    int nindices = CGO_get_int(pc+3), c, pl, idx;
 		    uint vbuf = CGO_get_int(pc+8);
 		    uint *vertexIndices;
-		    vertexIndices = Alloc(uint, nindices);	      
+		    vertexIndices = PyMolAlloc(uint, nindices);	      
 		    if (!vertexIndices){
 		      PRINTFB(I->R.G, FB_RepSurface, FB_Errors) "ERROR: RepSurfaceRender() vertexIndices could not be allocated: nindices=%d\n", nindices ENDFB(I->R.G);
 		    }
@@ -2513,9 +2513,9 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
   cutoff = I->max_vdw + 2 * probe_radius;
 
   if(!I->LastVisib)
-    I->LastVisib = Alloc(char, cs->NIndex);
+    I->LastVisib = PyMolAlloc(char, cs->NIndex);
   if(!I->LastColor)
-    I->LastColor = Alloc(int, cs->NIndex);
+    I->LastColor = PyMolAlloc(int, cs->NIndex);
   lv = I->LastVisib;
   lc = I->LastColor;
   for(a = 0; a < cs->NIndex; a++) {
@@ -2558,16 +2558,16 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
     }
 
     if(!I->VC)
-      I->VC = Alloc(float, 3 * I->N);
+      I->VC = PyMolAlloc(float, 3 * I->N);
     vc = I->VC;
     if(!I->VA)
-      I->VA = Alloc(float, I->N);
+      I->VA = PyMolAlloc(float, I->N);
     va = I->VA;
     if(!I->RC)
-      I->RC = Alloc(int, I->N);
+      I->RC = PyMolAlloc(int, I->N);
     rc = I->RC;
     if(!I->Vis)
-      I->Vis = Alloc(int, I->N);
+      I->Vis = PyMolAlloc(int, I->N);
     vi = I->Vis;
     if(ColorCheckRamped(G, surface_color)) {
       I->oneColorFlag = false;
@@ -2576,7 +2576,7 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
     }
     first_color = -1;
 
-    present = Alloc(int, cs->NIndex);
+    present = PyMolAlloc(int, cs->NIndex);
     {
       int *ap = present;
       for(a = 0; a < cs->NIndex; a++) {
@@ -2657,8 +2657,8 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
 
       if (ambient_occlusion_mode==3){
 	/* per atom */
-	float *VAO = Alloc(float, cs->NIndex);
-	short *nVAO = Alloc(short, cs->NIndex);
+	float *VAO = PyMolAlloc(float, cs->NIndex);
+	short *nVAO = PyMolAlloc(short, cs->NIndex);
 	memset(VAO, 0, sizeof(float)*cs->NIndex);
 	memset(nVAO, 0, sizeof(short)*cs->NIndex);
 
@@ -2737,8 +2737,8 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
 	    }
 	  }
 	}
-	FreeP(VAO);
-	FreeP(nVAO);
+	PyMolFreeP(VAO);
+	PyMolFreeP(nVAO);
       } else {
 	float natomsL = 0;
 	for(a = 0; a < I->N; a++) {
@@ -2836,8 +2836,8 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
 	if (ambient_occlusion_smooth && I->T){
 	  int i, j, pt1, pt2, pt3;
 	  float ave;
-	  float *tmpVAO = Alloc(float, I->N);
-	  int *nVAO = Alloc(int, I->N), c, *t;
+	  float *tmpVAO = PyMolAlloc(float, I->N);
+	  int *nVAO = PyMolAlloc(int, I->N), c, *t;
 	  
 	  for (j=0; j<ambient_occlusion_smooth; j++){
 	    memset(nVAO, 0, sizeof(int)*I->N);
@@ -2869,8 +2869,8 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
 	      }
 	    }
 	  }
-	  FreeP(tmpVAO);
-	  FreeP(nVAO);
+	  PyMolFreeP(tmpVAO);
+	  PyMolFreeP(nVAO);
 	}
 
       }
@@ -3111,26 +3111,26 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
       I->shaderCGO = NULL;
     }
     if (I->vertexIndices){
-      FreeP(I->vertexIndices);
+      PyMolFreeP(I->vertexIndices);
       I->vertexIndices = 0;
     }
     if (I->sum){
-      FreeP(I->sum);
+      PyMolFreeP(I->sum);
       I->sum = 0;
     }
     if (I->z_value){
-      FreeP(I->z_value);
+      PyMolFreeP(I->z_value);
       I->z_value = 0;
     }
     if (I->ix){
-      FreeP(I->ix);
+      PyMolFreeP(I->ix);
       I->ix = 0;
     }
     I->n_tri = 0;
   }
 
   if(I->VA && (!variable_alpha)) {
-    FreeP(I->VA);
+    PyMolFreeP(I->VA);
     I->VA = NULL;
   }
 
@@ -3142,9 +3142,9 @@ void RepSurfaceColor(RepSurface * I, CoordSet * cs)
   VLAFreeP(clear_vla);
   if((!ramped_flag)
      || (!SettingGet_b(G, cs->Setting, obj->Obj.Setting, cSetting_ray_color_ramps)))
-    FreeP(I->RC);
+    PyMolFreeP(I->RC);
   I->ColorInvalidated = false;
-  FreeP(present);
+  PyMolFreeP(present);
 }
 
 typedef struct {
@@ -3459,7 +3459,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
 	    ok &= map->EList && solv_map->EList;
             if(sol_dot->nDot && ok) {
               int *dc = sol_dot->dotCode;
-              Vector3f *dot = Alloc(Vector3f, sp->nDot);
+              Vector3f *dot = PyMolAlloc(Vector3f, sp->nDot);
               float *v0, *n0;
 	      CHECKOK(ok, dot);
               if (ok){
@@ -3580,7 +3580,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
 		  ok &= !G->Interrupt;
                 }
               }
-              FreeP(dot);
+              PyMolFreeP(dot);
             }
           }
           MapFree(solv_map);
@@ -3731,7 +3731,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
 
           /* combine scribing with an atom proximity cleanup pass */
 
-          int *dot_flag = Calloc(int, I->N);
+          int *dot_flag = PyMolCalloc(int, I->N);
           MapType *map =
             MapNewFlagged(G, I->maxVdw + probe_radius, I_coord, n_index, NULL,
                           present_vla);
@@ -3787,7 +3787,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
               }
             }
           }
-          FreeP(dot_flag);
+          PyMolFreeP(dot_flag);
         }
 
         /* now, eliminate dots that are too close to each other */
@@ -3802,7 +3802,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
         if(ok && I->N) {
           int repeat_flag = true;
           float min_dot = 0.1F;
-          int *dot_flag = Alloc(int, I->N);
+          int *dot_flag = PyMolAlloc(int, I->N);
 	  CHECKOK(ok, dot_flag);
           while(ok && repeat_flag) {
             repeat_flag = false;
@@ -3935,7 +3935,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
             }
 	    ok &= !G->Interrupt;
           }
-          FreeP(dot_flag);
+          PyMolFreeP(dot_flag);
         }
 
         /* now eliminate troublesome vertices in regions of extremely high curvature */
@@ -3948,7 +3948,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
           float neighborhood = trim_factor * point_sep;
           float dot_sum;
           int n_nbr;
-          int *dot_flag = Alloc(int, I->N);
+          int *dot_flag = PyMolAlloc(int, I->N);
 	  CHECKOK(ok, dot_flag);
           if(ok && surface_type == 6) {       /* emprical tweaks */
             trim_factor *= 2.5;
@@ -4028,7 +4028,7 @@ static int SurfaceJobRun(PyMOLGlobals * G, SurfaceJob * I)
             MapFree(map);
 	    ok &= !G->Interrupt;
           }
-          FreeP(dot_flag);
+          PyMolFreeP(dot_flag);
         }
 	ok &= !G->Interrupt;
       }
@@ -4999,7 +4999,7 @@ static SolventDot *SolventDotNew(PyMOLGlobals * G,
       MapFree(map);
     }
     {
-      int *dot_flag = Calloc(int, I->nDot);
+      int *dot_flag = PyMolCalloc(int, I->nDot);
       ErrChkPtr(G, dot_flag);
       {
         MapType *map = MapNew(G, cavity_cutoff, cavityDot, nCavityDot, NULL);
@@ -5062,13 +5062,13 @@ static SolventDot *SolventDotNew(PyMOLGlobals * G,
         PRINTFD(G, FB_RepSurface)
           " SolventDotNew-DEBUG: %d->%d\n", c, I->nDot ENDFD;
       }
-      FreeP(dot_flag);
+      PyMolFreeP(dot_flag);
     }
     VLAFreeP(cavityDot);
   }
   if(ok && (cavity_mode != 1) && (cavity_cull > 0) && 
      (probe_radius > 0.75F) && (!surface_solvent)) {
-    int *dot_flag = Calloc(int, I->nDot);
+    int *dot_flag = PyMolCalloc(int, I->nDot);
     ErrChkPtr(G, dot_flag);
 
     {
@@ -5148,7 +5148,7 @@ static SolventDot *SolventDotNew(PyMOLGlobals * G,
         " SolventDotNew-DEBUG: %d->%d\n", c, I->nDot ENDFD;
     }
 
-    FreeP(dot_flag);
+    PyMolFreeP(dot_flag);
   }
   if(!ok) {
     SolventDotFree(I);

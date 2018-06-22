@@ -1288,7 +1288,7 @@ void ObjectStateCopy(CObjectState * dst, const CObjectState * src)
   *dst = *src;
   /* deep copy matrices if necessary */
   if(src->Matrix) {
-    dst->Matrix = Alloc(double, 16);
+    dst->Matrix = PyMolAlloc(double, 16);
     if(dst->Matrix) {
       copy44d(src->Matrix, dst->Matrix);
     }
@@ -1298,8 +1298,8 @@ void ObjectStateCopy(CObjectState * dst, const CObjectState * src)
 
 void ObjectStatePurge(CObjectState * I)
 {
-  FreeP(I->Matrix);
-  FreeP(I->InvMatrix);
+  PyMolFreeP(I->Matrix);
+  PyMolFreeP(I->InvMatrix);
 }
 
 int ObjectStateSetMatrix(CObjectState * I, double *matrix)
@@ -1307,16 +1307,16 @@ int ObjectStateSetMatrix(CObjectState * I, double *matrix)
   int ok = true;
   if(matrix) {
     if(!I->Matrix)
-      I->Matrix = Alloc(double, 16);
+      I->Matrix = PyMolAlloc(double, 16);
     CHECKOK(ok, I->Matrix);
     if(I->Matrix) {
       copy44d(matrix, I->Matrix);
     }
   } else if(I->Matrix) {
-    FreeP(I->Matrix);
+    PyMolFreeP(I->Matrix);
     I->Matrix = NULL;
   }
-  FreeP(I->InvMatrix);
+  PyMolFreeP(I->InvMatrix);
   return ok;
 }
 
@@ -1324,26 +1324,26 @@ void ObjectStateRightCombineMatrixR44d(CObjectState * I, double *matrix)
 {
   if(matrix) {
     if(!I->Matrix) {
-      I->Matrix = Alloc(double, 16);
+      I->Matrix = PyMolAlloc(double, 16);
       copy44d(matrix, I->Matrix);
     } else {
       right_multiply44d44d(I->Matrix, matrix);
     }
   }
-  FreeP(I->InvMatrix);
+  PyMolFreeP(I->InvMatrix);
 }
 
 void ObjectStateLeftCombineMatrixR44d(CObjectState * I, double *matrix)
 {
   if(matrix) {
     if(!I->Matrix) {
-      I->Matrix = Alloc(double, 16);
+      I->Matrix = PyMolAlloc(double, 16);
       copy44d(matrix, I->Matrix);
     } else {
       left_multiply44d44d(matrix, I->Matrix);
     }
   }
-  FreeP(I->InvMatrix);
+  PyMolFreeP(I->InvMatrix);
 }
 
 void ObjectStateCombineMatrixTTT(CObjectState * I, float *matrix)
@@ -1351,7 +1351,7 @@ void ObjectStateCombineMatrixTTT(CObjectState * I, float *matrix)
 
   if(matrix) {
     if(!I->Matrix) {
-      I->Matrix = Alloc(double, 16);
+      I->Matrix = PyMolAlloc(double, 16);
       convertTTTfR44d(matrix, I->Matrix);
     } else {
       double tmp[16];
@@ -1359,7 +1359,7 @@ void ObjectStateCombineMatrixTTT(CObjectState * I, float *matrix)
       right_multiply44d44d(I->Matrix, tmp);
     }
   }
-  FreeP(I->InvMatrix);
+  PyMolFreeP(I->InvMatrix);
 }
 
 double *ObjectStateGetMatrix(CObjectState * I)
@@ -1373,7 +1373,7 @@ double *ObjectStateGetMatrix(CObjectState * I)
 double *ObjectStateGetInvMatrix(CObjectState * I)
 {
   if(I->Matrix && !I->InvMatrix) {
-    I->InvMatrix = Alloc(double, 16);
+    I->InvMatrix = PyMolAlloc(double, 16);
     xx_matrix_invert(I->InvMatrix, I->Matrix, 4);
   }
   return I->InvMatrix;
@@ -1382,14 +1382,14 @@ double *ObjectStateGetInvMatrix(CObjectState * I)
 void ObjectStateTransformMatrix(CObjectState * I, double *matrix)
 {
   if(!I->Matrix) {
-    I->Matrix = Alloc(double, 16);
+    I->Matrix = PyMolAlloc(double, 16);
     if(I->Matrix) {
       copy44d(matrix, I->Matrix);
     }
   } else {
     right_multiply44d44d(I->Matrix, matrix);
   }
-  FreeP(I->InvMatrix);
+  PyMolFreeP(I->InvMatrix);
 }
 
 int ObjectStatePushAndApplyMatrix(CObjectState * I, RenderInfo * info)
@@ -1447,8 +1447,8 @@ void ObjectStatePopMatrix(CObjectState * I, RenderInfo * info)
 
 void ObjectStateResetMatrix(CObjectState * I)
 {
-  FreeP(I->Matrix);
-  FreeP(I->InvMatrix);
+  PyMolFreeP(I->Matrix);
+  PyMolFreeP(I->InvMatrix);
 }
 
 PyObject *ObjectStateAsPyList(CObjectState * I)

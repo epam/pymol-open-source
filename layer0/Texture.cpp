@@ -95,12 +95,12 @@ void TextureInitTextTexture(PyMOLGlobals *G){
     if (is_new){
       int tex_dim = INIT_TEXTURE_SIZE;
       int buff_total = tex_dim * tex_dim;
-      unsigned char *temp_buffer = Alloc(unsigned char, buff_total * 4);
+      unsigned char *temp_buffer = PyMolAlloc(unsigned char, buff_total * 4);
       UtilZeroMem(temp_buffer, buff_total * 4);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 		   tex_dim, tex_dim, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)temp_buffer);
       I->text_texture_dim = INIT_TEXTURE_SIZE;
-      FreeP(temp_buffer);
+      PyMolFreeP(temp_buffer);
       I->xpos = POS_START; I->ypos = 0; I->maxypos = POS_START;
     }
   }
@@ -134,7 +134,7 @@ int TextureGetFromChar(PyMOLGlobals * G, int char_id, float *extent)
         GLuint texture_id = 0;
         int buff_incr = is_new ? tex_dim : w;
         int buff_total = is_new ? tex_dim * tex_dim : w * h;
-        unsigned char *temp_buffer = Alloc(unsigned char, buff_total * 4);
+        unsigned char *temp_buffer = PyMolAlloc(unsigned char, buff_total * 4);
 
         {
           int a, b;
@@ -206,7 +206,7 @@ int TextureGetFromChar(PyMOLGlobals * G, int char_id, float *extent)
 	} else {
 	  I->xpos += w + 1; // added space for running on Ipad/Iphone (weird artifacts)
 	}
-          FreeP(temp_buffer);
+          PyMolFreeP(temp_buffer);
         return texture_id;
       }
     }

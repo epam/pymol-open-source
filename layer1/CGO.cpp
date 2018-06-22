@@ -89,7 +89,7 @@ int CGORendererInit(PyMOLGlobals * G)
 {
   CCGORenderer *I = NULL;
 
-  I = (G->CGORenderer = Calloc(CCGORenderer, 1));
+  I = (G->CGORenderer = PyMolCalloc(CCGORenderer, 1));
   if(I) {
     I->G = G;
     I->isPicking = false;
@@ -101,7 +101,7 @@ int CGORendererInit(PyMOLGlobals * G)
 
 void CGORendererFree(PyMOLGlobals * G)
 {
-  FreeP(G->CGORenderer);
+  PyMolFreeP(G->CGORenderer);
 }
 
 int CGO_sz[] = {
@@ -442,7 +442,7 @@ void CGOFreeImpl(CGO * I, short withVBOs)
       CGOFreeVBOs(I);
     }
     if(I->i_start) {
-      FreeP(I->i_start);
+      PyMolFreeP(I->i_start);
     }
     VLAFreeP(I->op);
   }
@@ -2389,7 +2389,7 @@ int OptimizePointsToVBO(CGO *I, CGO *cgo, int num_total_vertices_points, float *
   //    tot = num_total_indexes * (3 * 3 + 2) ;
   /* NOTE/TODO: Not sure why 3*5 needs to be used, but 3*3+2, which is the 
      correct length, crashes in glBufferData */
-  vertexVals = Alloc(float, tot);
+  vertexVals = PyMolAlloc(float, tot);
   CHECKOK(ok, vertexVals);
   if (!ok){
     PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: OptimizePointsToVBO() vertexVals could not be allocated\n" ENDFB(I->G);	
@@ -2641,7 +2641,7 @@ int OptimizePointsToVBO(CGO *I, CGO *cgo, int num_total_vertices_points, float *
       CShaderMgr_AddVBOsToFree(I->G->ShaderMgr, bufs, 3);
     }
   }
-  FreeP(vertexVals);
+  PyMolFreeP(vertexVals);
   return ok;
   /* END GL_POINTS */
   //    printf("num_total_vertices_points=%d\n", num_total_vertices_points);
@@ -3086,7 +3086,7 @@ CGO *CGOOptimizeToVBONotIndexedWithReturnedData(CGO * I, int est, short addshade
     //    tot = num_total_indexes * (3 * 3 + 2) ;
     /* NOTE/TODO: Not sure why 3*5 needs to be used, but 3*3+2, which is the 
        correct length, crashes in glBufferData */
-    vertexVals = Alloc(float, tot);
+    vertexVals = PyMolAlloc(float, tot);
     if (!vertexVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeToVBONotIndexed() vertexVals could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
@@ -3113,7 +3113,7 @@ CGO *CGOOptimizeToVBONotIndexedWithReturnedData(CGO * I, int est, short addshade
     if (!ok){
       if (!I->G->Interrupt)
 	PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOProcessCGOtoArrays() could not allocate enough memory\n" ENDFB(I->G);	
-      FreeP(vertexVals);      
+      PyMolFreeP(vertexVals);      
       CGOFree(cgo);
       return (NULL);
     }
@@ -3204,7 +3204,7 @@ CGO *CGOOptimizeToVBONotIndexedWithReturnedData(CGO * I, int est, short addshade
 	}
 	if (!ok){
 	  PRINTFB(I->G, FB_CGO, FB_Errors) "CGOOptimizeToVBONotIndexedWithReturnedData: ERROR: CGODrawBuffersNotIndexed() could not allocate enough memory\n" ENDFB(I->G);	
-	  FreeP(vertexVals);
+	  PyMolFreeP(vertexVals);
 	  CGOFree(cgo);
 	  return (NULL);
 	}
@@ -3217,7 +3217,7 @@ CGO *CGOOptimizeToVBONotIndexedWithReturnedData(CGO * I, int est, short addshade
     if (ok && returnedData){
       returnedData[0] = vertexVals;
     } else {
-      FreeP(vertexVals);
+      PyMolFreeP(vertexVals);
     }
   }
   if (ok && num_total_indexes_lines>0){
@@ -3235,7 +3235,7 @@ CGO *CGOOptimizeToVBONotIndexedWithReturnedData(CGO * I, int est, short addshade
     //    tot = num_total_indexes * (3 * 3 + 2) ;
     /* NOTE/TODO: Not sure why 3*5 needs to be used, but 3*3+2, which is the 
        correct length, crashes in glBufferData */
-    vertexVals = Alloc(float, tot);
+    vertexVals = PyMolAlloc(float, tot);
     if (!vertexVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeToVBONotIndexed() vertexVals could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
@@ -3464,7 +3464,7 @@ CGO *CGOOptimizeToVBONotIndexedWithReturnedData(CGO * I, int est, short addshade
 	CHECKOK(ok, newPickColorVals);
 	if (!ok){
 	  PRINTFB(I->G, FB_CGO, FB_Errors) "CGOOptimizeToVBONotIndexedWithReturnedData: ERROR: CGODrawBuffersNotIndexed() could not allocate enough memory\n" ENDFB(I->G);	
-	  FreeP(vertexVals);
+	  PyMolFreeP(vertexVals);
 	  CGOFree(cgo);
 	  if (!newPickColorVals)
 	    CShaderMgr_AddVBOsToFree(I->G->ShaderMgr, bufs, 3);
@@ -3479,7 +3479,7 @@ CGO *CGOOptimizeToVBONotIndexedWithReturnedData(CGO * I, int est, short addshade
     if (ok && returnedData){
       returnedData[1] = vertexVals;
     } else {
-      FreeP(vertexVals);
+      PyMolFreeP(vertexVals);
     }
   }
 
@@ -3563,7 +3563,7 @@ CGO *CGOOptimizeToVBOIndexedWithColorImpl(CGO * I, int est, float *color, short 
     uchar *normalValsC = 0;
     short ambient_occlusion = 0;
     pc = I->op;
-    vertexIndexes = Alloc(GL_C_INT_TYPE, num_total_indexes);
+    vertexIndexes = PyMolAlloc(GL_C_INT_TYPE, num_total_indexes);
     if (!vertexIndexes){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeToVBOIndexed() vertexIndexes could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
@@ -3573,7 +3573,7 @@ CGO *CGOOptimizeToVBOIndexedWithColorImpl(CGO * I, int est, float *color, short 
     //    tot = num_total_vertices * (3 * 3 + 2) ;
     /* NOTE/TODO: Not sure why 3*5 needs to be used, but 3*3+2, which is the 
        correct length, crashes in glBufferData */
-    vertexVals = Alloc(float, tot);
+    vertexVals = PyMolAlloc(float, tot);
     if (!vertexVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeToVBOIndexed() vertexVals could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
@@ -3877,8 +3877,8 @@ CGO *CGOOptimizeToVBOIndexedWithColorImpl(CGO * I, int est, float *color, short 
 	CShaderMgr_AddVBOsToFree(I->G->ShaderMgr, bufs, 5);	
       }
     }
-    FreeP(vertexIndexes);
-    FreeP(vertexVals);
+    PyMolFreeP(vertexIndexes);
+    PyMolFreeP(vertexVals);
   }
   if (ok && num_total_vertices_lines>0){
     float *vertexVals = 0, *colorVals = 0, *normalVals;
@@ -3890,7 +3890,7 @@ CGO *CGOOptimizeToVBOIndexedWithColorImpl(CGO * I, int est, float *color, short 
 
     pc = I->op;
 
-    vertexIndexes = Alloc(GL_C_INT_TYPE, num_total_indexes_lines);
+    vertexIndexes = PyMolAlloc(GL_C_INT_TYPE, num_total_indexes_lines);
     if (!vertexIndexes){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeToVBOIndexed() vertexIndexes could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
@@ -3900,7 +3900,7 @@ CGO *CGOOptimizeToVBOIndexedWithColorImpl(CGO * I, int est, float *color, short 
     //    tot = num_total_vertices * (3 * 3 + 2) ;
     /* NOTE/TODO: Not sure why 3*5 needs to be used, but 3*3+2, which is the 
        correct length, crashes in glBufferData */
-    vertexVals = Alloc(float, tot);
+    vertexVals = PyMolAlloc(float, tot);
     if (!vertexVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeToVBOIndexed() vertexVals could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
@@ -4164,8 +4164,8 @@ CGO *CGOOptimizeToVBOIndexedWithColorImpl(CGO * I, int est, float *color, short 
 	CShaderMgr_AddVBOsToFree(I->G->ShaderMgr, bufs, 4);
       }
     }
-    FreeP(vertexIndexes);
-    FreeP(vertexVals);
+    PyMolFreeP(vertexIndexes);
+    PyMolFreeP(vertexVals);
   }
   if (ok && (num_total_vertices>0 || num_total_vertices_lines>0)){
     ok &= CGOBoundingBox(cgo, min, max);
@@ -4259,52 +4259,52 @@ CGO *CGOOptimizeGLSLCylindersToVBOIndexedImpl(CGO * I, int est, short no_color, 
     cgo = CGONewSized(I->G, I->c + est);
     CHECKOK(ok, cgo);
     if (ok)
-      org_originVals = originVals = Alloc(float, tot);
+      org_originVals = originVals = PyMolAlloc(float, tot);
     CHECKOK(ok, org_originVals);
     if (!ok){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeGLSLCylindersToVBOIndexedImpl() org_originVals could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
       return (NULL);
     }
-    org_axisVals = axisVals = Alloc(float, tot);
+    org_axisVals = axisVals = PyMolAlloc(float, tot);
     CHECKOK(ok, org_axisVals);
     if (!ok){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeGLSLCylindersToVBOIndexedImpl() org_axisVals could not be allocated\n" ENDFB(I->G);	
-      FreeP(org_originVals);      
+      PyMolFreeP(org_originVals);      
       CGOFree(cgo);
       return (NULL);
     }
     if (!no_color){
-      org_colorVals = colorVals = Alloc(float, tot);
+      org_colorVals = colorVals = PyMolAlloc(float, tot);
       CHECKOK(ok, org_colorVals);
       if (!ok){
 	PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeGLSLCylindersToVBOIndexedImpl() org_colorVals could not be allocated\n" ENDFB(I->G);	
-	FreeP(org_originVals);
-	FreeP(org_axisVals);
+	PyMolFreeP(org_originVals);
+	PyMolFreeP(org_axisVals);
 	CGOFree(cgo);
 	return (NULL);
       }
       if (num_cylinders_with_2nd_color){
-	org_color2Vals = color2Vals = Alloc(float, tot);
+	org_color2Vals = color2Vals = PyMolAlloc(float, tot);
 	CHECKOK(ok, org_color2Vals);
 	if (!ok){
 	  PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeGLSLCylindersToVBOIndexedImpl() org_color2Vals could not be allocated\n" ENDFB(I->G);	
-	  FreeP(org_colorVals);
-	  FreeP(org_originVals);
-	  FreeP(org_axisVals);
+	  PyMolFreeP(org_colorVals);
+	  PyMolFreeP(org_originVals);
+	  PyMolFreeP(org_axisVals);
 	  CGOFree(cgo);
 	  return (NULL);
 	}
       }
     }
-    org_indexVals = indexVals = Alloc(GL_C_INT_TYPE, tot);
+    org_indexVals = indexVals = PyMolAlloc(GL_C_INT_TYPE, tot);
     CHECKOK(ok, org_indexVals);
     if (!ok){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeGLSLCylindersToVBOIndexedImpl() org_indexVals could not be allocated\n" ENDFB(I->G);	
-      FreeP(org_color2Vals);
-      FreeP(org_colorVals);
-      FreeP(org_originVals);
-      FreeP(org_axisVals);
+      PyMolFreeP(org_color2Vals);
+      PyMolFreeP(org_colorVals);
+      PyMolFreeP(org_originVals);
+      PyMolFreeP(org_axisVals);
       CGOFree(cgo);
       return (NULL);
     }
@@ -4558,15 +4558,15 @@ CGO *CGOOptimizeGLSLCylindersToVBOIndexedImpl(CGO * I, int est, short no_color, 
       }
     }
 
-    FreeP(org_axisVals);
-    FreeP(org_originVals);
+    PyMolFreeP(org_axisVals);
+    PyMolFreeP(org_originVals);
     if (!no_color){
-      FreeP(org_colorVals);
+      PyMolFreeP(org_colorVals);
       if (org_color2Vals){
-	FreeP(org_color2Vals);
+	PyMolFreeP(org_color2Vals);
       }
     }
-    FreeP(org_indexVals);
+    PyMolFreeP(org_indexVals);
 
     if (ok)
       ok &= CGOBoundingBox(cgo, min, max);
@@ -4639,42 +4639,42 @@ CGO *CGOOptimizeSpheresToVBONonIndexedImpl(CGO * I, int est, CGO *leftOverCGO)
     cgo_shader_ub_color = SettingGetGlobal_i(cgo->G, cSetting_cgo_shader_ub_color);
     cgo_shader_ub_flags = SettingGetGlobal_i(cgo->G, cSetting_cgo_shader_ub_flags);
   
-    org_vertVals = vertVals = Alloc(float, tot);
+    org_vertVals = vertVals = PyMolAlloc(float, tot);
     if (!org_vertVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeSpheresToVBONonIndexedImpl() org_vertVals could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
       return (NULL);
     }
     if(cgo_shader_ub_color){
-      org_colorValsUB = colorValsUB = Alloc(GLubyte, tot);
+      org_colorValsUB = colorValsUB = PyMolAlloc(GLubyte, tot);
       if (!org_colorValsUB){
 	PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeSpheresToVBONonIndexedImpl() org_colorValsUB could not be allocated\n" ENDFB(I->G);	
-	FreeP(org_vertVals);
+	PyMolFreeP(org_vertVals);
 	CGOFree(cgo);
 	return (NULL);
       }
     } else {
-      org_colorVals = colorVals = Alloc(float, tot);
+      org_colorVals = colorVals = PyMolAlloc(float, tot);
       if (!org_colorVals){
 	PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeSpheresToVBONonIndexedImpl() org_colorValsUB could not be allocated\n" ENDFB(I->G);	
-	FreeP(org_vertVals);
+	PyMolFreeP(org_vertVals);
 	CGOFree(cgo);
 	return (NULL);
       }
     }
     if (cgo_shader_ub_flags){
-      org_rightUpFlagValsUB = rightUpFlagValsUB = Alloc(GLubyte, VALUES_PER_IMPOSTER_SPACE_COORD * VERTICES_PER_SPHERE * num_total_spheres);
+      org_rightUpFlagValsUB = rightUpFlagValsUB = PyMolAlloc(GLubyte, VALUES_PER_IMPOSTER_SPACE_COORD * VERTICES_PER_SPHERE * num_total_spheres);
       if (!org_rightUpFlagValsUB){
 	PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeSpheresToVBONonIndexedImpl() org_rightUpFlagValsUB could not be allocated\n" ENDFB(I->G);	
-	FreeP(org_colorVals);	FreeP(org_colorValsUB);	FreeP(org_vertVals);
+	PyMolFreeP(org_colorVals);	PyMolFreeP(org_colorValsUB);	PyMolFreeP(org_vertVals);
 	CGOFree(cgo);
 	return (NULL);
       }
     } else {
-      org_rightUpFlagVals = rightUpFlagVals = Alloc(float, VALUES_PER_IMPOSTER_SPACE_COORD * VERTICES_PER_SPHERE * num_total_spheres);
+      org_rightUpFlagVals = rightUpFlagVals = PyMolAlloc(float, VALUES_PER_IMPOSTER_SPACE_COORD * VERTICES_PER_SPHERE * num_total_spheres);
       if (!org_rightUpFlagVals){
 	PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeSpheresToVBONonIndexedImpl() org_rightUpFlagVals could not be allocated\n" ENDFB(I->G);	
-	FreeP(org_colorVals);	FreeP(org_colorValsUB);	FreeP(org_vertVals);
+	PyMolFreeP(org_colorVals);	PyMolFreeP(org_colorValsUB);	PyMolFreeP(org_vertVals);
 	CGOFree(cgo);
 	return (NULL);
       }
@@ -4850,16 +4850,16 @@ CGO *CGOOptimizeSpheresToVBONonIndexedImpl(CGO * I, int est, CGO *leftOverCGO)
       }
     }
 
-    FreeP(org_vertVals);
+    PyMolFreeP(org_vertVals);
     if (cgo_shader_ub_color){
-      FreeP(org_colorValsUB);
+      PyMolFreeP(org_colorValsUB);
     } else {
-      FreeP(org_colorVals);
+      PyMolFreeP(org_colorVals);
     }
     if (cgo_shader_ub_flags){
-      FreeP(org_rightUpFlagValsUB);
+      PyMolFreeP(org_rightUpFlagValsUB);
     } else {
-      FreeP(org_rightUpFlagVals);
+      PyMolFreeP(org_rightUpFlagVals);
     }
 
     if (ok && num_total_spheres>0){
@@ -5163,30 +5163,30 @@ CGO *CGOOptimizeTextures(CGO * I, int est)
   if (num_total_textures){
     float *worldPos, *screenValues, *textExtents, *pickColorVals;
     int place3 = 0, place2 = 0;
-    worldPos = Alloc(float, num_total_textures * 18);
+    worldPos = PyMolAlloc(float, num_total_textures * 18);
     if (!worldPos){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeTextures() worldPos could not be allocated\n" ENDFB(I->G);
       return NULL;
     }
-    screenValues = Alloc(float, num_total_textures * 18);
+    screenValues = PyMolAlloc(float, num_total_textures * 18);
     if (!screenValues){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeTextures() screenValues could not be allocated\n" ENDFB(I->G);
-      FreeP(worldPos);
+      PyMolFreeP(worldPos);
       return NULL;
     }
-    textExtents = Alloc(float, num_total_textures * 12);
+    textExtents = PyMolAlloc(float, num_total_textures * 12);
     if (!textExtents){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeTextures() textExtents could not be allocated\n" ENDFB(I->G);
-      FreeP(screenValues);
-      FreeP(worldPos);
+      PyMolFreeP(screenValues);
+      PyMolFreeP(worldPos);
       return NULL;
     }
-    pickColorVals = Alloc(float, num_total_textures * 12); /* pick index and bond */
+    pickColorVals = PyMolAlloc(float, num_total_textures * 12); /* pick index and bond */
     if (!pickColorVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeTextures() pickColorVals could not be allocated\n" ENDFB(I->G);
-      FreeP(textExtents);
-      FreeP(screenValues);
-      FreeP(worldPos);
+      PyMolFreeP(textExtents);
+      PyMolFreeP(screenValues);
+      PyMolFreeP(worldPos);
       return NULL;
     }
 
@@ -5317,10 +5317,10 @@ CGO *CGOOptimizeTextures(CGO * I, int est)
 	cgo = NULL;
       }
     }
-    FreeP(worldPos);
-    FreeP(screenValues);
-    FreeP(textExtents);
-    FreeP(pickColorVals);
+    PyMolFreeP(worldPos);
+    PyMolFreeP(screenValues);
+    PyMolFreeP(textExtents);
+    PyMolFreeP(pickColorVals);
   }
   return cgo;
 }
@@ -5336,39 +5336,39 @@ CGO *CGOOptimizeLabels(CGO * I, int est)
   if (num_total_labels){
     float *worldPos, *screenValues, *screenWorldValues, *textExtents, *pickColorVals;
     int place3 = 0, place2 = 0;
-    worldPos = Alloc(float, num_total_labels * 18);
+    worldPos = PyMolAlloc(float, num_total_labels * 18);
     if (!worldPos){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeLabels() worldPos could not be allocated\n" ENDFB(I->G);
       return NULL;
     }
-    screenValues = Alloc(float, num_total_labels * 18);
+    screenValues = PyMolAlloc(float, num_total_labels * 18);
     if (!screenValues){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeLabels() screenValues could not be allocated\n" ENDFB(I->G);
-      FreeP(worldPos);
+      PyMolFreeP(worldPos);
       return NULL;
     }
-    screenWorldValues = Alloc(float, num_total_labels * 18);
+    screenWorldValues = PyMolAlloc(float, num_total_labels * 18);
     if (!screenWorldValues){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeLabels() screenWorldValues could not be allocated\n" ENDFB(I->G);
-      FreeP(screenValues);
-      FreeP(worldPos);
+      PyMolFreeP(screenValues);
+      PyMolFreeP(worldPos);
       return NULL;
     }
-    textExtents = Alloc(float, num_total_labels * 12);
+    textExtents = PyMolAlloc(float, num_total_labels * 12);
     if (!textExtents){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeLabels() textExtents could not be allocated\n" ENDFB(I->G);
-      FreeP(screenWorldValues);
-      FreeP(screenValues);
-      FreeP(worldPos);
+      PyMolFreeP(screenWorldValues);
+      PyMolFreeP(screenValues);
+      PyMolFreeP(worldPos);
       return NULL;
     }
-    pickColorVals = Alloc(float, num_total_labels * 12); /* pick index and bond */
+    pickColorVals = PyMolAlloc(float, num_total_labels * 12); /* pick index and bond */
     if (!pickColorVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeLabels() pickColorVals could not be allocated\n" ENDFB(I->G);
-      FreeP(screenWorldValues);
-      FreeP(textExtents);
-      FreeP(screenValues);
-      FreeP(worldPos);
+      PyMolFreeP(screenWorldValues);
+      PyMolFreeP(textExtents);
+      PyMolFreeP(screenValues);
+      PyMolFreeP(worldPos);
       return NULL;
     }
 
@@ -5523,11 +5523,11 @@ CGO *CGOOptimizeLabels(CGO * I, int est)
 	cgo = NULL;
       }
     }
-    FreeP(worldPos);
-    FreeP(screenWorldValues);
-    FreeP(screenValues);
-    FreeP(textExtents);
-    FreeP(pickColorVals);
+    PyMolFreeP(worldPos);
+    PyMolFreeP(screenWorldValues);
+    PyMolFreeP(screenValues);
+    PyMolFreeP(textExtents);
+    PyMolFreeP(pickColorVals);
   }
   return cgo;
 }
@@ -7878,7 +7878,7 @@ void CGORenderGLAlpha(CGO * I, RenderInfo * info)
     if(I->z_flag) {
       if(!I->i_start) {
         I->i_size = 256;
-        I->i_start = Calloc(int, I->i_size);
+        I->i_start = PyMolCalloc(int, I->i_size);
       } else {
         UtilZeroMem(I->i_start, sizeof(int) * I->i_size);
       }
@@ -9201,7 +9201,7 @@ CGO *CGOOptimizeScreenTexturesAndPolygons(CGO * I, int est)
 	}*/
       tot = num_total_indices * mul ;
     }
-    vertexVals = Alloc(float, tot);
+    vertexVals = PyMolAlloc(float, tot);
     if (!vertexVals){
       PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeScreenTexturesAndPolygons() vertexVals could not be allocated\n" ENDFB(I->G);	
       CGOFree(cgo);
@@ -9220,7 +9220,7 @@ CGO *CGOOptimizeScreenTexturesAndPolygons(CGO * I, int est)
     if (!ok){
       if (!I->G->Interrupt)
 	PRINTFB(I->G, FB_CGO, FB_Errors) "ERROR: CGOOptimizeScreenTexturesAndPolygons() could not allocate enough memory\n" ENDFB(I->G);	
-      FreeP(vertexVals);      
+      PyMolFreeP(vertexVals);      
       CGOFree(cgo);
       return (NULL);
     }
@@ -9278,7 +9278,7 @@ CGO *CGOOptimizeScreenTexturesAndPolygons(CGO * I, int est)
 	  ok &= CGODisable(cgo, GL_SCREEN_SHADER);
 	if (!ok){
 	  PRINTFB(I->G, FB_CGO, FB_Errors) "CGOOptimizeScreenTexturesAndPolygons: ERROR: CGODrawBuffersNotIndexed() could not allocate enough memory\n" ENDFB(I->G);	
-	  FreeP(vertexVals);
+	  PyMolFreeP(vertexVals);
 	  CGOFree(cgo);
 	  return (NULL);
 	}
@@ -9286,7 +9286,7 @@ CGO *CGOOptimizeScreenTexturesAndPolygons(CGO * I, int est)
 	CShaderMgr_AddVBOsToFree(I->G->ShaderMgr, bufs, numbufs);
       }
     }
-    FreeP(vertexVals);
+    PyMolFreeP(vertexVals);
   }
   return cgo;
 }

@@ -83,21 +83,21 @@ int ExtrudeCircle(CExtrude * I, int n, float size)
   if(n > 50)
   n = 50;*/
 
-  FreeP(I->sv);
-  FreeP(I->sn);
-  FreeP(I->tv);
-  FreeP(I->tn);
+  PyMolFreeP(I->sv);
+  PyMolFreeP(I->sn);
+  PyMolFreeP(I->tv);
+  PyMolFreeP(I->tn);
 
-  I->sv = Alloc(float, 3 * (n + 1));
+  I->sv = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->sv);
   if (ok)
-    I->sn = Alloc(float, 3 * (n + 1));
+    I->sn = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->sn);
   if (ok)
-    I->tv = Alloc(float, 3 * (n + 1));
+    I->tv = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->tv);
   if (ok)
-    I->tn = Alloc(float, 3 * (n + 1));
+    I->tn = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->tn);
 
   if (ok){
@@ -118,10 +118,10 @@ int ExtrudeCircle(CExtrude * I, int n, float size)
   }
 
   if (!ok){
-    FreeP(I->sv);
-    FreeP(I->sn);
-    FreeP(I->tv);
-    FreeP(I->tn);
+    PyMolFreeP(I->sv);
+    PyMolFreeP(I->sn);
+    PyMolFreeP(I->tv);
+    PyMolFreeP(I->tn);
     I->sv = NULL;
     I->sn = NULL;
     I->tv = NULL;
@@ -145,21 +145,21 @@ int ExtrudeOval(CExtrude * I, int n, float width, float length)
   /*  if(n > 50)
       n = 50;*/
 
-  FreeP(I->sv);
-  FreeP(I->sn);
-  FreeP(I->tv);
-  FreeP(I->tn);
+  PyMolFreeP(I->sv);
+  PyMolFreeP(I->sn);
+  PyMolFreeP(I->tv);
+  PyMolFreeP(I->tn);
 
-  I->sv = Alloc(float, 3 * (n + 1));
+  I->sv = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->sv);
   if (ok)
-    I->sn = Alloc(float, 3 * (n + 1));
+    I->sn = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->sn);
   if (ok)
-    I->tv = Alloc(float, 3 * (n + 1));
+    I->tv = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->tv);
   if (ok)
-    I->tn = Alloc(float, 3 * (n + 1));
+    I->tn = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->tn);
   I->Ns = n;
 
@@ -178,10 +178,10 @@ int ExtrudeOval(CExtrude * I, int n, float width, float length)
   PRINTFD(I->G, FB_Extrude)
     " ExtrudeOval-DEBUG: exiting...\n" ENDFD;
   if (!ok){
-    FreeP(I->sv);
-    FreeP(I->sn);
-    FreeP(I->tv);
-    FreeP(I->tn);
+    PyMolFreeP(I->sv);
+    PyMolFreeP(I->sn);
+    PyMolFreeP(I->tv);
+    PyMolFreeP(I->tn);
   }
   return ok;
 }
@@ -203,28 +203,28 @@ int ExtrudeRectangle(CExtrude * I, float width, float length, int mode)
     break;
   }
 
-  FreeP(I->sv);
-  FreeP(I->sn);
-  FreeP(I->tv);
-  FreeP(I->tn);
+  PyMolFreeP(I->sv);
+  PyMolFreeP(I->sn);
+  PyMolFreeP(I->tv);
+  PyMolFreeP(I->tn);
 
-  I->sv = Alloc(float, 3 * (I->Ns + 1));
+  I->sv = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->sv);
   if (ok)
-    I->sn = Alloc(float, 3 * (I->Ns + 1));
+    I->sn = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->sn);
   if (ok)
-    I->tv = Alloc(float, 3 * (I->Ns + 1));
+    I->tv = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->tv);
   if (ok)
-    I->tn = Alloc(float, 3 * (I->Ns + 1));
+    I->tn = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->tn);
 
   if (!ok){
-    FreeP(I->sv);
-    FreeP(I->sn);
-    FreeP(I->tv);
-    FreeP(I->tn);
+    PyMolFreeP(I->sv);
+    PyMolFreeP(I->sn);
+    PyMolFreeP(I->tv);
+    PyMolFreeP(I->tn);
     I->sv = NULL;
     I->sn = NULL;
     I->tv = NULL;
@@ -319,28 +319,28 @@ int ExtrudeDumbbell1(CExtrude * I, float width, float length, int mode)
 
   }
 
-  FreeP(I->sv);
-  FreeP(I->sn);
-  FreeP(I->tv);
-  FreeP(I->tn);
+  PyMolFreeP(I->sv);
+  PyMolFreeP(I->sn);
+  PyMolFreeP(I->tv);
+  PyMolFreeP(I->tn);
 
-  I->sv = Alloc(float, 3 * (I->Ns + 1));
+  I->sv = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->sv);
   if (ok)
-    I->sn = Alloc(float, 3 * (I->Ns + 1));
+    I->sn = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->sn);
   if (ok)
-    I->tv = Alloc(float, 3 * (I->Ns + 1));
+    I->tv = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->tv);
   if (ok)
-    I->tn = Alloc(float, 3 * (I->Ns + 1));
+    I->tn = PyMolAlloc(float, 3 * (I->Ns + 1));
   CHECKOK(ok, I->tn);
 
   if (!ok){
-    FreeP(I->sv);
-    FreeP(I->sn);
-    FreeP(I->tv);
-    FreeP(I->tn);
+    PyMolFreeP(I->sv);
+    PyMolFreeP(I->sn);
+    PyMolFreeP(I->tv);
+    PyMolFreeP(I->tn);
     I->sv = NULL;
     I->sn = NULL;
     I->tv = NULL;
@@ -424,28 +424,28 @@ int ExtrudeDumbbell2(CExtrude * I, int n, int sign, float length, float size)
   /*  if(n > 50)
       n = 50;*/
 
-  FreeP(I->sv);
-  FreeP(I->sn);
-  FreeP(I->tv);
-  FreeP(I->tn);
+  PyMolFreeP(I->sv);
+  PyMolFreeP(I->sn);
+  PyMolFreeP(I->tv);
+  PyMolFreeP(I->tn);
   
-  I->sv = Alloc(float, 3 * (n + 1));
+  I->sv = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->sv);
   if (ok)
-    I->sn = Alloc(float, 3 * (n + 1));
+    I->sn = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->sn);
   if (ok)
-    I->tv = Alloc(float, 3 * (n + 1));
+    I->tv = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->tv);
   if (ok)
-    I->tn = Alloc(float, 3 * (n + 1));
+    I->tn = PyMolAlloc(float, 3 * (n + 1));
   CHECKOK(ok, I->tn);
 
   if (!ok){
-    FreeP(I->sv);
-    FreeP(I->sn);
-    FreeP(I->tv);
-    FreeP(I->tn);
+    PyMolFreeP(I->sv);
+    PyMolFreeP(I->sn);
+    PyMolFreeP(I->tv);
+    PyMolFreeP(I->tn);
     I->sv = NULL;
     I->sn = NULL;
     I->tv = NULL;
@@ -584,7 +584,7 @@ int ExtrudeComputeTangents(CExtrude * I)
   PRINTFD(I->G, FB_Extrude)
     " ExtrudeComputeTangents-DEBUG: entered.\n" ENDFD;
 
-  nv = Alloc(float, I->N * 3);
+  nv = PyMolAlloc(float, I->N * 3);
   CHECKOK(ok, nv);
   if (!ok)
     return ok;
@@ -621,7 +621,7 @@ int ExtrudeComputeTangents(CExtrude * I)
   *(v1++) = *(v - 2);
   *(v1++) = *(v - 1);
 
-  FreeP(nv);
+  PyMolFreeP(nv);
 
   PRINTFD(I->G, FB_Extrude)
     " ExtrudeComputeTangents-DEBUG: exiting...\n" ENDFD;
@@ -740,10 +740,10 @@ int ExtrudeCGOSurfaceTube(CExtrude * I, CGO * cgo, int cap, float *color_overrid
     " ExtrudeCGOSurfaceTube-DEBUG: entered.\n" ENDFD;
 
   if(I->N && I->Ns) {
-    TV = Alloc(float, 3 * (I->Ns + 1) * I->N);
+    TV = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TV);
     if (ok)
-      TN = Alloc(float, 3 * (I->Ns + 1) * I->N);
+      TN = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TN);
     /* compute transformed shape vertices */
 
@@ -1034,8 +1034,8 @@ int ExtrudeCGOSurfaceTube(CExtrude * I, CGO * cgo, int cap, float *color_overrid
       break;
     }
     }
-    FreeP(TV);
-    FreeP(TN);
+    PyMolFreeP(TV);
+    PyMolFreeP(TN);
   }
 
   PRINTFD(I->G, FB_Extrude)
@@ -1110,9 +1110,9 @@ int ExtrudeCGOSurfaceVariableTube(CExtrude * I, CGO * cgo, int cap)
 
   if(I->N && I->Ns) {
 
-    TV = Alloc(float, 3 * (I->Ns + 1) * I->N);
-    TN = Alloc(float, 3 * (I->Ns + 1) * I->N);
-    AN = Alloc(float, 3 * I->N);        /* normals adjusted for changing widths */
+    TV = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
+    TN = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
+    AN = PyMolAlloc(float, 3 * I->N);        /* normals adjusted for changing widths */
 
     /* compute transformed shape vertices */
 
@@ -1352,9 +1352,9 @@ int ExtrudeCGOSurfaceVariableTube(CExtrude * I, CGO * cgo, int cap)
 	CGOEnd(cgo);
       }
       CGOPickColor(cgo, -1, cPickableNoPick);
-      FreeP(TV);
-      FreeP(TN);
-      FreeP(AN);
+      PyMolFreeP(TV);
+      PyMolFreeP(TN);
+      PyMolFreeP(AN);
     }
     
     PRINTFD(I->G, FB_Extrude)
@@ -1378,10 +1378,10 @@ int ExtrudeCGOSurfacePolygon(CExtrude * I, CGO * cgo, int cap, float *color_over
 
   if(I->N && I->Ns) {
 
-    TV = Alloc(float, 3 * (I->Ns + 1) * I->N);
+    TV = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TV);
     if (ok)
-      TN = Alloc(float, 3 * (I->Ns + 1) * I->N);
+      TN = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TN);
     /* compute transformed shape vertices */
 
@@ -1536,8 +1536,8 @@ int ExtrudeCGOSurfacePolygon(CExtrude * I, CGO * cgo, int cap, float *color_over
       if (ok)
 	ok &= CGOPickColor(cgo, -1, cPickableNoPick);
     }
-    FreeP(TV);
-    FreeP(TN);
+    PyMolFreeP(TV);
+    PyMolFreeP(TN);
   }
 
   PRINTFD(I->G, FB_Extrude)
@@ -1565,10 +1565,10 @@ int ExtrudeCGOSurfacePolygonTaper(CExtrude * I, CGO * cgo, int sampling,
 
   if(I->N && I->Ns) {
 
-    TV = Alloc(float, 3 * (I->Ns + 1) * I->N);
+    TV = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TV);
     if (ok)
-      TN = Alloc(float, 3 * (I->Ns + 1) * I->N);
+      TN = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TN);
     /* compute transformed shape vertices */
 
@@ -1672,8 +1672,8 @@ int ExtrudeCGOSurfacePolygonTaper(CExtrude * I, CGO * cgo, int sampling,
       }
     }
 
-    FreeP(TV);
-    FreeP(TN);
+    PyMolFreeP(TV);
+    PyMolFreeP(TN);
   }
 
   PRINTFD(I->G, FB_Extrude)
@@ -1698,10 +1698,10 @@ int ExtrudeCGOSurfaceStrand(CExtrude * I, CGO * cgo, int sampling, float *color_
 
   if(I->N && I->Ns) {
 
-    TV = Alloc(float, 3 * (I->Ns + 1) * I->N);
+    TV = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TV);
     if (ok)
-      TN = Alloc(float, 3 * (I->Ns + 1) * I->N);
+      TN = PyMolAlloc(float, 3 * (I->Ns + 1) * I->N);
     CHECKOK(ok, TN);
     /* compute transformed shape vertices */
 
@@ -1959,8 +1959,8 @@ int ExtrudeCGOSurfaceStrand(CExtrude * I, CGO * cgo, int sampling, float *color_
       ok &= CGOEnd(cgo);
     if (ok)
       ok &= CGOPickColor(cgo, -1, cPickableNoPick);
-    FreeP(TV);
-    FreeP(TN);
+    PyMolFreeP(TV);
+    PyMolFreeP(TN);
   }
 
   PRINTFD(I->G, FB_Extrude)
@@ -2104,7 +2104,7 @@ int ExtrudeComputePuttyScaleFactors(CExtrude * I, ObjectMolecule * obj, int tran
     /* now compute window average */
 
     {
-      float *SF = Alloc(float, I->N);
+      float *SF = PyMolAlloc(float, I->N);
       int w, ww;
       float accum;
       int cnt;
@@ -2130,7 +2130,7 @@ int ExtrudeComputePuttyScaleFactors(CExtrude * I, ObjectMolecule * obj, int tran
 	}
 	for(a = 1; a < I->N - 1; a++)
 	  sf[a] = SF[a];
-	FreeP(SF);
+	PyMolFreeP(SF);
       }
     }
   }
@@ -2152,31 +2152,31 @@ int ExtrudeAllocPointsNormalsColors(CExtrude * I, int n)
   int ok = true;
   if(I->N < n) {
     /* reset */
-    FreeP(I->p);
-    FreeP(I->n);
-    FreeP(I->c);
-    FreeP(I->i);
-    FreeP(I->sf);               /* PUTTY */
-    I->p = Alloc(float, 3 * (n + 1));
+    PyMolFreeP(I->p);
+    PyMolFreeP(I->n);
+    PyMolFreeP(I->c);
+    PyMolFreeP(I->i);
+    PyMolFreeP(I->sf);               /* PUTTY */
+    I->p = PyMolAlloc(float, 3 * (n + 1));
     CHECKOK(ok, I->p);
     if (ok)
-      I->n = Alloc(float, 9 * (n + 1));
+      I->n = PyMolAlloc(float, 9 * (n + 1));
     CHECKOK(ok, I->n);
     if (ok)
-      I->c = Alloc(float, 3 * (n + 1));
+      I->c = PyMolAlloc(float, 3 * (n + 1));
     CHECKOK(ok, I->c);
     if (ok)
-      I->i = Alloc(int, 3 * (n + 1));
+      I->i = PyMolAlloc(int, 3 * (n + 1));
     CHECKOK(ok, I->i);
     if (ok)
-      I->sf = Alloc(float, n + 1);        /* PUTTY: scale factors */
+      I->sf = PyMolAlloc(float, n + 1);        /* PUTTY: scale factors */
     CHECKOK(ok, I->sf);
     if (!ok){
-      FreeP(I->p);
-      FreeP(I->n);
-      FreeP(I->c);
-      FreeP(I->i);
-      FreeP(I->sf);
+      PyMolFreeP(I->p);
+      PyMolFreeP(I->n);
+      PyMolFreeP(I->c);
+      PyMolFreeP(I->i);
+      PyMolFreeP(I->sf);
       I->p = NULL;
       I->n = NULL;
       I->c = NULL;
@@ -2190,14 +2190,14 @@ int ExtrudeAllocPointsNormalsColors(CExtrude * I, int n)
 
 void ExtrudeFree(CExtrude * I)
 {
-  FreeP(I->p);
-  FreeP(I->n);
-  FreeP(I->c);
-  FreeP(I->tn);
-  FreeP(I->tv);
-  FreeP(I->sn);
-  FreeP(I->sv);
-  FreeP(I->i);
-  FreeP(I->sf);
+  PyMolFreeP(I->p);
+  PyMolFreeP(I->n);
+  PyMolFreeP(I->c);
+  PyMolFreeP(I->tn);
+  PyMolFreeP(I->tv);
+  PyMolFreeP(I->sn);
+  PyMolFreeP(I->sv);
+  PyMolFreeP(I->i);
+  PyMolFreeP(I->sf);
   OOFreeP(I);
 }

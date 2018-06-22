@@ -248,9 +248,9 @@ CSculpt *SculptNew(PyMOLGlobals * G)
   I->G = G;
   I->Shaker = ShakerNew(G);
   I->NBList = VLAlloc(int, 150000);
-  I->NBHash = Calloc(int, NB_HASH_SIZE);
+  I->NBHash = PyMolCalloc(int, NB_HASH_SIZE);
   I->EXList = VLAlloc(int, 100000);
-  I->EXHash = Calloc(int, EX_HASH_SIZE);
+  I->EXHash = PyMolCalloc(int, EX_HASH_SIZE);
   I->Don = VLAlloc(int, 1000);
   I->Acc = VLAlloc(int, 1000);
   {
@@ -443,10 +443,10 @@ void SculptMeasureObject(CSculpt * I, ObjectMolecule * obj, int state, int match
       int *neighbor = obj->Neighbor;
       int n_atom = obj->NAtom;
 
-      planar = Alloc(int, n_atom);
-      linear = Alloc(int, n_atom);
-      single = Alloc(int, n_atom);
-      crdidx = Alloc(int, n_atom);
+      planar = PyMolAlloc(int, n_atom);
+      linear = PyMolAlloc(int, n_atom);
+      single = PyMolAlloc(int, n_atom);
+      crdidx = PyMolAlloc(int, n_atom);
       ai = obj_atomInfo;
 
       for(a = 0; a < n_atom; a++) {
@@ -709,8 +709,8 @@ void SculptMeasureObject(CSculpt * I, ObjectMolecule * obj, int state, int match
           float maxim_max =
             SettingGet_f(G, cs->Setting, obj->Obj.Setting, cSetting_sculpt_max_max);
 
-          int *site = Calloc(int, n_atom);
-          float *weight = Calloc(float, n_atom);
+          int *site = PyMolCalloc(int, n_atom);
+          float *weight = PyMolCalloc(float, n_atom);
           /* first, find candidate atoms with sufficient connectivity */
           CountCall cnt;
 
@@ -864,8 +864,8 @@ void SculptMeasureObject(CSculpt * I, ObjectMolecule * obj, int state, int match
               }
             }
           }
-          FreeP(weight);
-          FreeP(site);
+          PyMolFreeP(weight);
+          PyMolFreeP(site);
         }
       }
       /* now pick up those 1-3 interations */
@@ -1398,10 +1398,10 @@ void SculptMeasureObject(CSculpt * I, ObjectMolecule * obj, int state, int match
           }
         }
       }
-      FreeP(planar);
-      FreeP(linear);
-      FreeP(single);
-      FreeP(crdidx);
+      PyMolFreeP(planar);
+      PyMolFreeP(linear);
+      PyMolFreeP(single);
+      PyMolFreeP(crdidx);
     }
   }
 
@@ -1703,11 +1703,11 @@ float SculptIterateObject(CSculpt * I, ObjectMolecule * obj,
 
   if((state < obj->NCSet) && obj->CSet[state] && n_cycle) {
 
-    disp = Alloc(float, 3 * obj->NAtom);
-    atm2idx = Alloc(int, obj->NAtom);
-    cnt = Alloc(int, obj->NAtom);
-    active = Alloc(int, obj->NAtom);
-    exclude = Calloc(int, obj->NAtom);
+    disp = PyMolAlloc(float, 3 * obj->NAtom);
+    atm2idx = PyMolAlloc(int, obj->NAtom);
+    cnt = PyMolAlloc(int, obj->NAtom);
+    active = PyMolAlloc(int, obj->NAtom);
+    exclude = PyMolCalloc(int, obj->NAtom);
     shk = I->Shaker;
 
     PRINTFD(G, FB_Sculpt)
@@ -2399,11 +2399,11 @@ float SculptIterateObject(CSculpt * I, ObjectMolecule * obj,
       if(total_count)
         total_strain = (1000 * total_strain) / total_count;
     }
-    FreeP(exclude);
-    FreeP(active);
-    FreeP(cnt);
-    FreeP(disp);
-    FreeP(atm2idx);
+    PyMolFreeP(exclude);
+    PyMolFreeP(active);
+    PyMolFreeP(cnt);
+    PyMolFreeP(disp);
+    PyMolFreeP(atm2idx);
     if(cgo) {
       CGOStop(cgo);
       {
@@ -2432,8 +2432,8 @@ void SculptFree(CSculpt * I)
   VLAFreeP(I->NBList);
   VLAFreeP(I->EXList);
 
-  FreeP(I->NBHash);
-  FreeP(I->EXHash);
+  PyMolFreeP(I->NBHash);
+  PyMolFreeP(I->EXHash);
   ShakerFree(I->Shaker);
   OOFreeP(I);
 }

@@ -79,7 +79,7 @@ static char *get_st(const char array[][STR_MAX])
     l += strlen(array[c]);
     c++;
   }
-  result = Alloc(char, l + 1);
+  result = PyMolAlloc(char, l + 1);
 
   l = 0;
   c = 0;
@@ -349,7 +349,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
         ExecutiveSetRepVisib(G, "test_01_01", cRepLine, 0);
         SettingSetGlobal_f(G, cSetting_sweep_speed, 3.0F);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -361,7 +361,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
         ExecutiveSetRepVisib(G, "test_01_02", cRepLine, 0);
         ExecutiveSetRepVisib(G, "test_01_02", cRepSurface, 1);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -374,7 +374,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
         ExecutiveSetRepVisib(G, "test_01_03", cRepCartoon, 1);
         SettingSetGlobal_f(G, cSetting_sweep_speed, 1.50F);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -387,7 +387,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
         ExecutiveSetRepVisib(G, "test_01_04", cRepDot, 1);
         SettingSetGlobal_f(G, cSetting_sweep_speed, 1.50F);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -400,7 +400,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
         ExecutiveSetRepVisib(G, "test_01_05", cRepSphere, 1);
         SettingSetGlobal_f(G, cSetting_sweep_speed, 4.50F);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -411,7 +411,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
                       false, PYMOL_DEFAULT);
         SettingSetGlobal_f(G, cSetting_sweep_speed, 4.50F);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -426,7 +426,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
         SettingSetGlobal_f(G, cSetting_sweep_speed, 0.25F);
         SettingSetGlobal_f(G, cSetting_sweep_angle, 180.0F);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -437,7 +437,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
                       NULL, 0, NULL);
         SettingSetGlobal_b(G, cSetting_valence, 1);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;
@@ -452,7 +452,7 @@ int TestPyMOLRun(PyMOLGlobals * G, int group, int test)
         SettingSetGlobal_f(G, cSetting_sweep_speed, 0.50F);
         SettingSetGlobal_f(G, cSetting_sweep_angle, 90.0F);
         ControlRock(G, 1);
-        FreeP(st);
+        PyMolFreeP(st);
         break;
       }
       break;

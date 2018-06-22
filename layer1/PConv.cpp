@@ -536,7 +536,7 @@ int PConvPyListToFloatArrayImpl(PyObject * obj, float **f, bool as_vla)
     if (as_vla) {
       (*f) = VLAlloc(float, l);
     } else {
-      (*f) = Alloc(float, l);
+      (*f) = PyMolAlloc(float, l);
     }
 
     auto strval = PyBytes_AsSomeString(obj);
@@ -554,7 +554,7 @@ int PConvPyListToFloatArrayImpl(PyObject * obj, float **f, bool as_vla)
     if (as_vla) {
       (*f) = VLAlloc(float, l);
     } else {
-      (*f) = Alloc(float, l);
+      (*f) = PyMolAlloc(float, l);
     }
 
     ff = (*f);
@@ -650,7 +650,7 @@ int PConvPyListToDoubleArray(PyObject * obj, double **f)
       ok = -1;
     else
       ok = l;
-    (*f) = Alloc(double, l);
+    (*f) = PyMolAlloc(double, l);
     ff = (*f);
     for(a = 0; a < l; a++)
       *(ff++) = PyFloat_AsDouble(PyList_GetItem(obj, a));
@@ -674,7 +674,7 @@ int PConvPyListToIntArrayImpl(PyObject * obj, int **f, bool as_vla)
     if (as_vla) {
       (*f) = VLAlloc(int, l);
     } else {
-      (*f) = Alloc(int, l);
+      (*f) = PyMolAlloc(int, l);
     }
 
     auto strval = PyBytes_AsSomeString(obj);
@@ -692,7 +692,7 @@ int PConvPyListToIntArrayImpl(PyObject * obj, int **f, bool as_vla)
     if (as_vla) {
       (*f) = VLAlloc(int, l);
     } else {
-      (*f) = Alloc(int, l);
+      (*f) = PyMolAlloc(int, l);
     }
 
     ff = (*f);

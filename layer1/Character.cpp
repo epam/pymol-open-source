@@ -353,7 +353,7 @@ int CharacterGetGeometry(PyMOLGlobals * G, int id,
 int CharacterInit(PyMOLGlobals * G)
 {
   CCharacter *I = NULL;
-  if((I = (G->Character = Calloc(CCharacter, 1)))) {
+  if((I = (G->Character = PyMolCalloc(CCharacter, 1)))) {
     I->MaxAlloc = 5;
     I->Char = VLACalloc(CharRec, I->MaxAlloc + 1);
     {
@@ -362,7 +362,7 @@ int CharacterInit(PyMOLGlobals * G)
         I->Char[a].Prev = a - 1;
       I->LastFree = I->MaxAlloc;
     }
-    I->Hash = Calloc(int, (HASH_MASK + 1));
+    I->Hash = PyMolCalloc(int, (HASH_MASK + 1));
     I->TargetMaxUsage = 25000;
     return 1;
   } else
@@ -487,7 +487,7 @@ void CharacterFree(PyMOLGlobals * G)
       a = I->Char[a].Prev;
     }
   }
-  FreeP(I->Hash);
+  PyMolFreeP(I->Hash);
   VLAFreeP(I->Char);
-  FreeP(G->Character);
+  PyMolFreeP(G->Character);
 }

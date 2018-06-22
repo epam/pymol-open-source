@@ -92,7 +92,7 @@ bool SettingLevelCheck(PyMOLGlobals * G, int index, unsigned char level) {
 static CSetting *SettingCopyAll(PyMOLGlobals * G, const CSetting * src, CSetting * dst)
 {
   if(!dst) {
-    dst = Calloc(CSetting, 1);
+    dst = PyMolCalloc(CSetting, 1);
   } else {
     SettingPurge(dst);
   }
@@ -129,7 +129,7 @@ void SettingPurgeDefault(PyMOLGlobals * G)
 {
   if(G->Default) {
     SettingPurge(G->Default);
-    FreeP(G->Default);
+    PyMolFreeP(G->Default);
     G->Default = NULL;
   }
 }
@@ -565,7 +565,7 @@ static void SettingUniqueInit(PyMOLGlobals * G)
 {
   CSettingUnique *I = G->SettingUnique;
 
-  if((I = (G->SettingUnique = Calloc(CSettingUnique, 1)))) {
+  if((I = (G->SettingUnique = PyMolCalloc(CSettingUnique, 1)))) {
     I->id2offset = OVOneToOne_New(G->Context->heap);
     {
       int a;
@@ -585,7 +585,7 @@ static void SettingUniqueFree(PyMOLGlobals * G)
   CSettingUnique *I = G->SettingUnique;
   VLAFreeP(I->entry);
   OVOneToOne_Del(I->id2offset);
-  FreeP(I);
+  PyMolFreeP(I);
 }
 
 /*
@@ -2853,9 +2853,9 @@ void SettingFreeGlobal(PyMOLGlobals * G)
   SettingPurge(I);
   if(G->Default) {
     SettingPurge(G->Default);
-    FreeP(G->Default);
+    PyMolFreeP(G->Default);
   }
-  FreeP(G->Setting);
+  PyMolFreeP(G->Setting);
 }
 
 
@@ -2871,7 +2871,7 @@ void SettingInitGlobal(PyMOLGlobals * G, int alloc, int reset_gui, int use_defau
   int (*set_b) (CSetting * I, int index, int value) = SettingSet_b;
 
   if(alloc || !I) {
-    I = (G->Setting = Calloc(CSetting, 1));
+    I = (G->Setting = PyMolCalloc(CSetting, 1));
     SettingUniqueInit(G);
     SettingInit(G, I);
   }

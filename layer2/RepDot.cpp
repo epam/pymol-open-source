@@ -45,13 +45,13 @@ void RepDotFree(RepDot * I)
     CGOFree(I->shaderCGO);
     I->shaderCGO = 0;
   }
-  FreeP(I->VC);
-  FreeP(I->V);
-  FreeP(I->T);
-  FreeP(I->F);
-  FreeP(I->VN);
-  FreeP(I->A);
-  FreeP(I->Atom);
+  PyMolFreeP(I->VC);
+  PyMolFreeP(I->V);
+  PyMolFreeP(I->T);
+  PyMolFreeP(I->F);
+  PyMolFreeP(I->VN);
+  PyMolFreeP(I->A);
+  PyMolFreeP(I->Atom);
   OOFreeP(I);
 }
 
@@ -356,19 +356,19 @@ Rep *RepDotDoNew(CoordSet * cs, int mode, int state)
   if(ok && mode == cRepDotAreaType) { /* in area mode, we need to export save addl. info 
                                  * such as the normal vectors, the partial area, 
                                  * the originating atom, etc. */
-    I->A = Alloc(float, cs->NIndex * sp->nDot);
+    I->A = PyMolAlloc(float, cs->NIndex * sp->nDot);
     CHECKOK(ok, I->A);
     if (ok)
-      I->T = Alloc(int, cs->NIndex * sp->nDot);
+      I->T = PyMolAlloc(int, cs->NIndex * sp->nDot);
     CHECKOK(ok, I->T);
     if (ok)
-      I->F = Alloc(int, cs->NIndex * sp->nDot);
+      I->F = PyMolAlloc(int, cs->NIndex * sp->nDot);
     CHECKOK(ok, I->F);
     if (ok)
-      I->VN = Alloc(float, cs->NIndex * sp->nDot * 3);
+      I->VN = PyMolAlloc(float, cs->NIndex * sp->nDot * 3);
     CHECKOK(ok, I->VN);
     if (ok)
-      I->Atom = Alloc(int, cs->NIndex * sp->nDot);
+      I->Atom = PyMolAlloc(int, cs->NIndex * sp->nDot);
     CHECKOK(ok, I->Atom);
     if (ok){
       aa = I->A;

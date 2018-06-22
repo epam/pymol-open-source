@@ -348,9 +348,9 @@ void RepWireBondFree(RepWireBond * I)
     CGOFree(I->shaderCGO);
     I->shaderCGO = 0;
   }
-  FreeP(I->VarWidth);
-  FreeP(I->VP);
-  FreeP(I->V);
+  PyMolFreeP(I->VarWidth);
+  PyMolFreeP(I->VP);
+  PyMolFreeP(I->V);
   RepPurge(&I->R);
   OOFreeP(I);
 }
@@ -874,7 +874,7 @@ Rep *RepWireBondNew(CoordSet * cs, int state)
     OOFreeP(I);
     return (NULL);              /* skip if no dots are visible */
   }
-  marked = Calloc(bool, obj->NAtom);
+  marked = PyMolCalloc(bool, obj->NAtom);
   CHECKOK(ok, marked);
   if (!ok){
     OOFreeP(I);
@@ -967,12 +967,12 @@ Rep *RepWireBondNew(CoordSet * cs, int state)
       other = ObjectMoleculeGetPrioritizedOtherIndexList(obj, cs);
 
     if(variable_width) {
-      I->VarWidth = Alloc(float, maxSegment);
+      I->VarWidth = PyMolAlloc(float, maxSegment);
       CHECKOK(ok, I->VarWidth);
     }
 
     if (ok)
-      I->V = Alloc(float, maxSegment * 9);
+      I->V = PyMolAlloc(float, maxSegment * 9);
     CHECKOK(ok, I->V);
 
     if(ok && (cartoon_side_chain_helper || ribbon_side_chain_helper)) {
@@ -1216,11 +1216,11 @@ Rep *RepWireBondNew(CoordSet * cs, int state)
     /* now create pickable verson */
 
     if(ok && SettingGet_f(G, cs->Setting, obj->Obj.Setting, cSetting_pickable)) {
-      I->VP = Alloc(float, maxBond * 6 * 2);
+      I->VP = PyMolAlloc(float, maxBond * 6 * 2);
       CHECKOK(ok, I->VP);
 
       if (ok)
-	I->R.P = Alloc(Pickable, 2 * maxBond + 1);
+	I->R.P = PyMolAlloc(Pickable, 2 * maxBond + 1);
       CHECKOK(ok, I->R.P);
       if (ok){
 	rp = I->R.P + 1;          /* skip first record! */
@@ -1313,7 +1313,7 @@ Rep *RepWireBondNew(CoordSet * cs, int state)
 	ok &= !G->Interrupt;
       }
       if (ok){
-	I->R.P = Realloc(I->R.P, Pickable, I->NP + 1);
+	I->R.P = PyMolRealloc(I->R.P, Pickable, I->NP + 1);
 	CHECKOK(ok, I->R.P);
 	if (ok)
 	  I->R.P[0].index = I->NP;
@@ -1323,8 +1323,8 @@ Rep *RepWireBondNew(CoordSet * cs, int state)
       CHECKOK(ok, I->VP);
     }
   }
-  FreeP(marked);
-  FreeP(other);
+  PyMolFreeP(marked);
+  PyMolFreeP(other);
   if (!ok){
     RepWireBondFree(I);
     I = NULL;

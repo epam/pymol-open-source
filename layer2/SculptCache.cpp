@@ -34,14 +34,14 @@ static void SculptCacheCheck(PyMOLGlobals * G)
 {
   CSculptCache *I = G->SculptCache;
   if(!I->Hash) {
-    I->Hash = Calloc(int, CACHE_HASH_SIZE);
+    I->Hash = PyMolCalloc(int, CACHE_HASH_SIZE);
   }
 }
 
 int SculptCacheInit(PyMOLGlobals * G)
 {
   CSculptCache *I = NULL;
-  if((I = (G->SculptCache = Calloc(CSculptCache, 1)))) {
+  if((I = (G->SculptCache = PyMolCalloc(CSculptCache, 1)))) {
     I->Hash = NULL;             /* don't allocate until we need it */
     I->List = VLAlloc(SculptCacheEntry, 16);
     I->NCached = 1;
@@ -55,7 +55,7 @@ void SculptCachePurge(PyMOLGlobals * G)
 {
   CSculptCache *I = G->SculptCache;
   if(I->Hash) {
-    FreeP(I->Hash);
+    PyMolFreeP(I->Hash);
     I->Hash = NULL;
   }
   I->NCached = 1;
@@ -64,9 +64,9 @@ void SculptCachePurge(PyMOLGlobals * G)
 void SculptCacheFree(PyMOLGlobals * G)
 {
   CSculptCache *I = G->SculptCache;
-  FreeP(I->Hash);
+  PyMolFreeP(I->Hash);
   VLAFreeP(I->List);
-  FreeP(G->SculptCache);
+  PyMolFreeP(G->SculptCache);
 }
 
 int SculptCacheQuery(PyMOLGlobals * G, int rest_type, int id0, int id1, int id2, int id3,

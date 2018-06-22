@@ -58,7 +58,7 @@ void RepRibbonFree(RepRibbon * I)
     CGOFree(I->shaderCGO);
     I->shaderCGO = 0;
   }
-  FreeP(I->V);
+  PyMolFreeP(I->V);
   RepPurge(&I->R);
   OOFreeP(I);
 }
@@ -474,9 +474,9 @@ Rep *RepRibbonNew(CoordSet * cs, int state)
 
   /* find all of the CA points */
 
-  at = Alloc(int, cs->NAtIndex * 2);
-  pv = Alloc(float, cs->NAtIndex * 6);
-  seg = Alloc(int, cs->NAtIndex * 2);
+  at = PyMolAlloc(int, cs->NAtIndex * 2);
+  pv = PyMolAlloc(float, cs->NAtIndex * 6);
+  seg = PyMolAlloc(int, cs->NAtIndex * 2);
 
   i = at;
   v = pv;
@@ -630,9 +630,9 @@ Rep *RepRibbonNew(CoordSet * cs, int state)
     s = seg;
     v = pv;
 
-    dv = Alloc(float, nAt * 6);
-    nv = Alloc(float, nAt * 6);
-    dl = Alloc(float, nAt * 2);
+    dv = PyMolAlloc(float, nAt * 6);
+    nv = PyMolAlloc(float, nAt * 6);
+    dl = PyMolAlloc(float, nAt * 2);
     v1 = dv;
     v2 = nv;
     d = dl;
@@ -663,7 +663,7 @@ Rep *RepRibbonNew(CoordSet * cs, int state)
     s = seg;
     v = nv;
 
-    tv = Alloc(float, nAt * 6 + 6);
+    tv = PyMolAlloc(float, nAt * 6 + 6);
     v1 = tv;
 
     *(v1++) = *(v++);           /* first segment */
@@ -698,7 +698,7 @@ Rep *RepRibbonNew(CoordSet * cs, int state)
   /* okay, we now have enough info to generate smooth interpolations */
 
   if(nAt) {
-    I->R.P = Alloc(Pickable, 2 * nAt + 2);
+    I->R.P = PyMolAlloc(Pickable, 2 * nAt + 2);
     ErrChkPtr(G, I->R.P);
     I->R.P[0].index = nAt;
     rp = I->R.P + 1;            /* skip first record! */
@@ -837,15 +837,15 @@ Rep *RepRibbonNew(CoordSet * cs, int state)
       s++;
     }
 
-    FreeP(dv);
-    FreeP(dl);
-    FreeP(tv);
-    FreeP(nv);
+    PyMolFreeP(dv);
+    PyMolFreeP(dl);
+    PyMolFreeP(tv);
+    PyMolFreeP(nv);
   }
 
-  FreeP(at);
-  FreeP(seg);
-  FreeP(pv);
+  PyMolFreeP(at);
+  PyMolFreeP(seg);
+  PyMolFreeP(pv);
 
   if(I->N)
     I->V = ReallocForSure(I->V, float, (v - I->V));

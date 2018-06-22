@@ -123,7 +123,7 @@ static int *TriangleMakeStripVLA(TriangleSurfaceRec * II, float *v, float *vn, i
   float *v0, *v1, *v2, vt1[3], vt2[3], *tn0, *tn1, *tn2, tn[3], xtn[3];
 
   strip = VLAlloc(int, I->nTri * 4);    /* strip VLA is count,vert,vert,...count,vert,vert...zero */
-  tFlag = Alloc(int, I->nTri);
+  tFlag = PyMolAlloc(int, I->nTri);
   for(a = 0; a < I->nTri; a++)
     tFlag[a] = 0;
   s = strip;
@@ -302,7 +302,7 @@ static int *TriangleMakeStripVLA(TriangleSurfaceRec * II, float *v, float *vn, i
 
     *s = 0;                     /* terminate strip list */
   }
-  FreeP(tFlag);
+  PyMolFreeP(tFlag);
   /* shrink strip */
   return (strip);
 }
@@ -318,9 +318,9 @@ static int TriangleAdjustNormals(TriangleSurfaceRec * II, float *v, float *vn, i
   float *v0, *v1, *v2, *tn, vt1[3], vt2[3], *vn0, *tn0, *tn1, *tn2, *tw;
   int a, *t, i0, i1, i2;
   float tmp[3];
-  tNorm = Alloc(float, 3 * I->nTri);
-  tWght = Alloc(float, I->nTri);
-  vFlag = Alloc(int, n);
+  tNorm = PyMolAlloc(float, 3 * I->nTri);
+  tWght = PyMolAlloc(float, I->nTri);
+  vFlag = PyMolAlloc(int, n);
   for(a = 0; a < n; a++) {
     vFlag[a] = 0;
   }
@@ -381,7 +381,7 @@ static int TriangleAdjustNormals(TriangleSurfaceRec * II, float *v, float *vn, i
   if(final_pass) {
     int repeat = true;
     int max_cyc = 5;
-    float *va = Alloc(float, 3 * n), *va0, *va1, *va2;
+    float *va = PyMolAlloc(float, 3 * n), *va0, *va1, *va2;
     float vt[3];
     while(repeat && max_cyc) {
       repeat = false;
@@ -438,12 +438,12 @@ static int TriangleAdjustNormals(TriangleSurfaceRec * II, float *v, float *vn, i
         va0 += 3;
       }
     }
-    FreeP(va);
+    PyMolFreeP(va);
   }
 
-  FreeP(vFlag);
-  FreeP(tWght);
-  FreeP(tNorm);
+  PyMolFreeP(vFlag);
+  PyMolFreeP(tWght);
+  PyMolFreeP(tNorm);
   if(I->G->Interrupt)
     ok = false;
   return ok;
@@ -2015,8 +2015,8 @@ static int TriangleFixProblems(TriangleSurfaceRec * II, float *v, float *vn, int
   int *vFlag = NULL;
   problemFlag = false;
 
-  pFlag = Alloc(int, n);
-  vFlag = Alloc(int, n);
+  pFlag = PyMolAlloc(int, n);
+  vFlag = PyMolAlloc(int, n);
   for(a = 0; a < n; a++) {
     vFlag[a] = 0;
     if(I->vertActive[a]) {
@@ -2135,8 +2135,8 @@ static int TriangleFixProblems(TriangleSurfaceRec * II, float *v, float *vn, int
         ok = TriangleFill(I, v, vn, n, false);
     }
   }
-  FreeP(vFlag);
-  FreeP(pFlag);
+  PyMolFreeP(vFlag);
+  PyMolFreeP(pFlag);
   if(I->G->Interrupt)
     ok = false;
   return ok;
@@ -2159,11 +2159,11 @@ static int TriangleBruteForceClosure(TriangleSurfaceRec * II, float *v, float *v
   int p1, p2;
   float dp;
 
-  active = Alloc(int, n);
+  active = PyMolAlloc(int, n);
   ac = 0;
-  pair = Alloc(int, n * 2);
+  pair = PyMolAlloc(int, n * 2);
   pc = 0;
-  pFlag = Alloc(int, n);
+  pFlag = PyMolAlloc(int, n);
   for(a = 0; a < n; a++) {
     if(I->vertActive[a]) {
       pFlag[a] = 1;
@@ -2268,9 +2268,9 @@ static int TriangleBruteForceClosure(TriangleSurfaceRec * II, float *v, float *v
       }
     }
   }
-  FreeP(active);
-  FreeP(pair);
-  FreeP(pFlag);
+  PyMolFreeP(active);
+  PyMolFreeP(pair);
+  PyMolFreeP(pFlag);
   if(I->G->Interrupt)
     ok = false;
 
@@ -2288,7 +2288,7 @@ int *TrianglePointsToSurface(PyMOLGlobals * G, float *v, float *vn, int n,
   int a;
 
   if(n >= 3) {
-    I = Alloc(TriangleSurfaceRec, 1);
+    I = PyMolAlloc(TriangleSurfaceRec, 1);
     if(I) {
       float maxEdgeLen = 0.0F;
   
@@ -2325,17 +2325,17 @@ int *TrianglePointsToSurface(PyMOLGlobals * G, float *v, float *vn, int n,
         ok = false;
 
       if(ok) {
-        I->edgeStatus = Alloc(int, n);
+        I->edgeStatus = PyMolAlloc(int, n);
         for(a = 0; a < n; a++) {
           I->edgeStatus[a] = 0;
         }
 
-        I->vertActive = Alloc(int, n);
+        I->vertActive = PyMolAlloc(int, n);
         for(a = 0; a < n; a++) {
           I->vertActive[a] = -1;
         }
 
-        I->vertWeight = Alloc(int, n);
+        I->vertWeight = PyMolAlloc(int, n);
         for(a = 0; a < n; a++) {
           I->vertWeight[a] = 2;
         }
@@ -2388,15 +2388,15 @@ int *TrianglePointsToSurface(PyMOLGlobals * G, float *v, float *vn, int n,
       VLAFreeP(I->link);
       VLAFreeP(I->vNormal);
       VLAFreeP(I->edge);
-      FreeP(I->edgeStatus);
-      FreeP(I->vertActive);
-      FreeP(I->vertWeight);
+      PyMolFreeP(I->edgeStatus);
+      PyMolFreeP(I->vertActive);
+      PyMolFreeP(I->vertWeight);
       MapCacheFree(&I->map_cache, 0, 0);
       MapFree(map);
 
       result = I->tri;
     }
-    FreeP(I);
+    PyMolFreeP(I);
   }
   if(!ok) {
     VLAFreeP(result);

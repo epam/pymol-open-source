@@ -1913,7 +1913,7 @@ void PSetupEmbedded(PyMOLGlobals * G, int argc, char **argv)
     char *pymol_path = getenv("PYMOL_PATH");
     if(pymol_path) {
       PyObject *os = PyImport_AddModule("os");  /* borrowed ref */
-      char *buffer = Alloc(char, strlen(pymol_path) + 100);
+      char *buffer = PyMolAlloc(char, strlen(pymol_path) + 100);
       if(os && buffer) {
         PyObject *envir = PyObject_GetAttrString(os, "environ");
         if(envir) {
@@ -1924,7 +1924,7 @@ void PSetupEmbedded(PyMOLGlobals * G, int argc, char **argv)
         }
         PXDecRef(envir);
       }
-      FreeP(buffer);
+      PyMolFreeP(buffer);
     }
   }
   /* ultimate fallback -- try using the current working directory */
@@ -2093,7 +2093,7 @@ void PInit(PyMOLGlobals * G, int global_instance)
     ErrFatal(G, "PyMOL", "can't find globals for 'pymol'");
 
   if(global_instance) {         /* if global singleton PyMOL... */
-    G->P_inst = Calloc(CP_inst, 1);
+    G->P_inst = PyMolCalloc(CP_inst, 1);
     G->P_inst->obj = P_pymol;
     G->P_inst->dict = P_pymol_dict;
     {

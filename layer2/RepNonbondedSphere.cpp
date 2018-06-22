@@ -58,10 +58,10 @@ void RepNonbondedSphereFree(RepNonbondedSphere * I)
     CGOFree(I->shaderCGO);
     I->shaderCGO = 0;
   }
-  FreeP(I->VP);
+  PyMolFreeP(I->VP);
   RepPurge(&I->R);
-  FreeP(I->VC);
-  FreeP(I->V);
+  PyMolFreeP(I->VC);
+  PyMolFreeP(I->V);
   OOFreeP(I);
 }
 
@@ -327,7 +327,7 @@ Rep *RepNonbondedSphereNew(CoordSet * cs, int state)
   CHECKOK(ok, I);
 
   if (ok)
-    active = Alloc(int, cs->NIndex);
+    active = PyMolAlloc(int, cs->NIndex);
   CHECKOK(ok, active);
 
   if((obj->RepVisCache & cRepNonbondedSphereBit))
@@ -341,7 +341,7 @@ Rep *RepNonbondedSphereNew(CoordSet * cs, int state)
     }
   if(!nSphere) {
     OOFreeP(I);
-    FreeP(active);
+    PyMolFreeP(active);
     return (NULL);              /* skip if no dots are visible */
   }
 
@@ -484,7 +484,7 @@ Rep *RepNonbondedSphereNew(CoordSet * cs, int state)
     CHECKOK(ok, I->VP);
 
     if (ok)
-      I->R.P = Alloc(Pickable, cs->NIndex + 1);
+      I->R.P = PyMolAlloc(Pickable, cs->NIndex + 1);
     CHECKOK(ok, I->R.P);
 
     v = I->VP;
@@ -524,7 +524,7 @@ Rep *RepNonbondedSphereNew(CoordSet * cs, int state)
       ok &= !G->Interrupt;
     }
     if (ok)
-      I->R.P = Realloc(I->R.P, Pickable, I->NP + 1);
+      I->R.P = PyMolRealloc(I->R.P, Pickable, I->NP + 1);
     CHECKOK(ok, I->R.P);
     if (ok){
       I->R.context.object = (void *) obj;
@@ -533,11 +533,11 @@ Rep *RepNonbondedSphereNew(CoordSet * cs, int state)
       I->R.P[0].index = I->NP;
     }
     if (ok)
-      I->VP = Realloc(I->VP, float, I->NP * 21);
+      I->VP = PyMolRealloc(I->VP, float, I->NP * 21);
     CHECKOK(ok, I->VP);
   }
   
-  FreeP(active);
+  PyMolFreeP(active);
   if (!ok){
     RepNonbondedSphereFree(I);
     I = NULL;

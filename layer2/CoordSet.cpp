@@ -1009,8 +1009,8 @@ void CoordSet::invalidateRep(int type, int level)
 
   if(I->Spheroid)
     if(I->NSpheroid != I->NAtIndex * I->SpheroidSphereSize) {
-      FreeP(I->Spheroid);
-      FreeP(I->SpheroidNormal);
+      PyMolFreeP(I->Spheroid);
+      PyMolFreeP(I->SpheroidNormal);
     }
 
   /* invalidate basd on one representation, 'type' */
@@ -1519,8 +1519,8 @@ void CoordSet::fFree()
       SymmetryFree(I->Symmetry);
     if(I->PeriodicBox)
       CrystalFree(I->PeriodicBox);
-    FreeP(I->Spheroid);
-    FreeP(I->SpheroidNormal);
+    PyMolFreeP(I->Spheroid);
+    PyMolFreeP(I->SpheroidNormal);
     SettingFreeP(I->Setting);
     ObjectStatePurge(&I->State);
     CGOFree(I->SculptCGO);

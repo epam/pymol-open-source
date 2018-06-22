@@ -227,8 +227,8 @@ static void ObjectSurfaceStateFree(ObjectSurfaceState * ms)
   ObjectStatePurge(&ms->State);
   VLAFreeP(ms->N);
   VLAFreeP(ms->V);
-  FreeP(ms->VC);
-  FreeP(ms->RC);
+  PyMolFreeP(ms->VC);
+  PyMolFreeP(ms->RC);
   VLAFreeP(ms->AtomVertex);
   CGOFree(ms->UnitCellCGO);
 }
@@ -368,16 +368,16 @@ static void ObjectSurfaceStateUpdateColors(ObjectSurface * I, ObjectSurfaceState
         base_n_vert /= 6;
 
         if(ms->VC && (ms->VCsize < n_vert)) {
-          FreeP(ms->VC);
-          FreeP(ms->RC);
+          PyMolFreeP(ms->VC);
+          PyMolFreeP(ms->RC);
         }
 
         if(!ms->VC) {
           ms->VCsize = n_vert;
-          ms->VC = Alloc(float, n_vert * 3);
+          ms->VC = PyMolAlloc(float, n_vert * 3);
         }
         if(!ms->RC) {
-          ms->RC = Alloc(int, n_vert);
+          ms->RC = PyMolAlloc(int, n_vert);
         }
         rc = ms->RC;
         vc = ms->VC;
@@ -416,16 +416,16 @@ static void ObjectSurfaceStateUpdateColors(ObjectSurface * I, ObjectSurfaceState
         int n_vert = VLAGetSize(ms->V) / 3;
         base_n_vert /= 3;
         if(ms->VC && (ms->VCsize < n_vert)) {
-          FreeP(ms->VC);
-          FreeP(ms->RC);
+          PyMolFreeP(ms->VC);
+          PyMolFreeP(ms->RC);
         }
 
         if(!ms->VC) {
           ms->VCsize = n_vert;
-          ms->VC = Alloc(float, n_vert * 3);
+          ms->VC = PyMolAlloc(float, n_vert * 3);
         }
         if(!ms->RC) {
-          ms->RC = Alloc(int, n_vert);
+          ms->RC = PyMolAlloc(int, n_vert);
         }
         rc = ms->RC;
         vc = ms->VC;
@@ -459,12 +459,12 @@ static void ObjectSurfaceStateUpdateColors(ObjectSurface * I, ObjectSurfaceState
     }
 
     if(one_color_flag && (!ramped_flag)) {
-      FreeP(ms->VC);
-      FreeP(ms->RC);
+      PyMolFreeP(ms->VC);
+      PyMolFreeP(ms->RC);
     } else if((!ramped_flag)
               ||
               (!SettingGet_b(I->Obj.G, NULL, I->Obj.Setting, cSetting_ray_color_ramps))) {
-      FreeP(ms->RC);
+      PyMolFreeP(ms->RC);
     }
   }
 }
@@ -874,15 +874,15 @@ static void ObjectSurfaceRender(ObjectSurface * I, RenderInfo * info)
                       float matrix[16];
                       int parity;
                       glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-                      t_buf = Alloc(float *, ms->nT * 9);
+                      t_buf = PyMolAlloc(float *, ms->nT * 9);
                       vc = ms->VC;
 
                       if(vc) {
-                        c_buf = Alloc(float *, ms->nT * 9);
+                        c_buf = PyMolAlloc(float *, ms->nT * 9);
                       }
 
-                      z_value = Alloc(float, ms->nT);
-                      ix = Alloc(int, ms->nT);
+                      z_value = PyMolAlloc(float, ms->nT);
+                      ix = PyMolAlloc(int, ms->nT);
 
                       zv = z_value;
                       tb = t_buf;
@@ -1019,10 +1019,10 @@ static void ObjectSurfaceRender(ObjectSurface * I, RenderInfo * info)
 			glEnd();
 		      }
 
-                      FreeP(ix);
-                      FreeP(z_value);
-                      FreeP(t_buf);
-                      FreeP(c_buf);
+                      PyMolFreeP(ix);
+                      PyMolFreeP(z_value);
+                      PyMolFreeP(t_buf);
+                      PyMolFreeP(c_buf);
                     } else {    /* t_mode is zero */
 
                       if(info->alpha_cgo) {     /* global transparency */

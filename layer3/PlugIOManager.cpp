@@ -105,7 +105,7 @@ int PlugIOManagerInitAll(PyMOLGlobals * G);     /* defined externally */
 int PlugIOManagerInit(PyMOLGlobals * G)
 {
   CPlugIOManager *I = NULL;
-  if((I = (G->PlugIOManager = Calloc(CPlugIOManager, 1)))) {
+  if((I = (G->PlugIOManager = PyMolCalloc(CPlugIOManager, 1)))) {
     I->NPlugin = 0;
     I->PluginVLA = VLAlloc(molfile_plugin_t *, 10);
     return PlugIOManagerInitAll(G);
@@ -120,7 +120,7 @@ int PlugIOManagerFree(PyMOLGlobals * G)
   CPlugIOManager *I = G->PlugIOManager;
   PlugIOManagerFreeAll();
   VLAFreeP(I->PluginVLA);
-  FreeP(G->PlugIOManager);
+  PyMolFreeP(G->PlugIOManager);
   return 1;
 }
 
@@ -364,7 +364,7 @@ ObjectMap *PlugIOManagerLoadVol(PyMOLGlobals * G, ObjectMap * obj,
             continue;
           }
 
-          ok_assert(1, datablock = Alloc(float, size));
+          ok_assert(1, datablock = PyMolAlloc(float, size));
 
           if(plugin->read_volumetric_data(file_handle, i, datablock, NULL) != MOLFILE_SUCCESS) {
             PRINTFB(G, FB_ObjectMolecule, FB_Errors)
@@ -392,17 +392,17 @@ ObjectMap *PlugIOManagerLoadVol(PyMOLGlobals * G, ObjectMap * obj,
             ms->FDim[2] = v->zsize;
             ms->FDim[3] = 3;
 
-            ms->Grid = Alloc(float, 3);
-            ms->Dim = Alloc(int, 3);
-            ms->Origin = Calloc(float, 3);
-            ms->Range = Alloc(float, 3);
+            ms->Grid = PyMolAlloc(float, 3);
+            ms->Dim = PyMolAlloc(int, 3);
+            ms->Origin = PyMolCalloc(float, 3);
+            ms->Range = PyMolAlloc(float, 3);
 
             // set corners to a unit cube, and manage world space with the state matrix
             {
               double m44d[16];
 
               if(!ms->State.Matrix)
-                ms->State.Matrix = Alloc(double, 16);
+                ms->State.Matrix = PyMolAlloc(double, 16);
 
               // state matrix transformation
               identity44d(m44d);
@@ -466,7 +466,7 @@ ObjectMap *PlugIOManagerLoadVol(PyMOLGlobals * G, ObjectMap * obj,
             }
 
           }
-          FreeP(datablock);
+          PyMolFreeP(datablock);
   }
   if(obj) {
     ObjectMapUpdateExtents(obj);
@@ -539,7 +539,7 @@ ObjectMolecule *PlugIOManagerLoadMol(PyMOLGlobals * G, ObjectMolecule *origObj,
   }
 
   // read atoms
-  atoms = Calloc(molfile_atom_t, natoms);
+  atoms = PyMolCalloc(molfile_atom_t, natoms);
   if (plugin->read_structure(file_handle, &optflags, atoms) != MOLFILE_SUCCESS) {
     PRINTFB(G, FB_ObjectMolecule, FB_Errors)
       " ObjectMolecule: plugin '%s' failed to read atoms.\n", plugin_type ENDFB(G);

@@ -318,7 +318,7 @@ static void ObjectVolumeStateFree(ObjectVolumeState * vs)
   FieldFreeP(vs->carvemask);
   VLAFreeP(vs->AtomVertex);
   if (vs->Ramp)
-    FreeP(vs->Ramp);
+    PyMolFreeP(vs->Ramp);
   vs->Active = false;
 }
 
@@ -483,7 +483,7 @@ static void ObjectVolumeUpdate(ObjectVolume * I)
           };
           vs->RecolorFlag = true;
           vs->RampSize = 3;
-          vs->Ramp = Alloc(float, 5 * vs->RampSize);
+          vs->Ramp = PyMolAlloc(float, 5 * vs->RampSize);
           memcpy(vs->Ramp, defaultramp, 5 * vs->RampSize * sizeof(float));
         }
       }
@@ -621,7 +621,7 @@ static float * ObjectVolumeStateGetColors(PyMOLGlobals * G, ObjectVolumeState * 
   r_min -= stdev * 0.5;
   range += stdev;
 
-  colors = Calloc(float, 4 * count);
+  colors = PyMolCalloc(float, 4 * count);
   ok_assert(1, colors);
 
   for (i = 0; i < ovs->RampSize; i++) {
@@ -1314,7 +1314,7 @@ int ObjectVolumeSetRamp(ObjectVolume * I, float *ramp_list, int list_size)
 
   ok_assert(1, ovs && ramp_list && list_size > 0);
 
-  FreeP(ovs->Ramp);
+  PyMolFreeP(ovs->Ramp);
   ovs->Ramp = ramp_list;
   ovs->RampSize = list_size / 5;
   ovs->RecolorFlag = true;

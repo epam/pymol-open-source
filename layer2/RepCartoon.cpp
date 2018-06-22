@@ -35,7 +35,7 @@ Z* -------------------------------------------------------------------
 #include "AtomIterators.h"
 
 class CCInOut {
-  // skip c++11 initialization, this is Calloc'd
+  // skip c++11 initialization, this is PyMolCalloc'd
   signed char cc_in; // { 0 };
   signed char cc_out; // { 0 };
 
@@ -72,7 +72,7 @@ void RepCartoonFree(RepCartoon * I)
   if(I->pickingCGO && (I->pickingCGO != I->std))
     CGOFree(I->pickingCGO);
   CGOFree(I->std);
-  FreeP(I->LastVisib);
+  PyMolFreeP(I->LastVisib);
   RepPurge(&I->R);
   OOFreeP(I);
 }
@@ -1904,8 +1904,8 @@ int GenerateRepCartoonDrawRings(PyMOLGlobals * G, nuc_acid_data *ndata, ObjectMo
   int mem[8];
   int nbr[7];
   int *neighbor;
-  int *marked = Calloc(int, obj->NAtom);
-  float *moved = Calloc(float, obj->NAtom * 3);
+  int *marked = PyMolCalloc(int, obj->NAtom);
+  float *moved = PyMolCalloc(float, obj->NAtom * 3);
   int ring_color;
   int ok = true;
   int escape_count;
@@ -2037,8 +2037,8 @@ int GenerateRepCartoonDrawRings(PyMOLGlobals * G, nuc_acid_data *ndata, ObjectMo
     escape_count = ESCAPE_MAX;        /* don't get bogged down with structures 
                                          that have unreasonable connectivity */
   }
-  FreeP(marked);
-  FreeP(moved);
+  PyMolFreeP(marked);
+  PyMolFreeP(moved);
   return ok;
 }
 
@@ -2558,7 +2558,7 @@ CGO *GenerateRepCartoonCGO(CoordSet *cs, ObjectMolecule *obj, nuc_acid_data *nda
   cylindrical_helices =
     SettingGet_i(G, cs->Setting, obj->Obj.Setting, cSetting_cartoon_cylindrical_helices);
 
-  sampling_tmp = Alloc(float, sampling * 3);
+  sampling_tmp = PyMolAlloc(float, sampling * 3);
   cartoon_debug = SettingGet_i(G, cs->Setting, obj->Obj.Setting, cSetting_cartoon_debug);
 
   cgo = CGONew(G);
@@ -2715,7 +2715,7 @@ CGO *GenerateRepCartoonCGO(CoordSet *cs, ObjectMolecule *obj, nuc_acid_data *nda
   if (ok)
     CGOStop(cgo);
 
-  FreeP(sampling_tmp);
+  PyMolFreeP(sampling_tmp);
 
   if (!ok){
     CGOFree(cgo);
@@ -2750,7 +2750,7 @@ void RepCartoonInvalidate(struct Rep *I, struct CoordSet *cs, int level)
 {
   if (level >= cRepInvColor){
     RepCartoon *rc = (RepCartoon*)I;
-    FreeP(rc->LastVisib);
+    PyMolFreeP(rc->LastVisib);
     rc->LastVisib = NULL;
   }
   RepInvalidate(I, cs, level);
@@ -3729,18 +3729,18 @@ Rep *RepCartoonNew(CoordSet * cs, int state)
 
   /* find all of the CA points */
 
-  at = Alloc(int, cs->NAtIndex);        /* cs index pointers */
-  pv = Alloc(float, cs->NAtIndex * 3);
-  tmp = Alloc(float, cs->NAtIndex * 3);
-  pvo = Alloc(float, cs->NAtIndex * 3); /* orientation vector */
-  pva = Alloc(float, cs->NAtIndex * 6); /* alternative orientation vectors, two per atom */
-  seg = Alloc(int, cs->NAtIndex);
-  car = Calloc(CCInOut, cs->NAtIndex);       /* cartoon type for each atom */
-  sstype = Alloc(int, cs->NAtIndex);
-  flag_tmp = Calloc(int, cs->NAtIndex);
-  nuc_flag = Calloc(int, cs->NAtIndex);
+  at = PyMolAlloc(int, cs->NAtIndex);        /* cs index pointers */
+  pv = PyMolAlloc(float, cs->NAtIndex * 3);
+  tmp = PyMolAlloc(float, cs->NAtIndex * 3);
+  pvo = PyMolAlloc(float, cs->NAtIndex * 3); /* orientation vector */
+  pva = PyMolAlloc(float, cs->NAtIndex * 6); /* alternative orientation vectors, two per atom */
+  seg = PyMolAlloc(int, cs->NAtIndex);
+  car = PyMolCalloc(CCInOut, cs->NAtIndex);       /* cartoon type for each atom */
+  sstype = PyMolAlloc(int, cs->NAtIndex);
+  flag_tmp = PyMolCalloc(int, cs->NAtIndex);
+  nuc_flag = PyMolCalloc(int, cs->NAtIndex);
 
-  I->LastVisib = Calloc(char, cs->NAtIndex);
+  I->LastVisib = PyMolCalloc(char, cs->NAtIndex);
   
   auto cartoon_all_alt =
     SettingGet_b(G, cs->Setting, obj->Obj.Setting, cSetting_cartoon_all_alt);
@@ -3797,13 +3797,13 @@ Rep *RepCartoonNew(CoordSet * cs, int state)
     " RepCartoon-Debug: path outlined, interpolating... nAt=%d\n", nAt ENDFD;
 
   if(nAt) {
-    dv = Alloc(float, nAt * 3);  /* differences between next and current 3f */
-    nv = Alloc(float, nAt * 3);  /* normal */
-    dl = Alloc(float, nAt);      /* length (i.e., normal * length = difference) */
+    dv = PyMolAlloc(float, nAt * 3);  /* differences between next and current 3f */
+    nv = PyMolAlloc(float, nAt * 3);  /* normal */
+    dl = PyMolAlloc(float, nAt);      /* length (i.e., normal * length = difference) */
     RepCartoonComputeDifferencesAndNormals(G, nAt, seg, pv, dv, nv, dl, true);
 
     /* compute tangents */
-    tv = Alloc(float, nAt * 3 + 6);
+    tv = PyMolAlloc(float, nAt * 3 + 6);
     RepCartoonComputeTangents(nAt, seg, nv, tv);
 
     PRINTFD(G, FB_RepCartoon)
@@ -3887,20 +3887,20 @@ Rep *RepCartoonNew(CoordSet * cs, int state)
     RepCartoonFree(I);
     I = NULL;
   }
-  FreeP(dv);
-  FreeP(dl);
-  FreeP(tv);
-  FreeP(nv);
-  FreeP(at);
-  FreeP(seg);
-  FreeP(pv);
-  FreeP(pvo);
-  FreeP(pva);
-  FreeP(car);
-  FreeP(tmp);
-  FreeP(sstype);
-  FreeP(flag_tmp);
-  FreeP(nuc_flag);
+  PyMolFreeP(dv);
+  PyMolFreeP(dl);
+  PyMolFreeP(tv);
+  PyMolFreeP(nv);
+  PyMolFreeP(at);
+  PyMolFreeP(seg);
+  PyMolFreeP(pv);
+  PyMolFreeP(pvo);
+  PyMolFreeP(pva);
+  PyMolFreeP(car);
+  PyMolFreeP(tmp);
+  PyMolFreeP(sstype);
+  PyMolFreeP(flag_tmp);
+  PyMolFreeP(nuc_flag);
   VLAFreeP(ndata.ring_anchor);
   return (Rep *) I;
 }

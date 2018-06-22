@@ -13,7 +13,7 @@ void DeferredFree(CDeferred * I)
 {
   while(I) {
     CDeferred *next = I->next;
-    FreeP(I);
+    PyMolFreeP(I);
     I = next;
   }
 }
@@ -27,7 +27,7 @@ CDeferred *DeferredExec(CDeferred * I)
         break;
       }
     }
-    FreeP(I);
+    PyMolFreeP(I);
     I = next;
   }
   return I;

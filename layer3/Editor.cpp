@@ -2350,7 +2350,7 @@ void EditorDrag(PyMOLGlobals * G, CObject * obj, int index, int mode, int state,
 int EditorInit(PyMOLGlobals * G)
 {
   CEditor *I = NULL;
-  if((I = (G->Editor = Calloc(CEditor, 1)))) {
+  if((I = (G->Editor = PyMolCalloc(CEditor, 1)))) {
 
     I->DihedObject = NULL;
     I->NFrag = 0;
@@ -2376,7 +2376,7 @@ void EditorFree(PyMOLGlobals * G)
 {
   CEditor *I = G->Editor;
   VLAFreeP(I->PosVLA);
-  FreeP(G->Editor);
+  PyMolFreeP(G->Editor);
 }
 
 void EditorInvalidateShaderCGO(PyMOLGlobals * G){

@@ -25,7 +25,7 @@ CQueue *QueueNew(PyMOLGlobals * G, unsigned int mask)
 {
   OOAlloc(G, CQueue);
   I->size = mask + 1;
-  I->ptr = Alloc(char, I->size);
+  I->ptr = PyMolAlloc(char, I->size);
   I->mask = mask;
   I->inp = 0;
   I->out = 0;
@@ -65,6 +65,6 @@ int QueueStrOut(CQueue * I, char *c)
 
 void QueueFree(CQueue * I)
 {
-  FreeP(I->ptr);
+  PyMolFreeP(I->ptr);
   OOFreeP(I);
 }

@@ -1186,7 +1186,7 @@ static PyObject *CmdGetBondPrint(PyObject * self, PyObject * args)
     APIExit(G);
     if(array) {
       result = PConv3DIntArrayTo3DPyList(array, dim);
-      FreeP(array);
+      PyMolFreeP(array);
     }
   }
   return (APIAutoNone(result));
@@ -4010,7 +4010,7 @@ static PyObject *CmdSelectList(PyObject * self, PyObject * args)
       SceneInvalidate(G);
       SeqDirty(G);
     }
-    FreeP(int_array);
+    PyMolFreeP(int_array);
     APIExitBlocked(G);
   }
   return Py_BuildValue("i", result);
@@ -4229,7 +4229,7 @@ static PyObject *Cmd_New(PyObject * self, PyObject * args)
         PyMOLGlobals *G = PyMOL_GetGlobals(I);
         if(I) {
 
-          G->P_inst = Calloc(CP_inst, 1);
+          G->P_inst = PyMolCalloc(CP_inst, 1);
           G->P_inst->obj = pymol;
           G->P_inst->dict = PyObject_GetAttrString(pymol, "__dict__");
           Py_DECREF(G->P_inst->dict); // borrow reference
@@ -4885,7 +4885,7 @@ static PyObject *CmdGetPDB(PyObject * self, PyObject * args)
     }
     if(pdb)
       result = Py_BuildValue("s", pdb);
-    FreeP(pdb);
+    PyMolFreeP(pdb);
   }
   return (APIAutoNone(result));
 }
@@ -5021,7 +5021,7 @@ static PyObject *CmdFitPairs(PyObject * self, PyObject * args)
       ok = false;
 
     if(ok) {
-      word = Alloc(WordType, ln);
+      word = PyMolAlloc(WordType, ln);
 
       a = 0;
       while(a < ln) {
@@ -5037,7 +5037,7 @@ static PyObject *CmdFitPairs(PyObject * self, PyObject * args)
       result = Py_BuildValue("f", valu);
       for(a = 0; a < ln; a++)
         SelectorFreeTmp(G, word[a]);
-      FreeP(word);
+      PyMolFreeP(word);
     }
     APIExitBlocked(G);
   }
@@ -7126,7 +7126,7 @@ static PyObject *CmdSetStateOrder(PyObject * self, PyObject * args)
     ok = ObjectMoleculeSetStateOrder((ObjectMolecule *) obj, int_array, len);
     PUnblock(G);
 
-    FreeP(int_array);
+    PyMolFreeP(int_array);
   } else {
     ErrMessage(G, "SetStateOrder", "not an integer list.");
     ok_raise(2);

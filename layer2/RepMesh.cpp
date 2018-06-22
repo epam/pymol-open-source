@@ -68,11 +68,11 @@ void RepMeshFree(RepMesh * I)
     CGOFree(I->shaderCGO);
     I->shaderCGO = 0;
   }
-  FreeP(I->VC);
+  PyMolFreeP(I->VC);
   VLAFreeP(I->V);
   VLAFreeP(I->N);
-  FreeP(I->LastColor);
-  FreeP(I->LastVisib);
+  PyMolFreeP(I->LastColor);
+  PyMolFreeP(I->LastVisib);
   OOFreeP(I);
 }
 
@@ -582,9 +582,9 @@ void RepMeshColor(RepMesh * I, CoordSet * cs)
   inclH = !(mesh_mode == cRepMesh_heavy_atoms);
 
   if(!I->LastVisib)
-    I->LastVisib = Alloc(int, cs->NIndex);
+    I->LastVisib = PyMolAlloc(int, cs->NIndex);
   if(!I->LastColor)
-    I->LastColor = Alloc(int, cs->NIndex);
+    I->LastColor = PyMolAlloc(int, cs->NIndex);
   lv = I->LastVisib;
   lc = I->LastColor;
   for(a = 0; a < cs->NIndex; a++) {
@@ -610,7 +610,7 @@ void RepMeshColor(RepMesh * I, CoordSet * cs)
     }
     first_color = -1;
     if(!I->VC)
-      I->VC = Alloc(float, 3 * I->NTot);
+      I->VC = PyMolAlloc(float, 3 * I->NTot);
     vc = I->VC;
     /* now, assign colors to each point */
     map = MapNew(G, I->max_vdw + probe_radius, cs->Coord, cs->NIndex, NULL);
@@ -1049,7 +1049,7 @@ Rep *RepMeshNew(CoordSet * cs, int state)
     }
     MapFree(smap);
     MapFree(map);
-    FreeP(I->Dot);
+    PyMolFreeP(I->Dot);
     OrthoBusyFast(G, 2, 3);
     if(ok) {
       ok &= IsosurfVolume(G, NULL, NULL, field, 1.0, &I->N, &I->V, NULL, mesh_type, mesh_skip,
@@ -1296,7 +1296,7 @@ int RepMeshGetSolventDots(RepMesh * I, CoordSet * cs, float *min, float *max,
   }
 
   if(ok && (cavity_cull > 0)) {
-    dot_flag = Alloc(int, I->NDot);
+    dot_flag = PyMolAlloc(int, I->NDot);
     ErrChkPtr(G, dot_flag);
     for(a = 0; a < I->NDot; a++) {
       dot_flag[a] = 0;
@@ -1365,10 +1365,10 @@ int RepMeshGetSolventDots(RepMesh * I, CoordSet * cs, float *min, float *max,
         v += 3;
       }
     }
-    FreeP(dot_flag);
+    PyMolFreeP(dot_flag);
   }
   if(!ok) {
-    FreeP(I->Dot);
+    PyMolFreeP(I->Dot);
     I->NDot = 0;
   }
   return ok;

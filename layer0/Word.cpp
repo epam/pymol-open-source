@@ -591,8 +591,8 @@ CWordList *WordListNew(PyMOLGlobals * G, const char *st)
     }
     /* allocate the storage we'll need to hold the words */
     {
-      I->word = Alloc(char, len);
-      I->start = Alloc(char *, n_word);
+      I->word = PyMolAlloc(char, len);
+      I->start = PyMolAlloc(char *, n_word);
 
       /* and copy the words */
 
@@ -621,9 +621,9 @@ CWordList *WordListNew(PyMOLGlobals * G, const char *st)
 void WordListFreeP(CWordList * I)
 {
   if(I) {
-    FreeP(I->word);
-    FreeP(I->start);
-    FreeP(I);
+    PyMolFreeP(I->word);
+    PyMolFreeP(I->start);
+    PyMolFreeP(I);
   }
 }
 
@@ -670,7 +670,7 @@ int WordInit(PyMOLGlobals * G)
 {
   CWord *I = NULL;
 
-  I = (G->Word = Calloc(CWord, 1));
+  I = (G->Word = PyMolCalloc(CWord, 1));
   if(I) {
     return 1;
   } else
@@ -680,7 +680,7 @@ int WordInit(PyMOLGlobals * G)
 
 void WordFree(PyMOLGlobals * G)
 {
-  FreeP(G->Word);
+  PyMolFreeP(G->Word);
 }
 
 void WordPrimeCommaMatch(PyMOLGlobals * G, char *p)

@@ -338,7 +338,7 @@ const char *TextRenderRay(PyMOLGlobals * G, CRay * ray, int text_id,
 int TextInit(PyMOLGlobals * G)
 {
   CText *I = NULL;
-  if((I = (G->Text = Calloc(CText, 1)))) {
+  if((I = (G->Text = PyMolCalloc(CText, 1)))) {
 
     I->NActive = 0;
     I->Active = VLACalloc(ActiveRec, 10);
@@ -606,5 +606,5 @@ void TextFree(PyMOLGlobals * G)
       fp->fFree(fp);
   }
   VLAFreeP(I->Active);
-  FreeP(G->Text);
+  PyMolFreeP(G->Text);
 }

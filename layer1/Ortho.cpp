@@ -1418,7 +1418,7 @@ void bg_grad(PyMOLGlobals * G) {
       short is_new = !I->bg_texture_id;
       int tex_dim = BACKGROUND_TEXTURE_SIZE;
       int buff_total = tex_dim * tex_dim;
-      unsigned char *temp_buffer = Alloc(unsigned char, buff_total * 4);
+      unsigned char *temp_buffer = PyMolAlloc(unsigned char, buff_total * 4);
       I->bg_texture_needs_update = 0;
       I->bgWidth = BACKGROUND_TEXTURE_SIZE;
       I->bgHeight = BACKGROUND_TEXTURE_SIZE;
@@ -1461,7 +1461,7 @@ void bg_grad(PyMOLGlobals * G) {
       }
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 		   tex_dim, tex_dim, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)temp_buffer);
-      FreeP(temp_buffer);
+      PyMolFreeP(temp_buffer);
     }
     if (ok && I->bgCGO) {
       CShaderPrg *shaderPrg = CShaderPrg_Get_BackgroundShader(G);
@@ -2523,7 +2523,7 @@ int OrthoInit(PyMOLGlobals * G, int showSplash)
 {
   COrtho *I = NULL;
 
-  if((I = (G->Ortho = Calloc(COrtho, 1)))) {
+  if((I = (G->Ortho = PyMolCalloc(COrtho, 1)))) {
 
     ListInit(I->Blocks);
 
@@ -2635,13 +2635,13 @@ void OrthoFree(PyMOLGlobals * G)
     I->deferred = NULL;
   }
   if (I->bgData){
-    FreeP(I->bgData);
+    PyMolFreeP(I->bgData);
     I->bgData = NULL;
   }
   if (I->bgCGO){
     CGOFree(I->bgCGO);
   }
-  FreeP(G->Ortho);
+  PyMolFreeP(G->Ortho);
 }
 
 

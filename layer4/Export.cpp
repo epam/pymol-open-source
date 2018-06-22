@@ -55,7 +55,7 @@ ExportCoords *ExportCoordsExport(PyMOLGlobals * G, char *name, int state, int or
 
     if(io) {
       io->nAtom = cs->NIndex;
-      io->coord = Alloc(float, cs->NIndex * 3);
+      io->coord = PyMolAlloc(float, cs->NIndex * 3);
 
       if(io->coord) {
         crd0 = cs->Coord;
@@ -149,8 +149,8 @@ int ExportCoordsImport(PyMOLGlobals * G, char *name, int state, ExportCoords * i
 void ExportCoordsFree(ExportCoords * io)
 {
   if(io) {
-    FreeP(io->coord);
-    FreeP(io);
+    PyMolFreeP(io->coord);
+    PyMolFreeP(io);
   }
 }
 
@@ -182,7 +182,7 @@ ExportDotsObj *ExportDots(PyMOLGlobals * G, char *name, int csIndex)
     if(!rep)
       ok = ErrMessage(G, "ExportDots", "Couldn't get dot representation.");
     else {
-      result = Alloc(ExportDotsObj, 1);
+      result = PyMolAlloc(ExportDotsObj, 1);
       ErrChkPtr(G, result);
       result->export_.fFree = (void (*)(struct Export *)) ExportDotsObjFree;
       /* cannabilize the data structures */
@@ -209,11 +209,11 @@ ExportDotsObj *ExportDots(PyMOLGlobals * G, char *name, int csIndex)
 void ExportDotsObjFree(PyMOLGlobals * G, ExportDotsObj * obj)
 {
   if(obj) {
-    FreeP(obj->point);
-    FreeP(obj->normal);
-    FreeP(obj->type);
-    FreeP(obj->flag);
-    FreeP(obj->area);
+    PyMolFreeP(obj->point);
+    PyMolFreeP(obj->normal);
+    PyMolFreeP(obj->type);
+    PyMolFreeP(obj->flag);
+    PyMolFreeP(obj->area);
   }
 }
 
@@ -222,7 +222,7 @@ void ExportDeleteMDebug(PyMOLGlobals * G, Export * ex)
   if(ex)
     if(ex->fFree)
       ex->fFree(ex);
-  FreeP(ex);
+  PyMolFreeP(ex);
 }
 
 

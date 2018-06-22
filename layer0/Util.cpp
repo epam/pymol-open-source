@@ -29,14 +29,14 @@ struct _CUtil {
 
 int UtilInit(PyMOLGlobals *G) 
 {
-  G->Util = Calloc(CUtil,1);
+  G->Util = PyMolCalloc(CUtil,1);
   G->Util->StartSec = UtilGetSeconds(G);
   return 1;
 }
 
 void UtilFree(PyMOLGlobals *G) 
 {
-  FreeP(G->Util);
+  PyMolFreeP(G->Util);
 }
 
 int UtilShouldWePrintQuantity(int quantity)
@@ -420,7 +420,7 @@ int UtilSemiSortFloatIndex(int n,float *array,int *x, int forward)
     int idx1;
     int n_minus_one;
 
-    start1 = Calloc(int,n*2);
+    start1 = PyMolCalloc(int,n*2);
     CHECKOK(ok, start1);
     if (!ok){
       return false;
@@ -491,8 +491,8 @@ void UtilSortInPlace(PyMOLGlobals *G,void *array,int nItem,
   int a;
   if(nItem>0)
 	 {
-	   tmp = Alloc(char,(itemSize*nItem));
-	   index = Alloc(int,nItem+1);
+	   tmp = PyMolAlloc(char,(itemSize*nItem));
+	   index = PyMolAlloc(int,nItem+1);
 	   ErrChkPtr(G,tmp);
 	   ErrChkPtr(G,index);
 	   UtilSortIndex(nItem,array,index,fOrdered);

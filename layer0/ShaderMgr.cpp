@@ -165,7 +165,7 @@ void CShaderPrg_Reload_CallComputeColorForLight(PyMOLGlobals * G, char *name){
   CShaderMgr *I = G->ShaderMgr;
   int light_count = SettingGetGlobal_i(G, cSetting_light_count);
   int spec_count = SettingGetGlobal_i(G, cSetting_spec_count);
-  char **reparr = Alloc(char*, 5);
+  char **reparr = PyMolAlloc(char*, 5);
   char *accstr, *tmpstr ;
   int tmpstrlen, accstrlen, i, idx;
   reparr[0] = "`light`";
@@ -176,7 +176,7 @@ void CShaderPrg_Reload_CallComputeColorForLight(PyMOLGlobals * G, char *name){
   accstr = CShaderPrg_ReadFromFile_Or_Use_String_Replace_Strings(G, name, "call_compute_color_for_light.fs", (char*)call_compute_color_for_light_fs, reparr);
 
   reparr[3] = "";
-  reparr[1] = Alloc(char, 5);
+  reparr[1] = PyMolAlloc(char, 5);
 
   auto pick_shading = SettingGet<bool>(G, cSetting_pick_shading);
   if (pick_shading) {
@@ -204,8 +204,8 @@ void CShaderPrg_Reload_CallComputeColorForLight(PyMOLGlobals * G, char *name){
     strcpy(accstr + accstrlen-1, tmpstr);
     VLAFreeP(tmpstr);    
   }
-  FreeP(reparr[1]);
-  FreeP(reparr);
+  PyMolFreeP(reparr[1]);
+  PyMolFreeP(reparr);
   idx = SHADERLEX_LOOKUP(G, "CallComputeColorForLight");
   if (I->shader_replacement_strings[idx]){
     VLAFreeP(I->shader_replacement_strings[idx]);
@@ -254,7 +254,7 @@ char *CShaderPrg_ReadFromFile_Or_Use_String_Replace_Strings(PyMOLGlobals * G, ch
 	" CShaderPrg_ReadFromFile_Or_Use_String: PYMOL_PATH not set, cannot read shader config files from disk\n" ENDFB(G);
     }
   } else {
-    fullFile = Alloc(char, strlen(pymol_path) + strlen(shader_path) + strlen(fileName) + 1);
+    fullFile = PyMolAlloc(char, strlen(pymol_path) + strlen(shader_path) + strlen(fileName) + 1);
     fullFile = strcpy(fullFile, pymol_path);
     fullFile = strcat(fullFile, shader_path);
     fullFile = strcat(fullFile, fileName);
@@ -376,7 +376,7 @@ char *CShaderPrg_ReadFromFile_Or_Use_String_Replace_Strings(PyMOLGlobals * G, ch
     i++;
   }
   if (allocated){
-    FreeP(buffer);
+    PyMolFreeP(buffer);
   }
   VLAFreeP(ifdefstack);
   if (fullFile)
@@ -684,11 +684,11 @@ int CShaderPrg_Reload(PyMOLGlobals * G, char *name, char *v, char *f){
         glGetShaderiv(I->vid, GL_INFO_LOG_LENGTH, &infoLogLength);
         PRINTFB(G, FB_ShaderMgr, FB_Errors) " CShaderPrg_Reload-Error: vertex shader compilation failed name='%s'; log follows.\n", I->name ENDFB(G);
         if (!glGetError() && infoLogLength>0){
-          infoLog = Alloc(char, infoLogLength);
+          infoLog = PyMolAlloc(char, infoLogLength);
           glGetShaderInfoLog(I->vid, infoLogLength, &howLong, infoLog);
           PRINTFB(G, FB_ShaderMgr, FB_Errors)
             "infoLog=%s\n", infoLog ENDFB(G);
-          FreeP(infoLog);
+          PyMolFreeP(infoLog);
         }
       }
       return 0;
@@ -710,11 +710,11 @@ int CShaderPrg_Reload(PyMOLGlobals * G, char *name, char *v, char *f){
         glGetShaderiv(I->fid, GL_INFO_LOG_LENGTH, &infoLogLength);
         PRINTFB(G, FB_ShaderMgr, FB_Errors) " CShaderPrg_Reload-Error: fragment shader compilation failed name='%s'; log follows.\n", I->name ENDFB(G);
         if (!glGetError() && infoLogLength>0){
-          infoLog = Alloc(char, infoLogLength);
+          infoLog = PyMolAlloc(char, infoLogLength);
           glGetShaderInfoLog(I->fid, infoLogLength, &howLong, infoLog);
           PRINTFB(G, FB_ShaderMgr, FB_Errors)
             "infoLog=%s\n", infoLog ENDFB(G);
-          FreeP(infoLog);
+          PyMolFreeP(infoLog);
         }
       }
       return 0;
@@ -1150,7 +1150,7 @@ char * CShaderMgr_ReadShaderFromDisk(PyMOLGlobals * G, const char * fileName) {
   }
   /* make this a setting */
   shader_path = "/data/shaders/";
-  fullFile = Alloc(char, strlen(pymol_path) + strlen(shader_path) + strlen(fileName) + 1);
+  fullFile = PyMolAlloc(char, strlen(pymol_path) + strlen(shader_path) + strlen(fileName) + 1);
   fullFile = strcpy(fullFile, pymol_path);
   fullFile = strcat(fullFile, shader_path);
   fullFile = strcat(fullFile, fileName);
@@ -1410,12 +1410,12 @@ int CShaderPrg_Enable(CShaderPrg * I)
 	"CShaderPrg_Enable-Error: Cannot enable the shader program; linking failed.  Shaders disabled.  Log follows.\n"
 	ENDFB(G);
       if (!glGetError() && infoLogLength>0){
-        char *infoLog = Alloc(char, infoLogLength);
+        char *infoLog = PyMolAlloc(char, infoLogLength);
         glGetProgramInfoLog(I->id, infoLogLength, &howLong, infoLog);
         PRINTFB(G, FB_ShaderMgr, FB_Errors)
           "%s\n", infoLog
           ENDFB(G);
-        FreeP(infoLog);
+        PyMolFreeP(infoLog);
       }
     }
     return 0;
@@ -1460,12 +1460,12 @@ int CShaderPrg_Link(CShaderPrg * I)
         ENDFB(G);
       glGetProgramiv(I->id, GL_INFO_LOG_LENGTH, &infoLogLength);
       if (!glGetError() && infoLogLength>0){
-        char *infoLog = Alloc(char, infoLogLength);
+        char *infoLog = PyMolAlloc(char, infoLogLength);
         glGetProgramInfoLog(I->id, infoLogLength, &howLong, infoLog);
         PRINTFB(G, FB_ShaderMgr, FB_Errors)
           "%s\n", infoLog
           ENDFB(G);
-        FreeP(infoLog);
+        PyMolFreeP(infoLog);
       }
     }
     return 0;

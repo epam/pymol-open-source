@@ -997,7 +997,7 @@ int WizardSetStack(PyMOLGlobals * G, PyObject * list)
 int WizardInit(PyMOLGlobals * G)
 {
   CWizard *I = NULL;
-  if((I = (G->Wizard = Calloc(CWizard, 1)))) {
+  if((I = (G->Wizard = PyMolCalloc(CWizard, 1)))) {
 
     I->Block = OrthoNewBlock(G, NULL);
     I->Block->fClick = WizardClick;
@@ -1036,5 +1036,5 @@ void WizardFree(PyMOLGlobals * G)
   OrthoFreeBlock(G, I->Block);
   VLAFreeP(I->Line);
   VLAFreeP(I->Wiz);
-  FreeP(G->Wizard);
+  PyMolFreeP(G->Wizard);
 }

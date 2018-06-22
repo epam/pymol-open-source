@@ -167,7 +167,7 @@ static DistSet *ObjectDistGetDistSetFromM4XBond(PyMOLGlobals * G,
       int a, offset;
 
       range = max_id - min_id + 1;
-      lookup = Calloc(int, range);
+      lookup = PyMolCalloc(int, range);
       for(a = 0; a < obj->NAtom; a++) {
         offset = obj->AtomInfo[a].id - min_id;
         if(lookup[offset])
@@ -257,7 +257,7 @@ static DistSet *ObjectDistGetDistSetFromM4XBond(PyMOLGlobals * G,
     }
   }
 
-  FreeP(lookup);
+  PyMolFreeP(lookup);
   ds->NIndex = nv;
   ds->Coord = vv;
   return (ds);
