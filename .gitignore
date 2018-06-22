@@ -1,0 +1,3 @@
+build/
+pymol.egg-info/
+*.pyc
