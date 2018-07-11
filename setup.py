@@ -272,6 +272,21 @@ libs = []
 pyogl_libs = []
 lib_dirs = []
 ext_comp_args = [
+    '/wd4244', # (1049) 'initializing' : conversion from 'double' to 'const float', possible loss of data
+    '/wd4996', # (1029) 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+    '/wd4805', # (438) '&=' : unsafe mix of type 'int' and type 'bool' in operation
+    '/wd4267', # (280) 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+    '/wd4305', # (194) '=' : truncation from 'double' to 'float'
+    '/wd4800', # (62) 'int' : forcing value to bool 'true' or 'false' (performance warning)
+    '/wd4101', # (20) 'j' : unreferenced local variable
+    '/wd4146', # (5) unary minus operator applied to unsigned type, result still unsigned
+    '/wd4018', # (5) '<=' : signed/unsigned mismatch
+    # '/wd4005', # (5) 'WCHAR_MIN' : macro redefinition
+    # '/wd4309', # (3) 'argument' : truncation of constant value
+    '/EHsc',   # (2) C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
+    '/wd4102', # (1) 'ok_except1' : unreferenced label
+    '/wd4065', # (1) switch statement contains 'default' but no 'case' labels
+    '/wd4390', # (1) ';' : empty controlled statement found; is this the intent?
 ] if sys.platform == "win32" else [
     # legacy stuff
     '-Wno-write-strings',
@@ -438,6 +453,11 @@ ext_modules += [
     Extension("chempy.champ._champ",
         get_sources(['contrib/champ']),
         include_dirs=["contrib/champ"],
+        extra_compile_args=[
+            '/wd4267', # (10) '+=' : conversion from 'size_t' to 'int', possible loss of data
+            '/wd4244', # (5) '=' : conversion from 'Py_ssize_t' to 'int', possible loss of data
+            '/wd4996', # (2) 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+        ] if sys.platform == "win32" else [],
     ),
 ]
 
