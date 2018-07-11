@@ -6,7 +6,8 @@
 # It may assume that all of PyMOL's external dependencies are
 # pre-installed into the system.
 
-from distutils.core import setup, Extension
+from setuptools import setup
+from distutils.core import Extension
 from distutils.util import change_root
 from distutils.errors import *
 from distutils.command.install import install
@@ -271,6 +272,7 @@ libs = []
 pyogl_libs = []
 lib_dirs = []
 ext_comp_args = [
+] if sys.platform == "win32" else [
     # legacy stuff
     '-Wno-write-strings',
     '-Wno-unused-function',
@@ -330,13 +332,14 @@ if sys.platform=='win32':
     # NOTE: this branch not tested in years and may not work...
     inc_dirs += [
               "win32/include"]
-    libs=["opengl32","glu32","glut32","libpng","zlib"]
+    libs=["opengl32","glu32","freeglut","glew32","libpng16","zlib","Advapi32","Ws2_32"]
     pyogl_libs = ["opengl32","glu32","glut32"]
     lib_dirs=["win32/lib"]
     def_macros += [
                 ("WIN32",None),
                 ("_PYMOL_LIBPNG",None),
                 ]
+    data_files += [("", ["win32/dll/freeglut.dll"])]
     ext_link_args=['/NODEFAULTLIB:"LIBC"']
 #============================================================================
 elif sys.platform=='cygwin':
