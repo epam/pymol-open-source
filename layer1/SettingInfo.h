@@ -268,7 +268,7 @@ enum {
   REC_i( 185, fit_iterations                          , global    , 1000 ),
   REC_f( 186, fit_tolerance                           , global    , 0.0000001F ),
   REC_s( 187, batch_prefix                            , global    , "tmp_pymol" ),
-  REC_i( 188, stereo_mode                             , global    , 2, 1, 12 ),        /* crosseye by default */
+  REC_i( 188, stereo_mode                             , global    , 2, 1, 13 ),        /* crosseye by default */
   REC_i( 189, cgo_sphere_quality                      , global    , 1, 0, MAX_SPHERE_QUALITY ),
   REC_b( 190, pdb_literal_names                       , global    , 0 ),
   REC_b( 191, wrap_output                             , global    , 0 ),
