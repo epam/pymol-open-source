@@ -1648,7 +1648,7 @@ Rep *RepCylBondNew(CoordSet * cs, int state)
         AtomInfoType *ati1 = obj->AtomInfo + b1;
         AtomInfoType *ati2 = obj->AtomInfo + b2;
         float overlap_r, nub_r;
-        float bd_transp;
+        float bd_transp = 0.0f;
 	int capdraw1 = 0, capdraw2 = 0;
 	int adj1 = 0, adj2 = 0;
 	if (adjacent_atoms){
