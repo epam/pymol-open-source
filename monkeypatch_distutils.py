@@ -9,6 +9,7 @@ import os
 import sys
 import distutils.sysconfig
 import distutils.unixccompiler
+from setup_msvc_deps import DependencyTracker
 
 # threaded parallel map (optional)
 pmap = map
@@ -134,3 +135,31 @@ def compile(self, sources, output_dir=None, macros=None,
         pass
 
     return objects
+
+@monkeypatch(distutils.msvc9compiler.MSVCCompiler, '_setup_compile')
+def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
+    macros, objects, extra, pp_opts, build = _setup_compile._super(self, outdir, macros, incdirs, sources, depends, extra)
+
+    # examine only C/C++ files
+    c_cpp_objects = filter(lambda obj: build[obj][1] in self._c_extensions + self._cpp_extensions, objects)
+
+    # add them to a deps tracker
+    tracker = DependencyTracker(outdir, self.cc, pp_opts, extra)
+    for obj in c_cpp_objects:
+        tracker.add(obj, build[obj][0])
+
+    # remove unchanged objects from build
+    for obj in c_cpp_objects:
+        obj_path = os.path.abspath(obj)
+        _, dep_path = tracker.sources[obj_path]
+        if not tracker.is_invalid(obj_path):
+            # print 'Skipping', obj
+            del build[obj]
+        elif tracker.is_invalid(dep_path):
+            tracker.rebuild_deps(obj_path)
+        # else:
+        #     print 'Using deps', dep_path
+
+    # tracker.dump()
+
+    return (macros, objects, extra, pp_opts, build)
