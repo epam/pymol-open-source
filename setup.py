@@ -434,6 +434,9 @@ def get_packages(base, parent='', r=None):
             get_packages(base, join(parent, name), r)
     return r
 
+def without(suffix, strings):
+    return filter(lambda s: not s.endswith(suffix), strings)
+
 package_dir = dict((x, os.path.join(base, x))
         for base in ['modules']
         for x in get_packages(base))
@@ -442,6 +445,7 @@ ext_modules += [
     Extension("pymol._cmd",
               get_sources(pymol_src_dirs),
               include_dirs = inc_dirs,
+              depends = without('PyMOLBuildInfo.h', get_sources(inc_dirs, ('.h'))),
               libraries = libs,
               library_dirs = lib_dirs,
               define_macros = def_macros,
@@ -453,6 +457,7 @@ ext_modules += [
     Extension("chempy.champ._champ",
         get_sources(['contrib/champ']),
         include_dirs=["contrib/champ"],
+        depends = get_sources(["contrib/champ"], ('.h')),
         extra_compile_args=[
             '/wd4267', # (10) '+=' : conversion from 'size_t' to 'int', possible loss of data
             '/wd4244', # (5) '=' : conversion from 'Py_ssize_t' to 'int', possible loss of data
