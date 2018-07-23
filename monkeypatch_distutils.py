@@ -144,7 +144,7 @@ def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
     c_cpp_objects = filter(lambda obj: build[obj][1] in self._c_extensions + self._cpp_extensions, objects)
 
     # add them to a deps tracker
-    tracker = DependencyTracker(outdir, self.cc, pp_opts, extra)
+    tracker = DependencyTracker(outdir, self.cc, self.compile_options_debug, pp_opts, extra)
     for obj in c_cpp_objects:
         tracker.add(obj, build[obj][0])
 
@@ -159,6 +159,7 @@ def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
             tracker.rebuild_deps(obj_path)
         # else:
         #     print 'Using deps', dep_path
+    print 'Dependency tracker update time:', tracker.report_time(tracker.time_rebuild)
 
     # tracker.dump()
 

@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import time
 
 class DependencyEntry:
     def __init__(self, path):
@@ -51,15 +52,17 @@ def strip_prefix(path, prefix):
     return path
 
 class DependencyTracker:
-    def __init__(self, outdir, cc, pp_opts, extra):
+    def __init__(self, outdir, cc, cc_opts, pp_opts, extra):
         self.root = os.path.dirname(os.path.abspath(__file__))
         self.root_re = re.compile(re.escape(self.root), re.I)
         self.outdir = os.path.abspath(outdir)
         self.cc = cc
+        self.cc_opts = cc_opts
         self.pp_opts = pp_opts
         self.extra = extra
         self.entries = {}
         self.sources = {}
+        self.time_rebuild = 0
 
     def add(self, obj, src):
         obj = os.path.abspath(obj)
@@ -99,22 +102,24 @@ class DependencyTracker:
         return entry.is_invalid()
 
     def rebuild_deps(self, obj):
+        time_start = time.time()
+
         obj = os.path.abspath(obj)
         src, dep = self.sources[obj]
         print 'Rebuilding deps for', strip_prefix(obj, self.outdir)
+        sys.stdout.flush()
 
         # execute preprocessor on the source file
         import subprocess
-        with open(os.devnull, 'wb') as devnull:
-            proc = subprocess.Popen(
-                [self.cc, '/E', src, '/showIncludes'] + self.pp_opts + self.extra,
-                stdout=devnull, stderr=subprocess.PIPE)
-            _, stderr = proc.communicate()
+        proc = subprocess.Popen(
+            [self.cc, '/c', '/Fonul', src, '/showIncludes'] + self.pp_opts + self.extra,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate()
 
         # parse a printed list of includes
         includes = set(
             map(ShowIncludes.extract,
-                filter(ShowIncludes.match, stderr.splitlines())
+                filter(ShowIncludes.match, stdout.splitlines() + stderr.splitlines())
             )
         )
 
@@ -129,11 +134,17 @@ class DependencyTracker:
         with open(dep, 'w') as f:
             f.write('\n'.join(sorted(filtered_includes)))
 
-        # save raw stderr for debugging
+        # # save raw stderr for debugging
         # with open(dep + '.raw', 'w') as f:
         #     f.write('root: ' + self.root + '\n\n\n')
         #     f.write('\n'.join(sorted(includes)) + '\n\n\n')
-        #     f.write(stderr)
+        #     f.write('stderr:\n\n' + stderr + '\n\n')
+        #     f.write('stdout:\n\n' + stdout)
+
+        self.time_rebuild += time.time() - time_start
+
+    def report_time(self, seconds):
+        return '%02i:%02i' % (int(seconds / 60), int(seconds) % 60)
 
     def dump(self):
         with open(os.path.join(self.outdir, 'DependencyTracker.log'), 'w') as f:
