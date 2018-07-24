@@ -282,7 +282,7 @@ ext_comp_args = [
     '/wd4146', # (5) unary minus operator applied to unsigned type, result still unsigned
     '/wd4018', # (5) '<=' : signed/unsigned mismatch
     # '/wd4005', # (5) 'WCHAR_MIN' : macro redefinition
-    # '/wd4309', # (3) 'argument' : truncation of constant value
+    '/J',      # (3) warning C4309: 'argument' : truncation of constant value
     '/EHsc',   # (2) C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
     '/wd4102', # (1) 'ok_except1' : unreferenced label
     '/wd4065', # (1) switch statement contains 'default' but no 'case' labels
