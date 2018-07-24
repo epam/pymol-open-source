@@ -1,0 +1,2 @@
+# built-in shader files preprocessor requires Unix line endings
+data/shaders/* text eol=lf
