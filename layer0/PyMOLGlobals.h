@@ -63,6 +63,7 @@ typedef struct _CTexture CTexture;
 typedef struct _CType CType;
 typedef struct _CMain CMain;
 typedef struct _CPlugIOManager CPlugIOManager;
+struct COpenVR;
 
 class CShaderMgr;
 class CMovieScenes;
@@ -153,6 +154,7 @@ struct _PyMOLGlobals {
   OVLexicon *Lexicon;           /* lexicon for data (e.g. label) strings */
   CPlugIOManager *PlugIOManager;
   CShaderMgr* ShaderMgr;
+  COpenVR* OpenVR;
 
 #ifndef _PYMOL_NOPY
   CP_inst *P_inst;

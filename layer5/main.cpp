@@ -51,6 +51,7 @@
 #include "Control.h"
 #include "Movie.h"
 #include "Executive.h"
+#include "OpenVRStereo.h"
 
 int _gScaleFactor = 1;
 
@@ -1475,6 +1476,9 @@ static void launch(CPyMOLOptions * options, int own_the_options)
 #ifdef _PYMOL_SHARP3D
     sharp3d_prepare_context();
 #endif
+
+    // early device init
+    OpenVRInit(G);
 
     int myArgc = 0;
     char *myArgv[8] = {"pymol"};

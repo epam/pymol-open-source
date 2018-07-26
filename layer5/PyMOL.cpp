@@ -63,6 +63,7 @@
 #include "PlugIOManager.h"
 #include "MovieScene.h"
 #include "Lex.h"
+#include "OpenVRStereo.h"
 
 #include "PyMOL.h"
 #include "PyMOLGlobals.h"
@@ -2081,6 +2082,7 @@ void PyMOL_Start(CPyMOL * I)
   IsosurfInit(G);
   TetsurfInit(G);
   EditorInit(G);
+  OpenVRInit(G);
 #ifdef TRACKER_UNIT_TEST
   TrackerUnitTest(G);
 #endif
@@ -2168,6 +2170,7 @@ void PyMOL_Stop(CPyMOL * I)
   SceneFree(G);
   MovieScenesFree(G);
   OrthoFree(G);
+  OpenVRFree(G);
   CShaderMgrFree(G);
   SettingFreeGlobal(G);
   CharacterFree(G);
@@ -2298,6 +2301,8 @@ void PyMOL_Draw(CPyMOL * I){
 
 static void PyMOL_LaunchStatus_Feedback(PyMOLGlobals * G)
 {
+  OpenVRFeedback(G);
+
   G->LaunchStatus |= G->Option->launch_status;
 
   if(G->StereoCapable) {

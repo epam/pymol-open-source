@@ -342,19 +342,22 @@ if options.no_glut:
 
 inc_dirs = list(pymol_src_dirs)
 
+def get_sources(subdirs, suffixes=('.c', '.cpp')):
+    return sorted([f for d in subdirs for s in suffixes for f in glob(d + '/*' + s)])
+
 #============================================================================
 if sys.platform=='win32': 
     # NOTE: this branch not tested in years and may not work...
     inc_dirs += [
               "win32/include"]
-    libs=["opengl32","glu32","freeglut","glew32","libpng16","zlib","Advapi32","Ws2_32"]
+    libs=["opengl32","glu32","freeglut","glew32","libpng16","zlib","Advapi32","Ws2_32","openvr_api"]
     pyogl_libs = ["opengl32","glu32","glut32"]
     lib_dirs=["win32/lib"]
     def_macros += [
                 ("WIN32",None),
                 ("_PYMOL_LIBPNG",None),
                 ]
-    data_files += [("", ["win32/dll/freeglut.dll"])]
+    data_files += [("", get_sources(["win32/dll"], (".dll")))]
     ext_link_args=['/NODEFAULTLIB:"LIBC"']
 #============================================================================
 elif sys.platform=='cygwin':
@@ -419,9 +422,6 @@ else: # unix style (linux, mac, ...)
 
 def get_pymol_version():
     return re.findall(r'_PyMOL_VERSION "(.*)"', open('layer0/Version.h').read())[0]
-
-def get_sources(subdirs, suffixes=('.c', '.cpp')):
-    return sorted([f for d in subdirs for s in suffixes for f in glob(d + '/*' + s)])
 
 def get_packages(base, parent='', r=None):
     from os.path import join, exists
