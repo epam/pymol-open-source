@@ -54,6 +54,7 @@ Z* -------------------------------------------------------------------
 #include"PConv.h"
 #include"ScrollBar.h"
 #include "ShaderMgr.h"
+#include"OpenVRStereo.h"
 
 #include <string>
 #include <vector>
@@ -6852,6 +6853,7 @@ bool SceneRay(PyMOLGlobals * G,
 
   switch (I->StereoMode) {
   case cStereo_quadbuffer:
+  case cStereo_openvr:
     stereo_hand = 2;
     break;
   case cStereo_crosseye:
@@ -7276,6 +7278,7 @@ bool SceneRay(PyMOLGlobals * G,
       switch (I->StereoMode) {
       case cStereo_quadbuffer:
       case cStereo_geowall:
+      case cStereo_openvr:
         /* merge the two images into one pointer */
         I->Image->data = PyMolRealloc(I->Image->data, unsigned char, I->Image->size * 2);
         UtilCopyMem(I->Image->data + I->Image->size, stereo_image->data, I->Image->size);
@@ -8468,6 +8471,11 @@ void PrepareViewPortForStereo(PyMOLGlobals * G, CScene *I, int stereo_mode, shor
 		 I->Block->rect.bottom, I->Width, I->Height);
     }
     break;
+  case cStereo_openvr:
+    GL_DEBUG_PUSH("OpenVREyeStart(LEFT)");
+    OpenVREyeStart(G, 0);
+    GL_DEBUG_POP();
+    break;
   }
   GL_DEBUG_POP();
 }
@@ -8550,6 +8558,11 @@ void PrepareViewPortForStereo2nd(PyMOLGlobals * G, CScene *I, int stereo_mode, s
       glDisable(GL_SCISSOR_TEST);
     }
     break;
+  case cStereo_openvr:
+    GL_DEBUG_PUSH("OpenVREyeStart(RIGHT)");
+    OpenVREyeStart(G, 1);
+    GL_DEBUG_POP();
+    break;
   }
 }
 
@@ -8563,6 +8576,7 @@ void SetDrawBufferForStereo(PyMOLGlobals * G, CScene *I, int stereo_mode, int ti
   case cStereo_crosseye:
   case cStereo_walleye:
   case cStereo_sidebyside:
+  case cStereo_openvr:
     OrthoDrawBuffer(G, GL_BACK);
     break;
   case cStereo_geowall:
@@ -8702,6 +8716,12 @@ void DoHandedStereo(PyMOLGlobals * G, CScene *I, void (*prepareViewPortForStereo
   DoRendering(G, I, offscreen, grid, times, curState, normal, context, width_scale, 0, onlySelections, excludeSelections);
 
   glPopMatrix();        /* 0 */
+
+  if (stereo_mode == cStereo_openvr) {
+    GL_DEBUG_PUSH("OpenVREyeFinish()");
+    OpenVREyeFinish(G);
+    GL_DEBUG_POP();
+  }
   GL_DEBUG_POP();
 }
 
@@ -9151,6 +9171,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
         switch (stereo_mode) {
         case cStereo_quadbuffer:       /* hardware stereo */
         case cStereo_clone_dynamic:
+        case cStereo_openvr:
           OrthoDrawBuffer(G, GL_BACK_LEFT);
           render_buffer = GL_BACK_LEFT;
           break;
@@ -9535,6 +9556,10 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	  if (G->ShaderMgr && stereo_mode==cStereo_anaglyph) {
 	    G->ShaderMgr->stereo_flag = -1;
 	  }
+          if(stereo_mode == cStereo_openvr) {
+            OpenVRFrameStart(G);
+            OpenVRHandleInput(G);
+          }
 	  DoHandedStereo(G, I, PrepareViewPortForStereo, stereo_mode, offscreen, times, x, y, oversize_width, oversize_height, 
 			 GL_BACK_LEFT, mono_as_quad_stereo, stereo_using_mono_matrix ? 0 : 1, &I->grid, curState, normal, &context, width_scale, 0, 0, offscreen);
           PRINTFD(G, FB_Scene)
@@ -9545,6 +9570,10 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	  }
 	  DoHandedStereo(G, I, PrepareViewPortForStereo2nd, stereo_mode, offscreen, times, x, y, oversize_width, oversize_height, 
 			 GL_BACK_RIGHT, mono_as_quad_stereo, stereo_using_mono_matrix ? 0 : 2, &I->grid, curState, normal, &context, width_scale, 1, 0, offscreen);
+          if(stereo_mode == cStereo_openvr) {
+            OpenVRFrameFinish(G, I->Width, I->Height);
+            PyMOL_NeedRedisplay(G->PyMOL);
+          }
           /* restore draw buffer */
           if(mono_as_quad_stereo) {     /* double pumped mono...can't draw to GL_BACK so stick with LEFT */
             OrthoDrawBuffer(G, GL_BACK_LEFT);

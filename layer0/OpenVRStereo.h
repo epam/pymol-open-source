@@ -26,4 +26,11 @@ void OpenVRFree(PyMOLGlobals * G);
 
 void OpenVRFeedback(PyMOLGlobals * G);
 
+void OpenVRFrameStart(PyMOLGlobals * G);
+void OpenVREyeStart(PyMOLGlobals * G, int eye);
+void OpenVREyeFinish(PyMOLGlobals * G);
+void OpenVRFrameFinish(PyMOLGlobals * G, unsigned width, unsigned height);
+
+void OpenVRHandleInput(PyMOLGlobals * G);
+
 #endif /* _H_OpenVRStereo */
