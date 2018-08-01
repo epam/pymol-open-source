@@ -358,7 +358,8 @@ if sys.platform=='win32':
                 ("_PYMOL_LIBPNG",None),
                 ]
     data_files += [("", get_sources(["win32/dll"], (".dll")))]
-    ext_link_args=['/NODEFAULTLIB:"LIBC"']
+    ext_link_args=['/NODEFAULTLIB:"LIBC"', "/DEBUG"]
+    ext_comp_args += ["/Od", "/Zi"]
 #============================================================================
 elif sys.platform=='cygwin':
     # NOTE: this branch not tested in years and may not work...
