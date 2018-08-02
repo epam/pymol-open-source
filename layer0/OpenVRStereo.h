@@ -31,6 +31,9 @@ void OpenVREyeStart(PyMOLGlobals * G, int eye);
 void OpenVREyeFinish(PyMOLGlobals * G);
 void OpenVRFrameFinish(PyMOLGlobals * G, unsigned width, unsigned height);
 
+float* OpenVRGetHeadToEye(PyMOLGlobals * G);
+float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane);
+
 void OpenVRHandleInput(PyMOLGlobals * G);
 
 #endif /* _H_OpenVRStereo */

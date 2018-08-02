@@ -28,6 +28,11 @@ Z* -------------------------------------------------------------------
 #include "Feedback.h"
 
 struct CEye {
+  vr::EVREye Eye;
+
+  GLfloat HeadToEyeMatrix[16];
+  GLfloat ProjectionMatrix[16];
+
   GLuint FrameBufferID;
   GLuint DepthBufferID;
   GLuint ColorBufferID;
@@ -80,8 +85,10 @@ bool OpenVRReady(PyMOLGlobals * G)
   return I && I->InitError == vr::VRInitError_None && I->System != NULL;
 }
 
-static bool EyeInit(CEye * I, int scene_width, int scene_height)
+static bool EyeInit(CEye * I, vr::EVREye eye, int scene_width, int scene_height)
 {
+  I->Eye = eye;
+
   // framebuffer
   glGenFramebuffersEXT(1, &I->FrameBufferID);
   glBindFramebufferEXT(GL_FRAMEBUFFER, I->FrameBufferID);
@@ -184,8 +191,8 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
 
   if (!I->Width || !I->Height) {
     I->System->GetRecommendedRenderTargetSize(&I->Width, &I->Height);
-    EyeInit(&I->Left, I->Width, I->Height);
-    EyeInit(&I->Right, I->Width, I->Height);
+    EyeInit(&I->Left, vr::Eye_Left, I->Width, I->Height);
+    EyeInit(&I->Right, vr::Eye_Right, I->Width, I->Height);
   }
 }
 
@@ -313,6 +320,87 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, I->Left.ResolveBufferID);
   glBlitFramebufferEXT(dx, dy, dx + width, dy + height, 0, 0, scene_width, scene_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
+}
+
+float* OpenVRGetHeadToEye(PyMOLGlobals * G)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G) || !I->Eye)
+    return NULL;
+
+  CEye *E = I->Eye;
+  vr::HmdMatrix34_t EyeToHeadTransform = vr::VRSystem()->GetEyeToHeadTransform(E->Eye);
+  
+  // fast affine inverse matrix, row major to column major, whew...
+  {
+    float (*src)[4] = EyeToHeadTransform.m;
+    float (*dst)[4] = (float(*)[4])E->HeadToEyeMatrix;
+    
+    // transpose rotation
+    dst[0][0] = src[0][0];
+    dst[0][1] = src[0][1];
+    dst[0][2] = src[0][2];
+    dst[0][3] = 0.0f;
+    dst[1][0] = src[1][0];
+    dst[1][1] = src[1][1];
+    dst[1][2] = src[1][2];
+    dst[1][3] = 0.0f;
+    dst[2][0] = src[2][0];
+    dst[2][1] = src[2][1];
+    dst[2][2] = src[2][2];
+    dst[2][3] = 0.0f;
+    
+    // trnspose-rotated negative translation
+    dst[3][0] = -(src[0][0] * src[0][3] + src[1][0] * src[1][3] + src[2][0] * src[2][3]);
+    dst[3][1] = -(src[0][1] * src[0][3] + src[1][1] * src[1][3] + src[2][1] * src[2][3]);
+    dst[3][2] = -(src[0][2] * src[0][3] + src[1][2] * src[1][3] + src[2][2] * src[2][3]);
+    dst[3][3] = 1.0f;
+  }
+
+  return E->HeadToEyeMatrix;
+}
+
+float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G) || !I->Eye)
+    return NULL;
+
+  CEye *E = I->Eye;
+
+  float left, right, top, bottom;
+  vr::VRSystem()->GetProjectionRaw(E->Eye, &left, &right, &top, &bottom);
+  
+  // fast affine inverse matrix, row major to column major, whew...
+  {
+    float (*dst)[4] = (float(*)[4])E->ProjectionMatrix;
+    float dx = (right - left);
+    float dy = (bottom - top);
+    float dz = far_plane - near_plane;
+
+    // transpose rotation
+    dst[0][0] = 2.0f / dx;
+    dst[0][1] = 0.0f;
+    dst[0][2] = 0.0f;
+    dst[0][3] = 0.0f;
+    
+    dst[1][0] = 0.0f;
+    dst[1][1] = 2.0f / dy;
+    dst[1][2] = 0.0f;
+    dst[1][3] = 0.0f;
+    
+    dst[2][0] = (right + left) / dx;
+    dst[2][1] = (top + bottom) / dy;
+    dst[2][2] = -(far_plane + near_plane) / dz;
+    dst[2][3] = -1.0f;
+    
+    dst[3][0] = 0.0f;
+    dst[3][1] = 0.0f;
+    dst[3][2] = -2.0f * far_plane * near_plane / dz;
+    dst[3][3] = 0.0f;
+  }
+
+  return E->ProjectionMatrix;
 }
 
 void OpenVRHandleInput(PyMOLGlobals * G)

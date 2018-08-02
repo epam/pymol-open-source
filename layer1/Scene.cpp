@@ -8707,7 +8707,7 @@ void DoHandedStereo(PyMOLGlobals * G, CScene *I, void (*prepareViewPortForStereo
 
   bg_grad(G);
 
-  ScenePrepareMatrix(G, prepare_matrix_arg);
+  ScenePrepareMatrix(G, prepare_matrix_arg, stereo_mode);
   if (clearDepthAfterPrepareMatrix){
     /* not sure why this isn't here in the first call, i.e., left handed stereo */
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -9775,7 +9775,7 @@ void SceneRestartSweepTimer(PyMOLGlobals * G)
 
 
 /*========================================================================*/
-void ScenePrepareMatrix(PyMOLGlobals * G, int mode)
+void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
 {
   CScene *I = G->Scene;
 
@@ -9787,6 +9787,28 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode)
   if(!mode) {
 
     /* mono */
+
+    /* *** COMMON CODE BELOW *** */
+
+    /* move the camera to the location we are looking at */
+    glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
+
+    /* rotate about the origin (the the center of rotation) */
+    glMultMatrixf(I->RotMatrix);
+
+    /* move the origin to the center of rotation */
+    glTranslatef(-I->Origin[0], -I->Origin[1], -I->Origin[2]);
+
+  } else if(stereo_mode == cStereo_openvr && OpenVRReady(G)) {
+
+    /* stereo OpenVR */
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(OpenVRGetProjection(G, I->FrontSafe, I->BackSafe));
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(OpenVRGetHeadToEye(G));
+
+    /* *** COMMON CODE BELOW *** */
 
     /* move the camera to the location we are looking at */
     glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
@@ -9819,8 +9841,12 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode)
       ENDFD;
 
     glRotatef(stAng, 0.0, 1.0, 0.0);
-    glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
     glTranslatef(stShift, 0.0, 0.0);
+
+    /* *** COMMON CODE BELOW *** */
+
+    /* move the camera to the location we are looking at */
+    glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
 
     /* rotate about the origin (the center of rotation) */
     glMultMatrixf(I->RotMatrix);
