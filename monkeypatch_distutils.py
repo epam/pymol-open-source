@@ -144,7 +144,7 @@ def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
     c_cpp_objects = filter(lambda obj: build[obj][1] in self._c_extensions + self._cpp_extensions, objects)
 
     # add them to a deps tracker
-    tracker = DependencyTracker(outdir, self.cc, self.compile_options_debug, pp_opts, extra)
+    tracker = self.__tracker = DependencyTracker(outdir, self.cc, self.compile_options_debug, pp_opts, extra)
     for obj in c_cpp_objects:
         tracker.add(obj, build[obj][0])
 
@@ -164,3 +164,23 @@ def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
     # tracker.dump()
 
     return (macros, objects, extra, pp_opts, build)
+
+@monkeypatch(distutils.msvc9compiler.MSVCCompiler, 'link')
+def link(self,
+        target_desc,
+        objects,
+        output_filename,
+        output_dir=None,
+        libraries=None,
+        library_dirs=None,
+        runtime_library_dirs=None,
+        export_symbols=None,
+        debug=0,
+        extra_preargs=None,
+        extra_postargs=None,
+        build_temp=None,
+        target_lang=None):
+    link._super(self, target_desc, objects, output_filename, output_dir, libraries, library_dirs,
+        runtime_library_dirs, export_symbols, debug, extra_preargs, extra_postargs, build_temp, target_lang)
+    if self.__tracker:
+        self.__tracker.save_vs2017_project(os.path.splitext(os.path.basename(output_filename))[0])
