@@ -316,7 +316,7 @@ EndGlobal''' % {
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>%(PythonFolder)s\\python.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>%(PythonFolder)s\\Lib\\site-packages\\pymol\\__init__.py -d "fetch 1aid; stereo openvr"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>%(PythonFolder)s\\Lib\\site-packages\\pymol\\__init__.py</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>%(PythonFolder)s</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
