@@ -357,7 +357,7 @@ if sys.platform=='win32':
                 ("WIN32",None),
                 ("_PYMOL_LIBPNG",None),
                 ]
-    data_files += [("", get_sources(["win32/dll"], (".dll")))]
+    data_files += [("Lib/site-packages/pymol", get_sources(["win32/dll"], (".dll",".pdb")))]
     ext_link_args=['/NODEFAULTLIB:"LIBC"', "/DEBUG"]
     ext_comp_args += ["/Od", "/Zi"]
 #============================================================================
