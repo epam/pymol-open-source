@@ -1,4 +1,5 @@
 build/
+dist/
 pymol.egg-info/
 *.pyc
 setup.log

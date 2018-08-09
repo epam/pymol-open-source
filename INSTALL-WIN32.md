@@ -1,14 +1,16 @@
 # Installing PyMOL for development from sources on Windows
 
+The easiest way to start is to use the python environment manager so that all your pymol packages reside in a separate directory and do not clash with your generic python installation. You can live with a global python installation if you'd like. On your own risk.
+
 ## Install Anaconda Python Environment Manager
 
 [Download and install Miniconda][Miniconda] for Python 2.7, 64 bit (!). Accept selecting as a default Python installation and adding to PATH despite the warning. Note that "Pymol 1.8.0.0 is not available for 32 bits version..."
 
 [Miniconda]: https://conda.io/miniconda.html
 
-Run Anaconda Prompt, create a new environment for PyMol:
+Run Anaconda Prompt, create a new environment for PyMol with Python 2.7 defaults:
 
-    conda create -n pymol
+    conda create -n pymol python=2.7
     conda activate pymol
 
 Install and then uninstall PyMOL so that all dependencies appear in your environment:
@@ -16,7 +18,7 @@ Install and then uninstall PyMOL so that all dependencies appear in your environ
     conda install -c schrodinger pymol=2.1.0
     conda uninstall pymol
 
-The following NEW packages will be INSTALLED:
+Something like "The following NEW packages will be INSTALLED" message appears. The package list may change but here is an example:
 
     apbs:                1.5-1                   schrodinger
     asn1crypto:          0.24.0-py27_0
@@ -146,7 +148,7 @@ for path in dirs:
 
 The next problem is quite tiresome. Lately the lazy keyword `auto` has been used in the PyMOL code base instead of specifying the exact variable type. However, the official compiler for Python 2.7 on Windows is Visual Studio 2008, which (evidently) cannot support C++ in its 2011-th year standard. One solution is to use Visual Studio 2017 (which is unsupported for Python 2.7 package development and takes several gigabytes on your hard drive), another one is to fix up the sources (_PYMOL_NO_CXX11 define suggests that C++11 code should be isolated). Unfortunately, there's no tool to do this automatically.
 
-### Done!
+### Done
 
 Ensure that PyMOL python environment is selected and run installation from sources.
 
@@ -157,16 +159,36 @@ After successfull compilation just run the PyMOL:
 
     pymol
 
-## Compile PyMOL Win32 Fork
+## Compile PyMOL Win32-Ready Fork
 
-Get a fork:
+Install a compiler. As already mentioned above (in 'Microsoft Compiler' section), the official way to compile C++ packages for Python is to [download and install Microsoft Visual C++ Compiler for Python 2.7][MSVC] which is actually a variety of Visual Studio 2008. Unfortunately, it doesn't support C++11 features, so the sources are modified to satisfy the old beast. Just in case you need to update the sources from upstream, `setup_msvc_patch_allocs.py` script is available (see motivation in 'Name Conflicts' section above), but you'll need to fix all C++11 usages by hand.
 
-    git clone <URL_OF_THE_FORK>
+Get a fork somewhere:
 
-Use a `build.cmd` script to compile and filter errors and warnings (adjust filters in `setup_msvc_parse_log.py` if you need to):
+    mkdir <YOUR_PYMOL_FOLDER>
+    cd <YOUR_PYMOL_FOLDER>
+    git clone <URL_OF_THE_FORK> .
+
+Don't forget to select the proper conda environment:
+
+    conda activate pymol
+
+Use a `build.cmd` script to compile and filter errors and warnings (adjust filters in `setup_msvc_parse_log.py` if you need to). Check the `setup.log` afterwards for more details.
 
     build
 
-Check the `setup.log` for more details.
+Run the compiled application:
 
-Just in case you need to update the sources from upstream, `setup_msvc_patch_allocs.py` script is available (see motivation in 'Name Conflicts' section above).
+    pymol
+
+You can even try to debug it in Visual Studio 2017 Community with the help of automatically generated solution file (check `build/_cmd.sln`).
+
+Use a `dist.cmd` script to build a source (zip) and a binary (wheel) distribution. Find the packed application in a `dist/` subdirectory.
+
+    dist
+
+Distribute the wheel for easier installation on user PCs:
+
+    pip install <THE_WHEEL_FILE>
+
+That's all for now.

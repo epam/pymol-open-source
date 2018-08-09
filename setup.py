@@ -34,6 +34,11 @@ if sys.platform == 'darwin' and tuple(
         map(int, platform.mac_ver()[0].split('.'))) < (10, 9):
     options.no_cxx11 = True
 
+# win32 official compiler is Visual Studio 2008 (long before C++11)
+if sys.platform == "win32":
+    options.no_cxx11 = True
+    options.no_libxml = True
+
 try:
     import argparse
     parser = argparse.ArgumentParser()
@@ -182,6 +187,7 @@ class install_pymol(install):
             tar.close()
 
     def unchroot(self, name):
+        ### FIXME: Leaves the (back)slash in the string making non-relative path, "/some/root/and/subfolder" -> "/and/subfolder"
         if self.root is not None and name.startswith(self.root):
             return name[len(self.root):]
         return name
@@ -211,6 +217,10 @@ class install_pymol(install):
         self.mkpath(self.install_scripts)
         launch_script = os.path.join(self.install_scripts, launch_script)
 
+        ### FIXME: An issue with paths while creating a wheel for installing on a different machine!
+        # This method is called during the wheel creation on a developer's PC, not on a target user's PC.
+        # Moreover, relative paths are different in case of a wheel creation.
+        # Not to mention Anaconda environments.
         python_exe = os.path.abspath(sys.executable)
         pymol_file = self.unchroot(os.path.join(self.install_libbase, 'pymol', '__init__.py'))
         pymol_path = self.unchroot(self.pymol_path)
@@ -226,6 +236,11 @@ class install_pymol(install):
                     pymol_file = '%~dp0\\' + os.path.relpath(pymol_file, self.install_scripts)
                 except ValueError:
                     pymol_file = os.path.abspath(pymol_file)
+
+                ### FIXME: Workaround for the wheel creation issue!
+                if True:
+                    out.write('@"%~dp0..\\python.exe" -m pymol %*' + os.linesep)
+                    return
 
                 # out.write('set PYMOL_PATH=' + pymol_path + os.linesep)
                 out.write('"%s" "%s"' % (python_exe, pymol_file))
@@ -481,6 +496,9 @@ distribution = setup ( # Distribution meta-data
         "It excels at 3D visualization of proteins, small molecules, density, "
         "surfaces, and trajectories. It also includes molecular editing, "
         "ray tracing, and movies. Open Source PyMOL is free to everyone!"),
+    install_requires = [
+        'Pmw',
+    ] if sys.platform == "win32" else [],
 
     package_dir = package_dir,
     packages = list(package_dir),

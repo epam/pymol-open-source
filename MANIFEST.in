@@ -1,0 +1,9 @@
+include *.py
+include LICENSE
+graft data
+graft examples
+graft scripts
+graft test
+graft win32
+recursive-include . *.h *.hxx
+prune build
