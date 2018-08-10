@@ -139,6 +139,7 @@ def compile(self, sources, output_dir=None, macros=None,
 @monkeypatch(distutils.msvc9compiler.MSVCCompiler, '_setup_compile')
 def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
     macros, objects, extra, pp_opts, build = _setup_compile._super(self, outdir, macros, incdirs, sources, depends, extra)
+    extra += ['/Fd' + outdir + '\\vc90.pdb']
 
     # examine only C/C++ files
     c_cpp_objects = filter(lambda obj: build[obj][1] in self._c_extensions + self._cpp_extensions, objects)
