@@ -191,4 +191,9 @@ Distribute the wheel for easier installation on user PCs:
 
     pip install <THE_WHEEL_FILE>
 
+You can create a standalone distribution using [WinPython][] (2.7, 64 bit) and [Inno Setup][]. During the build process an `.iss` script is generated right in the `build` subdirectory, e.g. `PyMOL-2.1.0.iss`. Install WinPython in a subdirectory with a matching name (`PyMOL-2.1.0`), go there and install the wheel into this portable python installation (use WinPython Command Prompt and pip install). Then, open and execute the generated Inno Setup script, the `PyMOL-2.1.0.exe` executable will be created. You may use it to install a standalone PyMOL application, multiple versions at the same time on the same PC.
+
+[WinPython]: https://sourceforge.net/projects/winpython/files/WinPython_2.7/
+[Inno Setup]: http://www.jrsoftware.org/isdl.php
+
 That's all for now.

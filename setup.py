@@ -149,6 +149,64 @@ class build_py_pymol(build_py):
     def run(self):
         build_py.run(self)
         forms_uic(self.build_lib)
+        if sys.platform.startswith('win'):
+            self.make_inno_setup_script()
+
+    def make_inno_setup_script(self):
+        import uuid
+        app_name = 'PyMOL'
+        app_version = get_pymol_version()
+        app_folder = app_name + '-' + app_version
+        app_guid = str(uuid.uuid3(uuid.NAMESPACE_URL, app_name + ' ' + app_version)).upper()
+        with open(os.path.join('build', app_folder + '.iss'), 'w') as f:
+            f.write('''\
+#define MyAppName "%(name)s"
+#define MyAppVersion "%(version)s"
+#define MyAppPublisher "Open-Source"
+#define MyAppURL "https://github.com/schrodinger/pymol-open-source"
+#define MyAppExeName "pymol.bat"
+
+[Setup]
+; NOTE: The value of AppId uniquely identifies this application.
+; Do not use the same AppId value in installers for other applications.
+; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+AppId={{%(guid)s}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+;AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppUpdatesURL={#MyAppURL}
+DefaultDirName={pf}\\{#MyAppName} {#MyAppVersion}
+DefaultGroupName={#MyAppName} {#MyAppVersion}
+AllowNoIcons=yes
+LicenseFile={#MyAppName}-{#MyAppVersion}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\LICENSE
+OutputDir=.
+OutputBaseFilename={#MyAppName}-{#MyAppVersion}
+Compression=lzma
+SolidCompression=yes
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Files]
+Source: "{#MyAppName}-{#MyAppVersion}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\\%(pythonsubdir)s\\Scripts\\{#MyAppExeName}"; WorkingDir: "{app}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\"
+Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+
+[Run]
+Filename: "{app}\\%(pythonsubdir)s\\Scripts\\{#MyAppExeName}"; WorkingDir: "{app}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+''' % {
+            'name': app_name,
+            'version': app_version,
+            'guid': app_guid,
+            'pythonsubdir': 'python-2.7.13.amd64', # for WinPython-64bit-2.7.13.1Zero distribution
+        })
 
 class install_pymol(install):
     pymol_path = None
