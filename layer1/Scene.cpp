@@ -290,6 +290,8 @@ static void SceneRotateWithDirty(PyMOLGlobals * G, float angle, float x, float y
                                  int dirty);
 static void SceneClipSetWithDirty(PyMOLGlobals * G, float front, float back, int dirty);
 
+static float GetFovWidth(PyMOLGlobals * G);
+
 int SceneViewEqual(SceneViewType left, SceneViewType right)
 {
   int i;
@@ -1243,6 +1245,37 @@ void SceneUpdateStereoMode(PyMOLGlobals * G)
   }
 }
 
+/*========================================================================*/
+void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) {
+  CScene *I = G->Scene;
+
+  // set FOV = 110 fro openVR
+  float openVRFov = 110.0 * 0.5;
+
+  // old camera props
+  static bool commonCorrect = false;
+  static float s_oldFov = SettingGetGlobal_i(G, cSetting_field_of_view);
+  static float s_location[3];
+  static float s_radius = 0.0f;
+
+  if (enableOpenVR) {
+    // restore molecule center and location
+    copy3f(I->Origin, s_location);
+    s_radius = abs(I->Pos[2]) * GetFovWidth(G) / 2.0f; // revert Pos[3] calculation in SceneWindowSphere
+    s_oldFov =  SettingGetGlobal_f(G, cSetting_field_of_view);
+    commonCorrect = true;
+    SettingSetGlobal_f(G, cSetting_field_of_view, openVRFov);
+    SceneWindowSphere(G, s_location, s_radius);
+    PRINTFB(G, FB_Scene, FB_Actions)
+      " Scene: reset Fov for openVR.\n" ENDFB(G);
+ } else if (commonCorrect){
+    commonCorrect = false;
+    SettingSetGlobal_f(G, cSetting_field_of_view, s_oldFov);
+    SceneWindowSphere(G, s_location, s_radius);
+    PRINTFB(G, FB_Scene, FB_Actions)
+      " Scene: restore Fov after openVR turning off.\n" ENDFB(G);
+  }
+} 
 
 /*========================================================================*/
 void SceneSetStereo(PyMOLGlobals * G, int flag)
@@ -1256,7 +1289,8 @@ void SceneSetStereo(PyMOLGlobals * G, int flag)
     I->StereoMode = 0;
   }
 
-  if((cur_stereo != I->StereoMode) && (cur_stereo == cStereo_geowall || I->StereoMode == cStereo_geowall)) {
+  bool newStereoMode = cur_stereo != I->StereoMode;
+  if(newStereoMode && (cur_stereo == cStereo_geowall || I->StereoMode == cStereo_geowall)) {
     OrthoReshape(G, G->Option->winX, G->Option->winY, true);
 #ifndef _PYMOL_NOPY
     if(cur_stereo == cStereo_geowall) {
@@ -1264,6 +1298,12 @@ void SceneSetStereo(PyMOLGlobals * G, int flag)
     }
 #endif
   }
+
+  // reset camera position for openVR
+  if (newStereoMode && (I->StereoMode == cStereo_openvr || cur_stereo == cStereo_openvr)) {
+    SceneResetOpenVRFov(G, I->StereoMode == cStereo_openvr);
+  }
+
   SettingSetGlobal_b(G, cSetting_stereo, flag);
   SceneInvalidateStencil(G);
   SceneInvalidate(G);
@@ -2616,6 +2656,7 @@ void SceneIdle(PyMOLGlobals * G)
 static float GetFovWidth(PyMOLGlobals * G)
 {
   float fov = SettingGetGlobal_f(G, cSetting_field_of_view);
+  //float fov = 60.0f;
   return 2.f * tanf(fov * PI / 360.f);
 }
 
