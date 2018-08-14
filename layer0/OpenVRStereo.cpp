@@ -24,6 +24,7 @@ Z* -------------------------------------------------------------------
 #include "openvr.h"
 
 #include "OpenVRStereo.h"
+#include "OpenVRStub.h"
 #include "PyMOLOptions.h"
 #include "Feedback.h"
 
@@ -76,7 +77,7 @@ static const int deviceClassNamesCount = sizeof(deviceClassNames) / sizeof(*devi
 
 bool OpenVRAvailable(PyMOLGlobals *)
 {
-  return vr::VR_IsHmdPresent();
+  return vr::stub::VR_IsHmdPresent();
 }
 
 bool OpenVRReady(PyMOLGlobals * G)
@@ -146,19 +147,21 @@ int OpenVRInit(PyMOLGlobals * G)
 {
   if(G->OpenVR)
     return 1; // already initialized
-  else if (!OpenVRAvailable(G))
+  
+  vr::stub::VR_StubEnable(G->Option->openvr_stub);
+  if (!OpenVRAvailable(G))
     return 0; // don't bother initializing the whole system
 
   COpenVR *I = G->OpenVR = new COpenVR();
   if(I) {
     I->InitError = vr::VRInitError_None;
-    I->System = vr::VR_Init(&I->InitError, vr::VRApplication_Scene);
+    I->System = vr::stub::VR_Init(&I->InitError, vr::VRApplication_Scene);
     if (I->InitError != vr::VRInitError_None) {
       I->System = NULL;
       return 0;
     }
 
-    I->Compositor = vr::VRCompositor();
+    I->Compositor = vr::stub::VRCompositor();
     return 1;
   } else
     return 0;
@@ -171,7 +174,7 @@ void OpenVRFree(PyMOLGlobals * G)
 
   COpenVR *I = G->OpenVR;
   if(I->System) {
-    vr::VR_Shutdown();
+    vr::stub::VR_Shutdown();
 
     EyeFree(&I->Right);
     EyeFree(&I->Left);
@@ -212,12 +215,15 @@ static std::string GetStringTrackedDeviceProperty(vr::IVRSystem *System, vr::Tra
 void OpenVRFeedback(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
+  if(vr::stub::VR_IsStubEnabled()) {
+    FeedbackAdd(G, " OpenVR stub is enabled.\n");
+  }
   if(!OpenVRAvailable(G)) {
     FeedbackAdd(G, " OpenVR system is not available.\n");
   } else if(!OpenVRReady(G)) {
     PRINTF
       " OpenVR system is not ready: %s.\n",
-      I ? vr::VR_GetVRInitErrorAsEnglishDescription(I->InitError) : "Failed to initialize properly"
+      I ? vr::stub::VR_GetVRInitErrorAsEnglishDescription(I->InitError) : "Failed to initialize properly"
     ENDF(G);
   } else {
     FeedbackAdd(G, " Detected OpenVR system. Devices being currently tracked:\n");
@@ -329,7 +335,7 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
     return NULL;
 
   CEye *E = I->Eye;
-  vr::HmdMatrix34_t EyeToHeadTransform = vr::VRSystem()->GetEyeToHeadTransform(E->Eye);
+  vr::HmdMatrix34_t EyeToHeadTransform = I->System->GetEyeToHeadTransform(E->Eye);
   
   // fast affine inverse matrix, row major to column major, whew...
   {
@@ -369,7 +375,7 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
   CEye *E = I->Eye;
 
   float left, right, top, bottom;
-  vr::VRSystem()->GetProjectionRaw(E->Eye, &left, &right, &top, &bottom);
+  I->System->GetProjectionRaw(E->Eye, &left, &right, &top, &bottom);
   
   // fast affine inverse matrix, row major to column major, whew...
   {

@@ -1839,6 +1839,8 @@ static const CPyMOLOptions Defaults = {
   -1,                           /* zoom mode */
   0,                            /* launch_status */
   0,                            /* no quit */
+  false,                        /* no retina */
+  false,                        /* no openvr stub */
 };
 
 CPyMOLOptions *PyMOLOptions_New(void)
@@ -2065,6 +2067,7 @@ void PyMOL_Start(CPyMOL * I)
   CharacterInit(G);
   PlugIOManagerInit(G);
   SphereInit(G);
+  OpenVRInit(G);
   OrthoInit(G, G->Option->show_splash);
   SceneInit(G);
   MovieScenesInit(G);
@@ -2082,7 +2085,6 @@ void PyMOL_Start(CPyMOL * I)
   IsosurfInit(G);
   TetsurfInit(G);
   EditorInit(G);
-  OpenVRInit(G);
 #ifdef TRACKER_UNIT_TEST
   TrackerUnitTest(G);
 #endif

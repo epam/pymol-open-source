@@ -1994,6 +1994,7 @@ void PConvertOptions(CPyMOLOptions * rec, PyObject * options)
   rec->stereo_mode = PyInt_AsLong(PyObject_GetAttrString(options, "stereo_mode"));
   rec->zoom_mode = PyInt_AsLong(PyObject_GetAttrString(options, "zoom_mode"));
   rec->no_quit = PyInt_AsLong(PyObject_GetAttrString(options, "no_quit"));
+  rec->openvr_stub = PyInt_AsLong(PyObject_GetAttrString(options, "openvr_stub"));
 
   if(load_str) {
     if(load_str[0]) {
