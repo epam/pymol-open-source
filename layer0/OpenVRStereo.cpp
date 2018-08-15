@@ -48,7 +48,8 @@ struct COpenVR {
   vr::EVRInitError InitError;
   vr::IVRSystem* System;
   vr::IVRCompositor* Compositor;
-  vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount];
+  vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount]; // todo remove from globals?
+  GLfloat HmdPose[16];
 
   unsigned Width;
   unsigned Height;
@@ -74,6 +75,9 @@ static char const* deviceClassNames[] = {
   "Accessory",
 };
 static const int deviceClassNamesCount = sizeof(deviceClassNames) / sizeof(*deviceClassNames);
+
+void static ConvertOpenVRMatrixToMatrix4( const vr::HmdMatrix34_t &mat, GLfloat *fMat);
+void UpdateDevicePoses(PyMOLGlobals * G);
 
 bool OpenVRAvailable(PyMOLGlobals *)
 {
@@ -258,7 +262,8 @@ void OpenVRFrameStart(PyMOLGlobals * G)
   OpenVRInitPostponed(G);
 
   // get matrices from tracked devices
-  I->Compositor->WaitGetPoses(I->Poses, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+  I->Compositor->WaitGetPoses(I->Poses, vr::k_unMaxTrackedDeviceCount, NULL, 0); 
+  UpdateDevicePoses(G);
 }
 
 void OpenVREyeStart(PyMOLGlobals * G, int eye)
@@ -366,6 +371,14 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
   return E->HeadToEyeMatrix;
 }
 
+float* OpenVRGetHDMPos(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return NULL;
+
+  return I->HmdPose;
+}
+
 float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
 {
   COpenVR *I = G->OpenVR;
@@ -418,4 +431,26 @@ void OpenVRHandleInput(PyMOLGlobals * G)
   vr::VREvent_t event;
   while (I->System->PollNextEvent(&event, sizeof(event)))
     /* pass */;
+}
+
+void UpdateDevicePoses(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+
+  vr::TrackedDevicePose_t mat;
+  for (uint32_t nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; nDevice++) {
+    if (I->Poses[nDevice].bPoseIsValid) {
+      if (I->System->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_HMD) {
+        ConvertOpenVRMatrixToMatrix4(I->Poses[nDevice].mDeviceToAbsoluteTracking, I->HmdPose);
+      }
+    }
+  }
+}
+
+static void ConvertOpenVRMatrixToMatrix4(const vr::HmdMatrix34_t &mat, GLfloat *fMat)
+{
+  float (*dst)[4] = (float(*)[4])fMat;
+  dst[0][0] = mat.m[0][0]; dst[0][1] = mat.m[0][1]; dst[0][2] = mat.m[0][2]; dst[0][3] = 0.0f;
+  dst[1][0] = mat.m[1][0]; dst[1][1] = mat.m[1][1]; dst[1][2] = mat.m[1][2]; dst[1][3] = 0.0f;
+  dst[2][0] = mat.m[2][0]; dst[2][1] = mat.m[2][1]; dst[2][2] = mat.m[2][2]; dst[2][3] = 0.0f;
+  dst[3][0] = mat.m[3][0]; dst[3][1] = mat.m[3][1]; dst[3][2] = mat.m[3][2]; dst[3][3] = 1.0f;
 }

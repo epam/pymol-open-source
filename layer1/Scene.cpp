@@ -1246,7 +1246,25 @@ void SceneUpdateStereoMode(PyMOLGlobals * G)
 }
 
 /*========================================================================*/
-void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) {
+void ResetFovWidth(PyMOLGlobals * G, float fov) {
+  CScene *I = G->Scene;
+
+  float location[3];
+  float radius = 0.0f;
+
+  // restore molecule center and radius
+  copy3f(I->Origin, location);
+  radius = abs(I->Pos[2]) * GetFovWidth(G) / 2.0f; // revert Pos[3] calculation in SceneWindowSphere
+
+  // save new fov
+  SettingSetGlobal_f(G, cSetting_field_of_view, fov);
+
+  // update camera position
+  SceneWindowSphere(G, location, radius);
+}
+
+/*========================================================================*/
+void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) { // TODO rename
   CScene *I = G->Scene;
 
   // set FOV = 110 fro openVR
@@ -1255,23 +1273,17 @@ void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) {
   // old camera props
   static bool commonCorrect = false;
   static float s_oldFov = SettingGetGlobal_i(G, cSetting_field_of_view);
-  static float s_location[3];
-  static float s_radius = 0.0f;
 
   if (enableOpenVR) {
-    // restore molecule center and location
-    copy3f(I->Origin, s_location);
-    s_radius = abs(I->Pos[2]) * GetFovWidth(G) / 2.0f; // revert Pos[3] calculation in SceneWindowSphere
+
     s_oldFov =  SettingGetGlobal_f(G, cSetting_field_of_view);
+    ResetFovWidth(G, openVRFov);
     commonCorrect = true;
-    SettingSetGlobal_f(G, cSetting_field_of_view, openVRFov);
-    SceneWindowSphere(G, s_location, s_radius);
     PRINTFB(G, FB_Scene, FB_Actions)
       " Scene: reset Fov for openVR.\n" ENDFB(G);
  } else if (commonCorrect){
+    ResetFovWidth(G, s_oldFov);
     commonCorrect = false;
-    SettingSetGlobal_f(G, cSetting_field_of_view, s_oldFov);
-    SceneWindowSphere(G, s_location, s_radius);
     PRINTFB(G, FB_Scene, FB_Actions)
       " Scene: restore Fov after openVR turning off.\n" ENDFB(G);
   }
@@ -9848,6 +9860,7 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
 
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(OpenVRGetHeadToEye(G));
+    glMultMatrixf(OpenVRGetHDMPos(G));
 
     /* *** COMMON CODE BELOW *** */
 
