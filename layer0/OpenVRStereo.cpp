@@ -262,7 +262,9 @@ void OpenVRFrameStart(PyMOLGlobals * G)
   OpenVRInitPostponed(G);
 
   // get matrices from tracked devices
-  I->Compositor->WaitGetPoses(I->Poses, vr::k_unMaxTrackedDeviceCount, NULL, 0); 
+  if (I->Compositor->WaitGetPoses(I->Poses, vr::k_unMaxTrackedDeviceCount, NULL, 0) != vr::VRCompositorError_None) {
+    FeedbackAdd(G, "  Cannot update device poses\n");
+  } 
   UpdateDevicePoses(G);
 }
 
@@ -436,11 +438,11 @@ void OpenVRHandleInput(PyMOLGlobals * G)
 void UpdateDevicePoses(PyMOLGlobals * G) {
   COpenVR *I = G->OpenVR;
 
-  vr::TrackedDevicePose_t mat;
   for (uint32_t nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; nDevice++) {
-    if (I->Poses[nDevice].bPoseIsValid) {
+    vr::TrackedDevicePose_t &pose = I->Poses[nDevice];
+    if (pose.bPoseIsValid) {
       if (I->System->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_HMD) {
-        ConvertOpenVRMatrixToMatrix4(I->Poses[nDevice].mDeviceToAbsoluteTracking, I->HmdPose);
+        ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->HmdPose);
       }
     }
   }

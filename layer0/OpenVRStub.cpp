@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "OpenVRStub.h"
 #include "OpenVRStubDevice.h"
 
@@ -146,7 +148,22 @@ bool VRSystemStub::PollNextEvent( VREvent_t *pEvent, uint32_t uncbVREvent )
 
 EVRCompositorError VRCompositorStub::WaitGetPoses(TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount)
 {
-  return VRCompositorError_RequestFailed;
+  static HmdMatrix34_t matrix = {{
+    {1.000000000, 0.000000000, 0.000000000,  0.000000000},
+    {0.000000000, 1.000000000, 0.000000000,  0.000000000},
+    {0.000000000, 0.000000000, 1.000000000,  0.000000000},
+  }};
+
+  for (uint32_t nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; nDevice++) {
+    if (_stubSystem->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_HMD) {
+      vr::TrackedDevicePose_t &pose = pRenderPoseArray[nDevice];
+      std::memcpy((void *)&pose.mDeviceToAbsoluteTracking, (const void *)&matrix, sizeof (float) * 12);
+      pose.bPoseIsValid = true;
+      pose.bDeviceIsConnected = true;
+      pose.eTrackingResult = vr::TrackingResult_Running_OK;
+    }
+  }
+  return VRCompositorError_None;
 }
 
 EVRCompositorError VRCompositorStub::Submit(EVREye eEye, const Texture_t *pTexture, const VRTextureBounds_t* pBounds /* = 0 */, EVRSubmitFlags nSubmitFlags /* = Submit_Default */)
