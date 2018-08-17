@@ -422,14 +422,16 @@ def get_sources(subdirs, suffixes=('.c', '.cpp')):
 if sys.platform=='win32': 
     # NOTE: this branch not tested in years and may not work...
     inc_dirs += [
-              "win32/include"]
-    libs=["opengl32","glu32","freeglut","glew32","libpng16","zlib","Advapi32","Ws2_32","openvr_api"]
+        "win32/include",
+        "win32/include/freetype",
+    ]
+    libs=["opengl32","glu32","freeglut","glew32","libpng16","zlib","freetype","Advapi32","Ws2_32","openvr_api"]
     pyogl_libs = ["opengl32","glu32","glut32"]
     lib_dirs=["win32/lib"]
     def_macros += [
-                ("WIN32",None),
-                ("_PYMOL_LIBPNG",None),
-                ]
+        ("WIN32",None),
+        ("_PYMOL_FREETYPE",None),
+    ]
     data_files += [("Lib/site-packages/pymol", get_sources(["win32/dll"], (".dll",".pdb")))]
     ext_link_args=['/NODEFAULTLIB:"LIBC"', "/DEBUG"]
     ext_comp_args += ["/Od", "/Zi"]
