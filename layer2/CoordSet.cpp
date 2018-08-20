@@ -1251,7 +1251,7 @@ void CoordSet::render(RenderInfo * info)
             case cRepLabel:
               if(float_labels && (pass == -1))
                 r->fRender(r, info);
-              else if(pass == 1)
+              else if(pass == 0)
                 r->fRender(r, info);
               break;
             case cRepNonbondedSphere:
