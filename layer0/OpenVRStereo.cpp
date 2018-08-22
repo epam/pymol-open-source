@@ -68,7 +68,6 @@ struct COpenVR {
   CEye Right;
 
   OpenVRController Hands[COUNT];
-  GLfloat HandsPose[COUNT][16];
  
   // Such structures used to be calloc-ed, this replicates that
   void *operator new(size_t size) {
@@ -354,9 +353,8 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
 }
 
-// FIXME make static
 // Fast affine inverse matrix, row major to column major, whew...
-void FastInverseAffineMatrix(float const *src, float *dst) {
+static void FastInverseAffineMatrix(float const *src, float *dst) {
     float const (*src44)[4] = (float const (*)[4])src;
     float (*dst44)[4] = (float (*)[4])dst;
 
@@ -407,8 +405,7 @@ float* OpenVRGetControllerPose(PyMOLGlobals * G, EHand handIdx) {
   if(!OpenVRReady(G))
     return NULL;
 
-  //FIXME
-  return I->HandsPose[handIdx];
+  return I->Hands[handIdx].GetPose();
 }
 
 float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
@@ -480,9 +477,9 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
          {
             vr::ETrackedControllerRole role = I->System->GetControllerRoleForTrackedDeviceIndex(nDevice);
             if (role == vr::TrackedControllerRole_LeftHand)
-              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->HandsPose[HLeft]);
+              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->Hands[HLeft].GetPose());
             else if (role == vr::TrackedControllerRole_RightHand)
-              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->HandsPose[HRight]);
+              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->Hands[HRight].GetPose());
           }
           break;
         default:
@@ -510,6 +507,6 @@ void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
 
   for (int i = HLeft; i <= HRight; ++i) {
     // FIXME calc matrix here???
-    I->Hands[i].Draw(G, OpenVRGetProjection(G, 0.1/*Front*/, Back), OpenVRGetHeadToEye(G), OpenVRGetHDMPose(G), I->HandsPose[i]);  
+    I->Hands[i].Draw(G, OpenVRGetProjection(G, 0.1/*Front*/, Back), OpenVRGetHeadToEye(G), OpenVRGetHDMPose(G));  
   }
 }

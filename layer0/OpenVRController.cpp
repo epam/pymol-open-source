@@ -133,8 +133,7 @@ void OpenVRController::DestroyAxes() {
   }		
 }
 
-void OpenVRController::Draw(PyMOLGlobals * G, float const *projMat, float const *headToEyeMat, float const *HDMPosMat,
-   float const *HandPose) {
+void OpenVRController::Draw(PyMOLGlobals * G, float const *projMat, float const *headToEyeMat, float const *HDMPosMat) {
  	if (!projMat || !headToEyeMat || !HDMPosMat)
 		return;
 
@@ -144,7 +143,7 @@ void OpenVRController::Draw(PyMOLGlobals * G, float const *projMat, float const 
   MatrixMultiplyC44f(headToEyeMat, (float *)matrix);
   MatrixMultiplyC44f(HDMPosMat, (float *)matrix);
 
-  MatrixMultiplyC44f(HandPose, (float *)matrix);
+  MatrixMultiplyC44f(m_pose, (float *)matrix);
   //MatrixTranslateC44f((float *)matrix, 0.0f, 0.0f, -20.0f);  
  
   CShaderPrg_Enable(m_pAxesShader);

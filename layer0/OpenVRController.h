@@ -33,7 +33,8 @@ public:
  
   void Init(PyMOLGlobals * G) { InitAxes(G); InitAxesShader(G); }
   void Destroy() { DestroyAxes(); }
-  void Draw(PyMOLGlobals * G, float const *projMat, float const *headToEyeMat, float const *HDMPosMat, float const *HandPose);
+  void Draw(PyMOLGlobals * G, float const *projMat, float const *headToEyeMat, float const *HDMPosMat);
+  float *GetPose() {return m_pose;} // it's not safe =)
 
 private:
   unsigned int m_uiControllerVertcount;
@@ -41,6 +42,7 @@ private:
   GLuint m_unControllerVAO;
   GLuint m_unControllerTransformProgramID;
   CShaderPrg *m_pAxesShader;
+  GLfloat m_pose[16]; // model2world matrix 
 	
   void InitAxes(PyMOLGlobals * G);
   void InitAxesShader(PyMOLGlobals * G);
