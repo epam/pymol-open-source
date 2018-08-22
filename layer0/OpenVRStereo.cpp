@@ -19,6 +19,7 @@ Z* -------------------------------------------------------------------
 #include "os_python.h"
 
 #include <string>
+#include <vector>
 
 #define nullptr 0
 #include "openvr.h"
@@ -27,6 +28,7 @@ Z* -------------------------------------------------------------------
 #include "OpenVRStub.h"
 #include "PyMOLOptions.h"
 #include "Feedback.h"
+#include "OpenVRController.h"
 
 struct CEye {
   vr::EVREye Eye;
@@ -44,6 +46,13 @@ struct CEye {
   vr::Texture_t Texture;
 };
 
+enum EHand
+{
+  HLeft = 0,
+  HRight = 1,
+  COUNT,
+};
+
 struct COpenVR {
   vr::EVRInitError InitError;
   vr::IVRSystem* System;
@@ -58,6 +67,9 @@ struct COpenVR {
   CEye Left;
   CEye Right;
 
+  OpenVRController Hands[COUNT];
+  GLfloat HandsPose[COUNT][16];
+ 
   // Such structures used to be calloc-ed, this replicates that
   void *operator new(size_t size) {
     void *mem = ::operator new(size);
@@ -201,6 +213,13 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     EyeInit(&I->Left, vr::Eye_Left, I->Width, I->Height);
     EyeInit(&I->Right, vr::Eye_Right, I->Width, I->Height);
   }
+
+  for (int i = HLeft; i <= HRight; ++i) {
+    OpenVRController &hand = I->Hands[i];
+    if (!hand.IsInitialized()) {
+      hand.Init(G);
+    }  
+  }  
 }
 
 static std::string GetStringTrackedDeviceProperty(vr::IVRSystem *System, vr::TrackedDeviceIndex_t index, vr::TrackedDeviceProperty prop)
@@ -335,6 +354,33 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
 }
 
+// FIXME make static
+// Fast affine inverse matrix, row major to column major, whew...
+void FastInverseAffineMatrix(float const *src, float *dst) {
+    float const (*src44)[4] = (float const (*)[4])src;
+    float (*dst44)[4] = (float (*)[4])dst;
+
+    // transpose rotation
+    dst44[0][0] = src44[0][0];
+    dst44[0][1] = src44[0][1];
+    dst44[0][2] = src44[0][2];
+    dst44[0][3] = 0.0f;
+    dst44[1][0] = src44[1][0];
+    dst44[1][1] = src44[1][1];
+    dst44[1][2] = src44[1][2];
+    dst44[1][3] = 0.0f;
+    dst44[2][0] = src44[2][0];
+    dst44[2][1] = src44[2][1];
+    dst44[2][2] = src44[2][2];
+    dst44[2][3] = 0.0f;
+    
+    // trnspose-rotated negative translation
+    dst44[3][0] = -(src44[0][0] * src44[0][3] + src44[1][0] * src44[1][3] + src44[2][0] * src44[2][3]);
+    dst44[3][1] = -(src44[0][1] * src44[0][3] + src44[1][1] * src44[1][3] + src44[2][1] * src44[2][3]);
+    dst44[3][2] = -(src44[0][2] * src44[0][3] + src44[1][2] * src44[1][3] + src44[2][2] * src44[2][3]);
+    dst44[3][3] = 1.0f;
+}
+
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
@@ -343,42 +389,26 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 
   CEye *E = I->Eye;
   vr::HmdMatrix34_t EyeToHeadTransform = I->System->GetEyeToHeadTransform(E->Eye);
-  
-  // fast affine inverse matrix, row major to column major, whew...
-  {
-    float (*src)[4] = EyeToHeadTransform.m;
-    float (*dst)[4] = (float(*)[4])E->HeadToEyeMatrix;
-    
-    // transpose rotation
-    dst[0][0] = src[0][0];
-    dst[0][1] = src[0][1];
-    dst[0][2] = src[0][2];
-    dst[0][3] = 0.0f;
-    dst[1][0] = src[1][0];
-    dst[1][1] = src[1][1];
-    dst[1][2] = src[1][2];
-    dst[1][3] = 0.0f;
-    dst[2][0] = src[2][0];
-    dst[2][1] = src[2][1];
-    dst[2][2] = src[2][2];
-    dst[2][3] = 0.0f;
-    
-    // trnspose-rotated negative translation
-    dst[3][0] = -(src[0][0] * src[0][3] + src[1][0] * src[1][3] + src[2][0] * src[2][3]);
-    dst[3][1] = -(src[0][1] * src[0][3] + src[1][1] * src[1][3] + src[2][1] * src[2][3]);
-    dst[3][2] = -(src[0][2] * src[0][3] + src[1][2] * src[1][3] + src[2][2] * src[2][3]);
-    dst[3][3] = 1.0f;
-  }
+  FastInverseAffineMatrix((const float *)EyeToHeadTransform.m, E->HeadToEyeMatrix);
 
   return E->HeadToEyeMatrix;
 }
 
-float* OpenVRGetHDMPos(PyMOLGlobals * G) {
+float* OpenVRGetHDMPose(PyMOLGlobals * G) {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return NULL;
 
   return I->HmdPose;
+}
+
+float* OpenVRGetControllerPose(PyMOLGlobals * G, EHand handIdx) {
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return NULL;
+
+  //FIXME
+  return I->HandsPose[handIdx];
 }
 
 float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
@@ -441,18 +471,45 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
   for (uint32_t nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; nDevice++) {
     vr::TrackedDevicePose_t &pose = I->Poses[nDevice];
     if (pose.bPoseIsValid) {
-      if (I->System->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_HMD) {
-        ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->HmdPose);
+      vr::ETrackedDeviceClass device = I->System->GetTrackedDeviceClass(nDevice);
+      switch (device) {
+        case vr::TrackedDeviceClass_HMD:
+          FastInverseAffineMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->HmdPose);
+          break;
+        case vr::TrackedDeviceClass_Controller:
+         {
+            vr::ETrackedControllerRole role = I->System->GetControllerRoleForTrackedDeviceIndex(nDevice);
+            if (role == vr::TrackedControllerRole_LeftHand)
+              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->HandsPose[HLeft]);
+            else if (role == vr::TrackedControllerRole_RightHand)
+              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->HandsPose[HRight]);
+          }
+          break;
+        default:
+          break;
       }
     }
   }
 }
 
+// FIXME change params
 static void ConvertOpenVRMatrixToMatrix4(const vr::HmdMatrix34_t &mat, GLfloat *fMat)
 {
   float (*dst)[4] = (float(*)[4])fMat;
-  dst[0][0] = mat.m[0][0]; dst[0][1] = mat.m[0][1]; dst[0][2] = mat.m[0][2]; dst[0][3] = 0.0f;
-  dst[1][0] = mat.m[1][0]; dst[1][1] = mat.m[1][1]; dst[1][2] = mat.m[1][2]; dst[1][3] = 0.0f;
-  dst[2][0] = mat.m[2][0]; dst[2][1] = mat.m[2][1]; dst[2][2] = mat.m[2][2]; dst[2][3] = 0.0f;
-  dst[3][0] = mat.m[3][0]; dst[3][1] = mat.m[3][1]; dst[3][2] = mat.m[3][2]; dst[3][3] = 1.0f;
+  dst[0][0] = mat.m[0][0]; dst[0][1] = mat.m[1][0]; dst[0][2] = mat.m[2][0]; dst[0][3] = 0.0f;
+  dst[1][0] = mat.m[0][1]; dst[1][1] = mat.m[1][1]; dst[1][2] = mat.m[2][1]; dst[1][3] = 0.0f;
+  dst[2][0] = mat.m[0][2]; dst[2][1] = mat.m[1][2]; dst[2][2] = mat.m[2][2]; dst[2][3] = 0.0f;
+  dst[3][0] = mat.m[0][3]; dst[3][1] = mat.m[1][3]; dst[3][2] = mat.m[3][2]; dst[3][3] = 1.0f;
+}
+
+void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  for (int i = HLeft; i <= HRight; ++i) {
+    // FIXME calc matrix here???
+    I->Hands[i].Draw(G, OpenVRGetProjection(G, 0.1/*Front*/, Back), OpenVRGetHeadToEye(G), OpenVRGetHDMPose(G), I->HandsPose[i]);  
+  }
 }

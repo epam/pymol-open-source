@@ -1,0 +1,158 @@
+#include <vector>
+
+#include "os_std.h"
+#include "os_gl.h"
+
+#include "Matrix.h"
+
+#include "OpenVRController.h"
+
+void OpenVRController::InitAxes(PyMOLGlobals * G) {
+ 
+  std::vector<float> vertdataarray;
+
+  m_uiControllerVertcount = 0;
+
+  float center[4] = {0.0, 0.0, 0.0, 1.0};
+
+  for ( int i = 0; i < 3; ++i )
+  {
+      float color[3] = {0, 0, 0};
+      float point[4] = {0, 0, 0, 1.f};
+      point[i] += 0.05f;  // offset in X, Y, Z
+      color[i] = 1.0;  // R, G, B
+
+      vertdataarray.push_back( center[0] );
+      vertdataarray.push_back( center[1] );
+      vertdataarray.push_back( center[2] );
+      vertdataarray.push_back( center[3] );
+
+      vertdataarray.push_back( color[0] );
+      vertdataarray.push_back( color[1] );
+      vertdataarray.push_back( color[2] );
+
+      vertdataarray.push_back( point[0] );
+      vertdataarray.push_back( point[1] );
+      vertdataarray.push_back( point[2] );
+      vertdataarray.push_back( point[3] );
+
+      vertdataarray.push_back( color[0] );
+      vertdataarray.push_back( color[1] );
+      vertdataarray.push_back( color[2] );
+
+      m_uiControllerVertcount += 2;
+  }
+
+  float start[4] = {0.f, 0.f, -0.02f, 1.f};
+  float end[4] = {0.f, 0.f, -39.f, 1.f};
+  float color[3] = {.92f, .92f, .71f};
+
+  vertdataarray.push_back( start[0] ); vertdataarray.push_back( start[1] );vertdataarray.push_back( start[2] ); vertdataarray.push_back( start[3] );
+  vertdataarray.push_back( color[0] ); vertdataarray.push_back( color[1] );vertdataarray.push_back( color[2] );
+
+  vertdataarray.push_back( end[0] ); vertdataarray.push_back( end[1] );vertdataarray.push_back( end[2] ); vertdataarray.push_back( end[3] );
+  vertdataarray.push_back( color[0] );vertdataarray.push_back( color[1] );vertdataarray.push_back( color[2] );
+  m_uiControllerVertcount += 2;
+
+  // Setup the VAO the first time through.
+  if ( m_unControllerVAO == 0 )
+  {
+      glGenVertexArrays( 1, &m_unControllerVAO );
+      glBindVertexArray( m_unControllerVAO );
+
+      glGenBuffers( 1, &m_glControllerVertBuffer );
+      glBindBuffer( GL_ARRAY_BUFFER, m_glControllerVertBuffer );
+
+      GLuint stride = (4 + 3) * sizeof( float );
+      uintptr_t offset = 0;
+
+      glEnableVertexAttribArray( 0 );
+      glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, stride, (const void *)offset);
+
+      offset += 4 * sizeof(float);
+      glEnableVertexAttribArray(1);
+      glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (const void *)offset);
+
+      glBindVertexArray(0);
+  }
+
+  glBindBuffer( GL_ARRAY_BUFFER, m_glControllerVertBuffer );
+
+  // set vertex data if we have some
+  if( vertdataarray.size() > 0 )
+  {
+      //$ TODO: Use glBufferSubData for this...
+      glBufferData( GL_ARRAY_BUFFER, sizeof(float) * vertdataarray.size(), &vertdataarray[0], GL_STREAM_DRAW );
+  }
+
+  glBindBuffer( GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+}
+
+void OpenVRController::InitAxesShader(PyMOLGlobals * G) {
+  // vertex shader
+  const char *vs = 
+		"#version 410\n"
+		"uniform mat4 matrix;\n"
+		"layout(location = 0) in vec4 position;\n"
+		"layout(location = 1) in vec3 v3ColorIn;\n"
+		"out vec4 v4Color;\n"
+		"void main()\n"
+		"{\n"
+		"	v4Color.xyz = v3ColorIn; v4Color.a = 1.0;\n"
+		"	gl_Position = matrix * position;\n"
+		"}\n";
+
+  // fragment shader
+  const char *ps = 
+    "#version 410\n"
+		"in vec4 v4Color;\n"
+		"out vec4 outputColor;\n"
+		"void main()\n"
+		"{\n"
+		"   outputColor = v4Color;\n"
+    " //  outputColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+		"}\n";
+  
+  m_pAxesShader = CShaderPrg_New(G, "Controller", vs, ps);
+}
+
+void OpenVRController::DestroyAxes() {
+	if( m_unControllerVAO != 0 ) {
+    glDeleteVertexArrays( 1, &m_unControllerVAO );
+    m_unControllerVAO = 0;
+  }
+  if (m_glControllerVertBuffer != 0) {
+    glDeleteBuffers(1, &m_glControllerVertBuffer);
+    m_glControllerVertBuffer = 0;
+    m_uiControllerVertcount = 0;
+  }
+  if ( m_unControllerTransformProgramID ) {
+		glDeleteProgram( m_unControllerTransformProgramID );
+    m_unControllerTransformProgramID = 0;
+  }		
+}
+
+void OpenVRController::Draw(PyMOLGlobals * G, float const *projMat, float const *headToEyeMat, float const *HDMPosMat,
+   float const *HandPose) {
+ 	if (!projMat || !headToEyeMat || !HDMPosMat)
+		return;
+
+  float matrix[16];
+  identity44f(matrix);
+  MatrixMultiplyC44f(projMat, (float *)matrix);
+  MatrixMultiplyC44f(headToEyeMat, (float *)matrix);
+  MatrixMultiplyC44f(HDMPosMat, (float *)matrix);
+
+  MatrixMultiplyC44f(HandPose, (float *)matrix);
+  //MatrixTranslateC44f((float *)matrix, 0.0f, 0.0f, -20.0f);  
+ 
+  CShaderPrg_Enable(m_pAxesShader);
+  CShaderPrg_SetMat4fc(m_pAxesShader, "matrix", (GLfloat*)matrix);
+  glBindVertexArray( m_unControllerVAO );
+
+  glDrawArrays( GL_LINES, 0, m_uiControllerVertcount );
+
+  glBindVertexArray( 0 );
+  CShaderPrg_Disable(m_pAxesShader);  
+}
