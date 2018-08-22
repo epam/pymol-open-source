@@ -87,7 +87,8 @@ static char const* deviceClassNames[] = {
 };
 static const int deviceClassNamesCount = sizeof(deviceClassNames) / sizeof(*deviceClassNames);
 
-void static ConvertOpenVRMatrixToMatrix4( const vr::HmdMatrix34_t &mat, GLfloat *fMat);
+static void FastInverseAffineSteamVRMatrix(float const *srcMat34, float *dstMat44);
+static void ConvertSteamVRMatrixToGLMat(float const* srcMat34, float *dstMat44);
 void UpdateDevicePoses(PyMOLGlobals * G);
 
 bool OpenVRAvailable(PyMOLGlobals *)
@@ -353,32 +354,6 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
 }
 
-// Fast affine inverse matrix, row major to column major, whew...
-static void FastInverseAffineMatrix(float const *src, float *dst) {
-    float const (*src44)[4] = (float const (*)[4])src;
-    float (*dst44)[4] = (float (*)[4])dst;
-
-    // transpose rotation
-    dst44[0][0] = src44[0][0];
-    dst44[0][1] = src44[0][1];
-    dst44[0][2] = src44[0][2];
-    dst44[0][3] = 0.0f;
-    dst44[1][0] = src44[1][0];
-    dst44[1][1] = src44[1][1];
-    dst44[1][2] = src44[1][2];
-    dst44[1][3] = 0.0f;
-    dst44[2][0] = src44[2][0];
-    dst44[2][1] = src44[2][1];
-    dst44[2][2] = src44[2][2];
-    dst44[2][3] = 0.0f;
-    
-    // trnspose-rotated negative translation
-    dst44[3][0] = -(src44[0][0] * src44[0][3] + src44[1][0] * src44[1][3] + src44[2][0] * src44[2][3]);
-    dst44[3][1] = -(src44[0][1] * src44[0][3] + src44[1][1] * src44[1][3] + src44[2][1] * src44[2][3]);
-    dst44[3][2] = -(src44[0][2] * src44[0][3] + src44[1][2] * src44[1][3] + src44[2][2] * src44[2][3]);
-    dst44[3][3] = 1.0f;
-}
-
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
@@ -387,7 +362,7 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 
   CEye *E = I->Eye;
   vr::HmdMatrix34_t EyeToHeadTransform = I->System->GetEyeToHeadTransform(E->Eye);
-  FastInverseAffineMatrix((const float *)EyeToHeadTransform.m, E->HeadToEyeMatrix);
+  FastInverseAffineSteamVRMatrix((const float *)EyeToHeadTransform.m, E->HeadToEyeMatrix);
 
   return E->HeadToEyeMatrix;
 }
@@ -471,15 +446,15 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
       vr::ETrackedDeviceClass device = I->System->GetTrackedDeviceClass(nDevice);
       switch (device) {
         case vr::TrackedDeviceClass_HMD:
-          FastInverseAffineMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->HmdPose);
+          FastInverseAffineSteamVRMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->HmdPose);
           break;
         case vr::TrackedDeviceClass_Controller:
          {
             vr::ETrackedControllerRole role = I->System->GetControllerRoleForTrackedDeviceIndex(nDevice);
             if (role == vr::TrackedControllerRole_LeftHand)
-              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->Hands[HLeft].GetPose());
+              ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)I->Hands[HLeft].GetPose());
             else if (role == vr::TrackedControllerRole_RightHand)
-              ConvertOpenVRMatrixToMatrix4(pose.mDeviceToAbsoluteTracking, I->Hands[HRight].GetPose());
+              ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)I->Hands[HRight].GetPose());
           }
           break;
         default:
@@ -487,16 +462,6 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
       }
     }
   }
-}
-
-// FIXME change params
-static void ConvertOpenVRMatrixToMatrix4(const vr::HmdMatrix34_t &mat, GLfloat *fMat)
-{
-  float (*dst)[4] = (float(*)[4])fMat;
-  dst[0][0] = mat.m[0][0]; dst[0][1] = mat.m[1][0]; dst[0][2] = mat.m[2][0]; dst[0][3] = 0.0f;
-  dst[1][0] = mat.m[0][1]; dst[1][1] = mat.m[1][1]; dst[1][2] = mat.m[2][1]; dst[1][3] = 0.0f;
-  dst[2][0] = mat.m[0][2]; dst[2][1] = mat.m[1][2]; dst[2][2] = mat.m[2][2]; dst[2][3] = 0.0f;
-  dst[3][0] = mat.m[0][3]; dst[3][1] = mat.m[1][3]; dst[3][2] = mat.m[3][2]; dst[3][3] = 1.0f;
 }
 
 void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
@@ -510,3 +475,41 @@ void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
     I->Hands[i].Draw(G, OpenVRGetProjection(G, 0.1/*Front*/, Back), OpenVRGetHeadToEye(G), OpenVRGetHDMPose(G));  
   }
 }
+
+// Fast affine inverse matrix, row major to column major, whew...
+static void FastInverseAffineSteamVRMatrix(float const *srcMat34, float *dstMat44) {
+    float const (*src)[4] = (float const (*)[4])srcMat34;
+    float (*dst)[4] = (float (*)[4])dstMat44;
+
+    // transpose rotation
+    dst[0][0] = src[0][0];
+    dst[0][1] = src[0][1];
+    dst[0][2] = src[0][2];
+    dst[0][3] = 0.0f;
+    dst[1][0] = src[1][0];
+    dst[1][1] = src[1][1];
+    dst[1][2] = src[1][2];
+    dst[1][3] = 0.0f;
+    dst[2][0] = src[2][0];
+    dst[2][1] = src[2][1];
+    dst[2][2] = src[2][2];
+    dst[2][3] = 0.0f;
+    
+    // trnspose-rotated negative translation
+    dst[3][0] = -(src[0][0] * src[0][3] + src[1][0] * src[1][3] + src[2][0] * src[2][3]);
+    dst[3][1] = -(src[0][1] * src[0][3] + src[1][1] * src[1][3] + src[2][1] * src[2][3]);
+    dst[3][2] = -(src[0][2] * src[0][3] + src[1][2] * src[1][3] + src[2][2] * src[2][3]);
+    dst[3][3] = 1.0f;
+}
+
+static void ConvertSteamVRMatrixToGLMat(float const* srcMat34, float *dstMat44)
+{
+  float (*dst)[4] = (float(*)[4])dstMat44;
+  float (*src)[4] = (float(*)[4])srcMat34;
+  dst[0][0] = src[0][0]; dst[0][1] = src[1][0]; dst[0][2] = src[2][0]; dst[0][3] = 0.0f;
+  dst[1][0] = src[0][1]; dst[1][1] = src[1][1]; dst[1][2] = src[2][1]; dst[1][3] = 0.0f;
+  dst[2][0] = src[0][2]; dst[2][1] = src[1][2]; dst[2][2] = src[2][2]; dst[2][3] = 0.0f;
+  dst[3][0] = src[0][3]; dst[3][1] = src[1][3]; dst[3][2] = src[3][2]; dst[3][3] = 1.0f;
+}
+
+
