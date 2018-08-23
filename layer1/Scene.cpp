@@ -9858,7 +9858,7 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
     /* stereo OpenVR */
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(OpenVRGetProjection(G, I->FrontSafe, I->BackSafe));
-
+   
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(OpenVRGetHeadToEye(G));
     glMultMatrixf(OpenVRGetHDMPose(G));

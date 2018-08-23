@@ -68,6 +68,8 @@ struct COpenVR {
   CEye Right;
 
   OpenVRController Hands[COUNT];
+
+  bool ForcedFront;
  
   // Such structures used to be calloc-ed, this replicates that
   void *operator new(size_t size) {
@@ -76,6 +78,8 @@ struct COpenVR {
     return mem;
   }
 };
+
+static const float OPEN_VR_FRONT = 0.1f;
 
 static char const* deviceClassNames[] = {
   "Invalid",
@@ -178,6 +182,7 @@ int OpenVRInit(PyMOLGlobals * G)
     }
 
     I->Compositor = vr::stub::VRCompositor();
+    I->ForcedFront = true;
     return 1;
   } else
     return 0;
@@ -391,6 +396,9 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
 
   CEye *E = I->Eye;
 
+  if (I->ForcedFront)
+    near_plane = OPEN_VR_FRONT;
+
   float left, right, top, bottom;
   I->System->GetProjectionRaw(E->Eye, &left, &right, &top, &bottom);
   
@@ -472,7 +480,7 @@ void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
 
   for (int i = HLeft; i <= HRight; ++i) {
     // FIXME calc matrix here???
-    I->Hands[i].Draw(G, OpenVRGetProjection(G, 0.1/*Front*/, Back), OpenVRGetHeadToEye(G), OpenVRGetHDMPose(G));  
+    I->Hands[i].Draw(G, OpenVRGetProjection(G, Front, Back), OpenVRGetHeadToEye(G), OpenVRGetHDMPose(G));  
   }
 }
 
