@@ -91,16 +91,6 @@ static void glReadBufferError(PyMOLGlobals *G, GLenum b, GLenum e){
 #define SceneBottomMargin 3
 #define SceneLeftMargin 3
 
-#define GL_DEBUG_PUSH(title) \
-  GLEW_KHR_debug ? glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, title) : (void)0
-
-#define GL_DEBUG_PUSH_FUN() \
-  GLEW_KHR_debug ? glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__ "()") : (void)0
-
-#define GL_DEBUG_POP() \
-  GLEW_KHR_debug ? glPopDebugGroup() : (void)0
-
-
 /* Shared with ShaderMgr */
 /** Coefficients from: http://3dtv.at/Knowhow/AnaglyphComparison_en.aspx */
 /** Optimize the look and feel of anaglyph 3D */
@@ -8212,7 +8202,8 @@ void SceneProgramLighting(PyMOLGlobals * G)
 }
 
 void SceneRenderAllObject(PyMOLGlobals * G, CScene *I, SceneUnitContext * context, RenderInfo *info, float *normal, Picking ** pickVLA, int state, ObjRec *rec, GridInfo * grid, int *slot_vla, int fat){
-  GL_DEBUG_PUSH_FUN();
+  GL_DEBUG_FUN();
+
   short use_shader = (short) SettingGetGlobal_b(G, cSetting_use_shaders);
   if(Feedback(G, FB_OpenGL, FB_Debugging))
     PyMOLCheckOpenGLErr("Before fRender iteration");
@@ -8323,7 +8314,6 @@ void SceneRenderAllObject(PyMOLGlobals * G, CScene *I, SceneUnitContext * contex
   }
   if(Feedback(G, FB_OpenGL, FB_Debugging))
     PyMOLCheckOpenGLErr("After fRender iteration");
-  GL_DEBUG_POP();
 }
 
 /*========================================================================*/
@@ -8333,7 +8323,8 @@ static void SceneRenderAll(PyMOLGlobals * G, SceneUnitContext * context,
                            GridInfo * grid, int dynamic_pass)
 {
   static char const* passNames[] = {"transparent", "antialiased", "opaque"};
-  GL_DEBUG_PUSH((std::string(__FUNCTION__ "(): ") + (-1 <= pass && pass <= 1 ? passNames[pass + 1] : "unknown") + " pass").c_str());
+  GL_DEBUG_BLOCK((std::string(__FUNCTION__ "(): ") + (-1 <= pass && pass <= 1 ? passNames[pass + 1] : "unknown") + " pass").c_str());
+
   CScene *I = G->Scene;
   ObjRec *rec = NULL;
   int state = SceneGetState(G);
@@ -8413,7 +8404,6 @@ static void SceneRenderAll(PyMOLGlobals * G, SceneUnitContext * context,
       CGORenderGLAlpha(info.alpha_cgo, &info);
     }
   }
-  GL_DEBUG_POP();
 }
 
 #ifdef _PYMOL_SHARP3D
@@ -8429,7 +8419,7 @@ int GetPowerOfTwoLargeEnough(float val){
 }
 
 void PrepareViewPortForStereo(PyMOLGlobals * G, CScene *I, int stereo_mode, short offscreen, int times, int x, int y, int oversize_width, int oversize_height){
-  GL_DEBUG_PUSH_FUN();
+  GL_DEBUG_FUN();
 
   switch (stereo_mode) {
   case cStereo_quadbuffer:   /* hardware */
@@ -8525,12 +8515,9 @@ void PrepareViewPortForStereo(PyMOLGlobals * G, CScene *I, int stereo_mode, shor
     }
     break;
   case cStereo_openvr:
-    GL_DEBUG_PUSH("OpenVREyeStart(LEFT)");
     OpenVREyeStart(G, 0);
-    GL_DEBUG_POP();
     break;
   }
-  GL_DEBUG_POP();
 }
 
 void PrepareViewPortForStereo2nd(PyMOLGlobals * G, CScene *I, int stereo_mode, short offscreen, int times, int x, int y, int oversize_width, int oversize_height){
@@ -8612,9 +8599,7 @@ void PrepareViewPortForStereo2nd(PyMOLGlobals * G, CScene *I, int stereo_mode, s
     }
     break;
   case cStereo_openvr:
-    GL_DEBUG_PUSH("OpenVREyeStart(RIGHT)");
     OpenVREyeStart(G, 1);
-    GL_DEBUG_POP();
     break;
   }
 }
@@ -8690,7 +8675,8 @@ void SetDrawBufferForStereo(PyMOLGlobals * G, CScene *I, int stereo_mode, int ti
 void DoRendering(PyMOLGlobals * G, CScene *I, short offscreen, GridInfo *grid, int times, int curState, float *normal, 
 		 SceneUnitContext *context, float width_scale, short renderTransparent, short onlySelections, short excludeSelections){
   int pass;
-  GL_DEBUG_PUSH_FUN();
+  GL_DEBUG_FUN();
+
   if(grid->active && !offscreen)
     GridGetGLViewport(G, grid);
   {
@@ -8741,14 +8727,14 @@ void DoRendering(PyMOLGlobals * G, CScene *I, short offscreen, GridInfo *grid, i
   }
   if(grid->active)
     GridSetGLViewport(grid, -1);
-  GL_DEBUG_POP();
 }
 
 void DoHandedStereo(PyMOLGlobals * G, CScene *I, void (*prepareViewPortForStereo)(PyMOLGlobals *, CScene *, int, short, int, int, int, int, int),
 		    int stereo_mode, short offscreen, int times, int x, int y, int oversize_width, int oversize_height, GLenum mode, int mono_as_quad_stereo,
 		    int prepare_matrix_arg, GridInfo *grid, int curState, float *normal, SceneUnitContext *context,
 		    float width_scale, short clearDepthAfterPrepareMatrix, short onlySelections, short excludeSelections){
-  GL_DEBUG_PUSH_FUN();
+  GL_DEBUG_FUN();
+
   if(mono_as_quad_stereo) {
     OrthoDrawBuffer(G, mode);
   } else {
@@ -8772,11 +8758,8 @@ void DoHandedStereo(PyMOLGlobals * G, CScene *I, void (*prepareViewPortForStereo
   OpenVRDrawControllers(G, I->FrontSafe, I->BackSafe);
 
   if (stereo_mode == cStereo_openvr) {
-    GL_DEBUG_PUSH("OpenVREyeFinish()");
     OpenVREyeFinish(G);
-    GL_DEBUG_POP();
   }
-  GL_DEBUG_POP();
 }
 
 void InitializeViewPort(PyMOLGlobals * G, CScene *I, int x, int y, int oversize_width, int oversize_height, 
@@ -9145,7 +9128,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
     " SceneRender: entered. pick %p x %d y %d smp %p\n",
     (void *) pick, x, y, (void *) smp ENDFD;
 
-  GL_DEBUG_PUSH_FUN();
+  GL_DEBUG_FUN();
 
   CShaderMgr_Check_Reload(G);
   if(grid_mode) {
@@ -9361,7 +9344,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 
     /* 1. render all objects */
     if(pick || smp) {
-      GL_DEBUG_PUSH("// Render objects: pick || smp");
+      GL_DEBUG_BLOCK("// Render objects: pick || smp");
 
       switch (stereo_mode) {
       case cStereo_crosseye:
@@ -9568,7 +9551,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
       int times = 1, origtimes;
       short offscreen = 0;
       /* STANDARD RENDERING */
-      GL_DEBUG_PUSH("// Render objects: standard");
+      GL_DEBUG_BLOCK("// Render objects: standard");
 
 #if 0
       // DISABLED - implementation is buggy and replaced by SMAA/FXAA in Incentive PyMOL
@@ -9654,7 +9637,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
         }
       }
       if(offscreen) {
-        GL_DEBUG_PUSH("// offscreen");
+        GL_DEBUG_BLOCK("// offscreen");
 	int minx, miny;
 	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, I->offscreen_fb); 
 	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0); 
@@ -9738,13 +9721,12 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	      PyMOLCheckOpenGLErr("during mono rendering");
 	  }
 	}
+
   GL_DEBUG_POP();
 	/* FINISHED rendering selection markers */
 	
-        GL_DEBUG_POP();
       }
     }
-    GL_DEBUG_POP();
 
     if(!(pick || smp)) {
       glDisable(GL_FOG);
@@ -9796,8 +9778,6 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 
   PRINTFD(G, FB_Scene)
     " SceneRender: leaving...\n" ENDFD;
-
-  GL_DEBUG_POP();
 }
 
 

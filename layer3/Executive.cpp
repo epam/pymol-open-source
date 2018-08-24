@@ -11899,6 +11899,8 @@ int ExecutiveReset(PyMOLGlobals * G, int cmd, const char *name)
 /*========================================================================*/
 void ExecutiveDrawNow(PyMOLGlobals * G)
 {
+  GL_DEBUG_FUN();
+
   CExecutive *I = G->Executive;
 
   if(PyMOL_GetIdleAndReady(G->PyMOL) && !SettingGetGlobal_b(G, cSetting_suspend_deferred))

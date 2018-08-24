@@ -1477,6 +1477,8 @@ void bg_grad(PyMOLGlobals * G) {
 
 void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 {
+  GL_DEBUG_FUN();
+
   COrtho *I = G->Ortho;
   CGO *orthoCGO = NULL;
   int x, y;
@@ -1935,6 +1937,8 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 }
 
 void OrthoRenderCGO(PyMOLGlobals * G){
+  GL_DEBUG_FUN();
+
   COrtho *I = G->Ortho;
   if (I->orthoCGO) {
     SceneDrawImageOverlay(G, NULL);
@@ -2651,6 +2655,7 @@ void OrthoPushMatrix(PyMOLGlobals * G)
   COrtho *I = G->Ortho;
 
   if(G->HaveGUI && G->ValidContext) {
+    GL_DEBUG_FUN();
 
     if(!I->Pushed) {
       glGetIntegerv(GL_VIEWPORT, I->ViewPort);
@@ -2704,6 +2709,7 @@ void OrthoPopMatrix(PyMOLGlobals * G)
 {
   COrtho *I = G->Ortho;
   if(G->HaveGUI && G->ValidContext) {
+    GL_DEBUG_FUN();
 
     if(I->Pushed >= 0) {
       glViewport(I->ViewPort[0], I->ViewPort[1], I->ViewPort[2], I->ViewPort[3]);

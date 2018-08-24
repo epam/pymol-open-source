@@ -6225,6 +6225,8 @@ static void CGO_gl_normal(CCGORenderer * I, float **varg){
 }
 
 static void CGO_gl_draw_arrays(CCGORenderer * I, float **pc){
+  GL_DEBUG_FUN();
+
   int mode = CGO_read_int(*pc), arrays = CGO_read_int(*pc), narrays = CGO_read_int(*pc), nverts = CGO_read_int(*pc);
   (void) narrays;
 #ifndef PURE_OPENGL_ES_2
@@ -6354,6 +6356,8 @@ static void CGO_gl_draw_arrays(CCGORenderer * I, float **pc){
 }
 
 static void CGO_gl_draw_buffers(CCGORenderer * I, float **pc){
+  GL_DEBUG_FUN();
+
   int mode = CGO_get_int(*pc), arrays = CGO_get_int(*pc+1), narrays = CGO_get_int(*pc+2), nverts = CGO_get_int(*pc+3);
   uint bufs[4] = { CGO_get_uint(*pc+4), CGO_get_uint(*pc+5), CGO_get_uint(*pc+6), CGO_get_uint(*pc+7) };
   CShaderPrg * shaderPrg;
@@ -6411,6 +6415,8 @@ static void CGO_gl_draw_buffers(CCGORenderer * I, float **pc){
 }
 
 static void CGO_gl_draw_buffers_indexed(CCGORenderer * I, float **pc){
+  GL_DEBUG_FUN();
+
   int mode = CGO_get_int(*pc), arrays = CGO_get_int(*pc+1), narrays = CGO_get_int(*pc+2), nindices = CGO_get_int(*pc+3), 
     nverts = CGO_get_int(*pc+4);
   uint bufs[5] = { CGO_get_uint(*pc+5), CGO_get_uint(*pc+6), CGO_get_uint(*pc+7), CGO_get_uint(*pc+8), CGO_get_uint(*pc+9) };
@@ -6561,6 +6567,8 @@ CHECK_GL_ERROR_OK("CGO_gl_draw_buffers_indexed: end err=%d\n");
 }
 
 static void CGO_gl_draw_buffers_not_indexed(CCGORenderer * I, float **pc){
+  GL_DEBUG_FUN();
+
   int mode = CGO_get_int(*pc), arrays = CGO_get_int(*pc+1), narrays = CGO_get_int(*pc+2),
     nverts = CGO_get_int(*pc+3);
   uint bufs[4] = { CGO_get_uint(*pc+4), CGO_get_uint(*pc+5), CGO_get_uint(*pc+6), CGO_get_uint(*pc+7) };
@@ -6700,6 +6708,8 @@ static void CGO_gl_draw_buffers_not_indexed(CCGORenderer * I, float **pc){
 static void CGO_gl_color_impl(CCGORenderer * I, float *v);
 
 static void CGO_gl_draw_sphere_buffers(CCGORenderer * I, float **pc) {
+  GL_DEBUG_FUN();
+
   int  num_spheres = CGO_get_int(*pc);
   int ub_flags = CGO_get_int(*pc+1);
   int attr_a_vertex_radius;
@@ -6750,6 +6760,8 @@ static void CGO_gl_draw_sphere_buffers(CCGORenderer * I, float **pc) {
 }
 
 static void CGO_gl_draw_cylinder_buffers(CCGORenderer * I, float **pc) {
+  GL_DEBUG_FUN();
+
   int  num_cyl = CGO_get_int(*pc);
   int min_alpha = CGO_get_int(*pc+1);
   int attr_origin;
@@ -6819,6 +6831,8 @@ static void CGO_gl_draw_cylinder_buffers(CCGORenderer * I, float **pc) {
 }
 
 static void CGO_gl_draw_label(CCGORenderer * I, float **pc) {
+  GL_DEBUG_FUN();
+
   int  texture_id = CGO_get_int(*pc);
   float worldPos[4], screenMin[3], screenMax[3], textExtent[4];
   CShaderPrg * shaderPrg;
@@ -6860,6 +6874,8 @@ static void CGO_gl_draw_label(CCGORenderer * I, float **pc) {
 }
 
 static void CGO_gl_draw_texture(CCGORenderer * I, float **pc) {
+  GL_DEBUG_FUN();
+
   int  texture_id = CGO_get_int(*pc);
   float worldPos[4], screenMin[3], screenMax[3], textExtent[4];
   CShaderPrg * shaderPrg;
@@ -6902,6 +6918,8 @@ static void CGO_gl_draw_texture(CCGORenderer * I, float **pc) {
 
 #include "Texture.h"
 static void CGO_gl_draw_labels(CCGORenderer * I, float **pc) {
+  GL_DEBUG_FUN();
+
   int ntextures = CGO_get_int(*pc);
   int bufs[4] = { CGO_get_int(*pc+1), CGO_get_int(*pc+2), CGO_get_int(*pc+3), CGO_get_int(*pc+4) };
   CShaderPrg * shaderPrg;
@@ -6958,6 +6976,8 @@ static void CGO_gl_draw_labels(CCGORenderer * I, float **pc) {
 }
 
 static void CGO_gl_draw_textures(CCGORenderer * I, float **pc) {
+  GL_DEBUG_FUN();
+
   int ntextures = CGO_get_int(*pc);
   int bufs[3] = { CGO_get_int(*pc+1), CGO_get_int(*pc+2), CGO_get_int(*pc+3) };
   CShaderPrg * shaderPrg;
@@ -7007,6 +7027,8 @@ static void CGO_gl_draw_textures(CCGORenderer * I, float **pc) {
 }
 
 static void CGO_gl_draw_screen_textures_and_polygons(CCGORenderer * I, float **pc) {
+  GL_DEBUG_FUN();
+
   int nverts = CGO_get_int(*pc);
   int bufs[3] = { CGO_get_int(*pc+1), CGO_get_int(*pc+2), CGO_get_int(*pc+3) };
   CShaderPrg * shaderPrg;

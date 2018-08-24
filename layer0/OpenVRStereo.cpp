@@ -298,6 +298,8 @@ void OpenVREyeStart(PyMOLGlobals * G, int eye)
   if(!OpenVRReady(G))
     return;
 
+  GL_DEBUG_FUN();
+
   CEye *E = I->Eye = eye ? &I->Right : &I->Left;
 
   glBindFramebuffer(GL_FRAMEBUFFER, E->FrameBufferID);
@@ -310,6 +312,8 @@ void OpenVREyeFinish(PyMOLGlobals * G)
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return;
+
+  GL_DEBUG_FUN();
 
   CEye *E = I->Eye;
   if(!E)
@@ -335,6 +339,8 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return;
+
+  GL_DEBUG_FUN();
 
   // send rendered pictures into the headset
   I->Compositor->Submit(vr::Eye_Left, &I->Left.Texture);
@@ -477,6 +483,8 @@ void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return;
+
+  GL_DEBUG_FUN();
 
   for (int i = HLeft; i <= HRight; ++i) {
     // FIXME calc matrix here???
