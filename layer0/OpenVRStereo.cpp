@@ -26,9 +26,10 @@ Z* -------------------------------------------------------------------
 
 #include "OpenVRStereo.h"
 #include "OpenVRStub.h"
+#include "OpenVRController.h"
 #include "PyMOLOptions.h"
 #include "Feedback.h"
-#include "OpenVRController.h"
+#include "Matrix.h"
 
 struct CEye {
   vr::EVREye Eye;
@@ -485,10 +486,14 @@ void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
     return;
 
   GL_DEBUG_FUN();
+  float viewProjMat[16];
+  identity44f(viewProjMat);
+  MatrixMultiplyC44f(OpenVRGetProjection(G, Front, Back), (float *)viewProjMat);
+  MatrixMultiplyC44f(OpenVRGetHeadToEye(G), (float *)viewProjMat);
+  MatrixMultiplyC44f(OpenVRGetHDMPose(G), (float *)viewProjMat);
 
   for (int i = HLeft; i <= HRight; ++i) {
-    // FIXME calc matrix here???
-    I->Hands[i].Draw(G, OpenVRGetProjection(G, Front, Back), OpenVRGetHeadToEye(G), OpenVRGetHDMPose(G));  
+    I->Hands[i].Draw(G, viewProjMat);  
   }
 }
 

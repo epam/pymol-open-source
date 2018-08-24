@@ -33,7 +33,7 @@ public:
  
   void Init(PyMOLGlobals * G) { InitAxes(G); InitAxesShader(G); }
   void Destroy() { DestroyAxes(); }
-  void Draw(PyMOLGlobals * G, float const *projMat, float const *headToEyeMat, float const *HDMPosMat);
+  void Draw(PyMOLGlobals * G, float const *viewProjMat);
   float *GetPose() {return m_pose;} // it's not safe =)
 
 private:

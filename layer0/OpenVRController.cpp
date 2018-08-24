@@ -133,19 +133,15 @@ void OpenVRController::DestroyAxes() {
   }		
 }
 
-void OpenVRController::Draw(PyMOLGlobals * G, float const *projMat, float const *headToEyeMat, float const *HDMPosMat) {
- 	if (!projMat || !headToEyeMat || !HDMPosMat)
+void OpenVRController::Draw(PyMOLGlobals * G/*, float const *projMat, float const *headToEyeMat, float const *HDMPosMat*/, float const *viewProjMat) {
+ 	if (!viewProjMat)
 		return;
 
   float matrix[16];
   identity44f(matrix);
-  MatrixMultiplyC44f(projMat, (float *)matrix);
-  MatrixMultiplyC44f(headToEyeMat, (float *)matrix);
-  MatrixMultiplyC44f(HDMPosMat, (float *)matrix);
-
+  MatrixMultiplyC44f(viewProjMat, (float *)matrix);
   MatrixMultiplyC44f(m_pose, (float *)matrix);
-  //MatrixTranslateC44f((float *)matrix, 0.0f, 0.0f, -20.0f);  
- 
+  
   CShaderPrg_Enable(m_pAxesShader);
   CShaderPrg_SetMat4fc(m_pAxesShader, "matrix", (GLfloat*)matrix);
   glBindVertexArray( m_unControllerVAO );
