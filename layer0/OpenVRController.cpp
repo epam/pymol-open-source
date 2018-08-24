@@ -92,33 +92,33 @@ void OpenVRController::InitAxes(PyMOLGlobals * G) {
 void OpenVRController::InitAxesShader(PyMOLGlobals * G) {
   // vertex shader
   const char *vs = 
-		"#version 410\n"
-		"uniform mat4 matrix;\n"
-		"layout(location = 0) in vec4 position;\n"
-		"layout(location = 1) in vec3 v3ColorIn;\n"
-		"out vec4 v4Color;\n"
-		"void main()\n"
-		"{\n"
-		"	v4Color.xyz = v3ColorIn; v4Color.a = 1.0;\n"
-		"	gl_Position = matrix * position;\n"
-		"}\n";
+    "#version 410\n"
+    "uniform mat4 matrix;\n"
+    "layout(location = 0) in vec4 position;\n"
+    "layout(location = 1) in vec3 v3ColorIn;\n"
+    "out vec4 v4Color;\n"
+    "void main()\n"
+    "{\n"
+    "	v4Color.xyz = v3ColorIn; v4Color.a = 1.0;\n"
+    "	gl_Position = matrix * position;\n"
+    "}\n";
 
   // fragment shader
   const char *ps = 
     "#version 410\n"
-		"in vec4 v4Color;\n"
-		"out vec4 outputColor;\n"
-		"void main()\n"
-		"{\n"
-		"   outputColor = v4Color;\n"
+    "in vec4 v4Color;\n"
+    "out vec4 outputColor;\n"
+    "void main()\n"
+    "{\n"
+    "   outputColor = v4Color;\n"
     " //  outputColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
-		"}\n";
+    "}\n";
   
   m_pAxesShader = CShaderPrg_New(G, "Controller", vs, ps);
 }
 
 void OpenVRController::DestroyAxes() {
-	if( m_unControllerVAO != 0 ) {
+  if( m_unControllerVAO != 0 ) {
     glDeleteVertexArrays( 1, &m_unControllerVAO );
     m_unControllerVAO = 0;
   }
@@ -128,14 +128,14 @@ void OpenVRController::DestroyAxes() {
     m_uiControllerVertcount = 0;
   }
   if ( m_unControllerTransformProgramID ) {
-		glDeleteProgram( m_unControllerTransformProgramID );
+    glDeleteProgram( m_unControllerTransformProgramID );
     m_unControllerTransformProgramID = 0;
-  }		
+  }
 }
 
 void OpenVRController::Draw(PyMOLGlobals * G/*, float const *projMat, float const *headToEyeMat, float const *HDMPosMat*/, float const *viewProjMat) {
- 	if (!viewProjMat)
-		return;
+   if (!viewProjMat)
+    return;
 
   float matrix[16];
   identity44f(matrix);

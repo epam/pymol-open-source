@@ -29,7 +29,7 @@ public:
     {}
 
   bool IsInitialized() {return m_uiControllerVertcount && m_glControllerVertBuffer && m_unControllerVAO &&
-	  m_pAxesShader;}
+    m_pAxesShader;}
  
   void Init(PyMOLGlobals * G) { InitAxes(G); InitAxesShader(G); }
   void Destroy() { DestroyAxes(); }
@@ -43,7 +43,7 @@ private:
   GLuint m_unControllerTransformProgramID;
   CShaderPrg *m_pAxesShader;
   GLfloat m_pose[16]; // model2world matrix 
-	
+  
   void InitAxes(PyMOLGlobals * G);
   void InitAxesShader(PyMOLGlobals * G);
   void DestroyAxes(); 	
