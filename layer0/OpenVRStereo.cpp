@@ -27,6 +27,7 @@ Z* -------------------------------------------------------------------
 #include "OpenVRStereo.h"
 #include "OpenVRStub.h"
 #include "OpenVRController.h"
+#include "OpenVRMenu.h"
 #include "PyMOLOptions.h"
 #include "Feedback.h"
 #include "Matrix.h"
@@ -72,6 +73,8 @@ struct COpenVR {
 
   bool ForcedFront;
  
+  OpenVRMenu Menu;
+
   // Such structures used to be calloc-ed, this replicates that
   void *operator new(size_t size) {
     void *mem = ::operator new(size);
@@ -148,11 +151,8 @@ static bool EyeInit(CEye * I, vr::EVREye eye, int scene_width, int scene_height)
 
   // check FBO status
   GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER);
-  if(status != GL_FRAMEBUFFER_COMPLETE)
-    return false;
-
   glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
-  return true;
+  return (status == GL_FRAMEBUFFER_COMPLETE);
 }
 
 static void EyeFree(CEye * I)
@@ -198,6 +198,8 @@ void OpenVRFree(PyMOLGlobals * G)
   if(I->System) {
     vr::stub::VR_Shutdown();
 
+    I->Menu.Free();
+
     EyeFree(&I->Right);
     EyeFree(&I->Left);
 
@@ -218,6 +220,8 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     I->System->GetRecommendedRenderTargetSize(&I->Width, &I->Height);
     EyeInit(&I->Left, vr::Eye_Left, I->Width, I->Height);
     EyeInit(&I->Right, vr::Eye_Right, I->Width, I->Height);
+
+    I->Menu.Init();
   }
 
   for (int i = HLeft; i <= HRight; ++i) {
@@ -303,7 +307,7 @@ void OpenVREyeStart(PyMOLGlobals * G, int eye)
 
   CEye *E = I->Eye = eye ? &I->Right : &I->Left;
 
-  glBindFramebuffer(GL_FRAMEBUFFER, E->FrameBufferID);
+  glBindFramebufferEXT(GL_FRAMEBUFFER, E->FrameBufferID);
   glViewport(0, 0, I->Width, I->Height);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -328,6 +332,7 @@ void OpenVREyeFinish(PyMOLGlobals * G)
   glBlitFramebufferEXT(0, 0, I->Width, I->Height, 0, 0, I->Width, I->Height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
   glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
+  glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
 
   if(G->Option->multisample)
     glEnable(0x809D);       /* GL_MULTISAMPLE_ARB */
@@ -364,6 +369,24 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, I->Left.ResolveBufferID);
   glBlitFramebufferEXT(dx, dy, dx + width, dy + height, 0, 0, scene_width, scene_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
+}
+
+void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  I->Menu.Start(width, height);
+}
+
+void OpenVRMenuBufferFinish(PyMOLGlobals * G)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  I->Menu.Finish();
 }
 
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)

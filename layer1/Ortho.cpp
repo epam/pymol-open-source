@@ -48,6 +48,7 @@ Z* -------------------------------------------------------------------
 #include "CGO.h"
 #include "MyPNG.h"
 #include "MacPyMOL.h"
+#include "OpenVRStereo.h"
 
 #ifndef true
 #define true 1
@@ -202,14 +203,15 @@ void OrthoDrawBuffer(PyMOLGlobals * G, GLenum mode)
   COrtho *I = G->Ortho;
   if((mode != I->ActiveGLBuffer) && G->HaveGUI && G->ValidContext) {
 #ifndef PURE_OPENGL_ES_2
-    if(glGetError()) {
+    GLenum e = GL_NO_ERROR;
+    if((e = glGetError()) != 0) {
       PRINTFB(G, FB_OpenGL, FB_Warnings)
-        " WARNING: BEFORE glDrawBuffer caused GL error\n" ENDFB(G);
+        " WARNING: BEFORE glDrawBuffer caused GL error 0x%04x\n", e ENDFB(G);
     }
     glDrawBuffer(mode);
-    if(glGetError()) {
+    if((e = glGetError()) != 0) {
       PRINTFB(G, FB_OpenGL, FB_Warnings)
-        " WARNING: glDrawBuffer caused GL error\n" ENDFB(G);
+        " WARNING: glDrawBuffer caused GL error 0x%04x\n", e ENDFB(G);
     }
 #endif
     I->ActiveGLBuffer = mode;
@@ -1496,6 +1498,7 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
   int skip_prompt = 0;
   int render = false;
   int internal_gui_mode = SettingGetGlobal_i(G, cSetting_internal_gui_mode);
+  bool offscreen_vr = false;
 
   int generate_shader_cgo = 0;
   I->RenderMode = render_mode;
@@ -1578,7 +1581,11 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
       if(!SceneRenderCached(G))
         render = true;
 
-    if(render_mode < 2) {
+    if(render_mode < 0) {
+      times = 2;
+      double_pump = false;
+      offscreen_vr = true;
+    } else if(render_mode < 2) {
       if(SceneMustDrawBoth(G)) {
         OrthoDrawBuffer(G, GL_BACK_LEFT);
         SceneGLClear(G, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -1616,8 +1623,12 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 
       switch (times) {
       case 1:
-        OrthoDrawBuffer(G, GL_BACK_LEFT);
-
+        if(offscreen_vr) {
+          OrthoDrawBuffer(G, GL_NONE);
+          OpenVRMenuBufferStart(G, I->Width, I->Height);
+          glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        } else
+          OrthoDrawBuffer(G, GL_BACK_LEFT);
         break;
       case 0:
         if(double_pump) {
@@ -1663,6 +1674,9 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 	  } else {
 	    OrthoRenderCGO(G);
 	    OrthoPopMatrix(G);
+	    if (offscreen_vr && times) {
+	      OpenVRMenuBufferFinish(G);
+	    }
 	    continue;
 	  }
 	}
@@ -1886,6 +1900,10 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 
       OrthoPopMatrix(G);
 
+      if (offscreen_vr && times) {
+        OpenVRMenuBufferFinish(G);
+      }
+
       if(Feedback(G, FB_OpenGL, FB_Debugging))
         PyMOLCheckOpenGLErr("OrthoDoDraw final checkpoint");
 
@@ -1914,7 +1932,11 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
       while(origtimes--){
 	switch (origtimes){
 	case 1:
-	  OrthoDrawBuffer(G, GL_BACK_LEFT);
+	  if(offscreen_vr) {
+	    OrthoDrawBuffer(G, GL_NONE);
+	    OpenVRMenuBufferStart(G, I->Width, I->Height);
+	  } else
+	    OrthoDrawBuffer(G, GL_BACK_LEFT);
 	  break;
 	case 0:
 	  if(double_pump) {
@@ -1926,6 +1948,9 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 	OrthoPushMatrix(G);
 	OrthoRenderCGO(G);
 	OrthoPopMatrix(G);
+        if (offscreen_vr && origtimes) {
+          OpenVRMenuBufferFinish(G);
+        }
       }
     }
   }

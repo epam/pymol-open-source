@@ -11928,6 +11928,9 @@ void ExecutiveDrawNow(PyMOLGlobals * G)
 	  glViewport(0, 0, width, height);
 	}
 	break;
+      case cStereo_openvr:
+        OrthoDoDraw(G, -1);
+        break;
       default:
 	OrthoDoDraw(G, 0);
 	break;
