@@ -1,12 +1,183 @@
 #include "OpenVRMenu.h"
+#include "Matrix.h"
+
+OpenVRMenu::OpenVRMenu()
+  : m_width(640)
+  , m_height(480)
+  , m_sceneColor(0.2f)
+  , m_sceneAlpha(0.75f)
+  , m_valid(false)
+  , m_visible(false)
+  , m_frameBufferID(0)
+  , m_textureID(0)
+  , m_vertexArrayID(0)
+  , m_vertexBufferID(0)
+  , m_vertexCount(0)
+  , m_programID(0)
+  , m_matrixUniform(-1)
+{
+}
 
 void OpenVRMenu::Init()
 {
+  InitGeometry();
+  m_valid = InitShaders();
+
+  // TODO: show when button is pressed
+  m_visible = m_valid;
 }
 
 void OpenVRMenu::Free()
 {
   FreeBuffers();
+  FreeShaders();
+  FreeGeometry();
+}
+
+void OpenVRMenu::InitGeometry()
+{
+  static struct Vertex_t {
+    Vector3f position;
+    Vector3f texcoord;
+  } vertices[] = {
+    {{-1.0f, +1.0f}, {0.0f, 1.0f}},
+    {{+1.0f, +1.0f}, {1.0f, 1.0f}},
+    {{-1.0f, -1.0f}, {0.0f, 0.0f}},
+    {{+1.0f, -1.0f}, {1.0f, 0.0f}},
+  };
+
+  m_vertexCount = sizeof(vertices) / sizeof(vertices[0]);
+
+  // Create and bind a VAO to hold state for this model
+  glGenVertexArrays(1, &m_vertexArrayID);
+  glBindVertexArray(m_vertexArrayID);
+
+  // Populate a vertex buffer
+  glGenBuffers(1, &m_vertexBufferID);
+  glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferID);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  // Identify the components in the vertex buffer
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex_t), (void *)offsetof(Vertex_t, position));
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex_t), (void *)offsetof(Vertex_t, texcoord));
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+}
+
+void OpenVRMenu::FreeGeometry()
+{
+  if (m_vertexBufferID) {
+    glDeleteVertexArrays(1, &m_vertexArrayID);
+    glDeleteBuffers(1, &m_vertexBufferID);
+    m_vertexArrayID = 0;
+    m_vertexBufferID = 0;
+  }
+}
+
+static GLuint CompileShader(GLenum shaderType, char const* shader)
+{
+  GLuint shaderID = glCreateShader(shaderType);
+  glShaderSource(shaderID, 1, &shader, NULL);
+  glCompileShader(shaderID);
+
+  GLint success = GL_FALSE;
+  glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    int infoLogLength = 0;
+    glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+    if (infoLogLength > 0) {
+      char *infoLog = new char[infoLogLength];
+      glGetShaderInfoLog(shaderID, infoLogLength, 0, infoLog);
+      printf("GLSL shader compilation failed, log follows:\n"
+        "=============================================================================\n"
+        "%s"
+        "=============================================================================\n", infoLog);
+      delete[] infoLog;
+    }
+    glDeleteShader(shaderID);
+    shaderID = 0;
+  }
+  return shaderID;
+}
+
+static GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader)
+{
+  GLuint vertexShaderID = CompileShader(GL_VERTEX_SHADER, vertexShader);
+  GLuint fragmentShaderID = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+  GLuint programID = 0;
+  if (vertexShaderID && fragmentShaderID) {
+    programID = glCreateProgram();
+    glAttachShader(programID, vertexShaderID);
+    glAttachShader(programID, fragmentShaderID);
+    glLinkProgram(programID);
+
+    GLint success = GL_FALSE;
+    glGetProgramiv(programID, GL_LINK_STATUS, &success);
+    if (!success) {
+      int infoLogLength = 0;
+      glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
+      if (infoLogLength > 0) {
+        char *infoLog = new char[infoLogLength];
+        glGetProgramInfoLog(programID, infoLogLength, 0, infoLog);
+        printf("GLSL program linking failed, log follows:\n"
+          "=============================================================================\n"
+          "%s"
+          "=============================================================================\n", infoLog);
+        delete[] infoLog;
+      }
+
+      glDeleteProgram(programID);
+      programID = 0;
+    }
+  }
+
+  if (vertexShaderID) {
+    glDeleteShader(vertexShaderID);
+  }
+
+  if (fragmentShaderID) {
+    glDeleteShader(fragmentShaderID);
+  }
+
+  if (programID) {
+    glUseProgram(programID);
+    glUseProgram(0);
+  }
+
+  return programID;
+}
+
+
+bool OpenVRMenu::InitShaders()
+{
+  const char* vs =
+    "uniform mat4 matrix;\n\n"
+    "attribute vec2 position;\n"
+    "attribute vec2 texcoords_in;\n\n"
+    "varying vec2 texcoords;\n\n"
+    "void main() {\n"
+      "texcoords = texcoords_in;\n"
+      "gl_Position = matrix * vec4(position, 0.0, 1.0);\n"
+    "}\n";
+  const char* fs =
+    "uniform sampler2D texture;\n"
+    "varying vec2 texcoords;\n"
+    "void main() {\n"
+      "gl_FragColor = texture2D(texture, texcoords);\n"
+    "}\n";
+
+  m_programID = CompileProgram(vs, fs);
+  m_matrixUniform = m_programID ? glGetUniformLocation(m_programID, "matrix") : -1;
+  return m_programID && m_matrixUniform >= 0;
+}
+
+void OpenVRMenu::FreeShaders()
+{
+  glDeleteProgram(m_programID);
 }
 
 void OpenVRMenu::InitBuffers(unsigned width, unsigned height)
@@ -40,14 +211,58 @@ void OpenVRMenu::FreeBuffers()
   glDeleteFramebuffers(1, &m_frameBufferID);
 }
 
-void OpenVRMenu::Start(unsigned width, unsigned height)
+void OpenVRMenu::Start(unsigned width, unsigned height, bool clear)
 {
   if (m_width != width || m_height != height)
     InitBuffers(width, height);
+
   glBindFramebufferEXT(GL_FRAMEBUFFER, m_frameBufferID);
+
+  if (clear) {
+    glClearColor(m_sceneColor, m_sceneColor, m_sceneColor, m_sceneAlpha);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  }
 }
 
 void OpenVRMenu::Finish()
 {
   glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
+}
+
+void OpenVRMenu::Draw(float* matrix)
+{
+  if (!m_valid || !m_visible)
+    return;
+
+  ///////////////////////////////////////////
+  // TODO: use matrix stack
+  static float z = 2.0f;
+  static float fovTan = 1.0f;
+  static float x = 0.0f;
+  static float y = 1.0f;
+  float w = z * fovTan;
+  float h = w * m_height / m_width;
+
+  float menuMatrix[16] = {
+       w, 0.0f, 0.0f, 0.0f,
+    0.0f,    h, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+       x,    y,   -z, 1.0f,
+  };
+  MatrixMultiplyC44f(menuMatrix, matrix);
+  ///////////////////////////////////////////
+
+  glDisable(GL_DEPTH_TEST);
+  glUseProgram(m_programID);
+  glUniformMatrix4fv(m_matrixUniform, 1, GL_FALSE, matrix);
+  glBindVertexArray(m_vertexArrayID);
+  glBindTexture(GL_TEXTURE_2D, m_textureID);
+
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, m_vertexCount);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindVertexArray(0);
+  glUseProgram(0);
+  glEnable(GL_DEPTH_TEST);
 }

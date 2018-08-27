@@ -1625,8 +1625,7 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
       case 1:
         if(offscreen_vr) {
           OrthoDrawBuffer(G, GL_NONE);
-          OpenVRMenuBufferStart(G, I->Width, I->Height);
-          glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+          OpenVRMenuBufferStart(G, I->Width, I->Height, true);
         } else
           OrthoDrawBuffer(G, GL_BACK_LEFT);
         break;

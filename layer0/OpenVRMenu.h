@@ -25,24 +25,46 @@ Z* -------------------------------------------------------------------
 
 class OpenVRMenu {
 public:
-  OpenVRMenu() {}
+  OpenVRMenu();
 
   void Init();
   void Free();
 
-  void Start(unsigned width, unsigned height);
+  void Start(unsigned width, unsigned height, bool clear);
   void Finish();
 
+  void Draw(float* matrix);
+
 private:
+  void InitGeometry();
+  void FreeGeometry();
+
+  bool InitShaders();
+  void FreeShaders();
+
   void InitBuffers(unsigned width, unsigned height);
   void FreeBuffers();
 
 private:
   unsigned m_width;
   unsigned m_height;
+  float m_sceneColor;
+  float m_sceneAlpha;
+  bool m_valid;
+  bool m_visible;
 
+  // offscreen framebuffer
   GLuint m_frameBufferID;
   GLuint m_textureID;
+
+  // geometry
+  GLuint m_vertexArrayID;
+  GLuint m_vertexBufferID;
+  GLuint m_vertexCount;
+
+  // shader
+  GLuint m_programID;
+  GLint m_matrixUniform;
 };
 
 #endif /* _H_OpenVRMenu */

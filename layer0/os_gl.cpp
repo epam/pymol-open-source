@@ -91,14 +91,17 @@ void PyMOLDrawPixels(GLsizei width,
 
 }
 
-int PyMOLCheckOpenGLErr(const char *pos)
+int PyMOLCheckOpenGLErr(const char *pos, const char *file /* = 0 */, int line /* = 0 */)
 {
   int flag = 0;
   GLenum glerr = glGetError();
   while(glerr != GL_NO_ERROR) {
-    printf("OpenGL-Error: Where? %s: glerr=%d\n", pos, glerr);
+    printf("OpenGL Error 0x%04x: %s\n", glerr, pos);
     glerr = glGetError();
     flag = 1;
+  }
+  if (flag && file) {
+    printf("  in %s:%i\n", file, line);
   }
   return flag;
 }

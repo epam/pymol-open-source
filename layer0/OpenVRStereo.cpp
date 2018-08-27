@@ -371,13 +371,13 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
 }
 
-void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height)
+void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear /* = false */)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return;
 
-  I->Menu.Start(width, height);
+  I->Menu.Start(width, height, clear);
 }
 
 void OpenVRMenuBufferFinish(PyMOLGlobals * G)
@@ -387,6 +387,22 @@ void OpenVRMenuBufferFinish(PyMOLGlobals * G)
     return;
 
   I->Menu.Finish();
+}
+
+void OpenVRMenuDraw(PyMOLGlobals * G, float Front, float Back)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  // TODO: use matrix stack
+  float matrix[16];
+  identity44f(matrix);
+  MatrixMultiplyC44f(OpenVRGetProjection(G, Front, Back), matrix);
+  MatrixMultiplyC44f(OpenVRGetHeadToEye(G), matrix);
+  MatrixMultiplyC44f(OpenVRGetHDMPose(G), matrix);
+
+  I->Menu.Draw(matrix);
 }
 
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)

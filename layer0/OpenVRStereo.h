@@ -31,8 +31,9 @@ void OpenVREyeStart(PyMOLGlobals * G, int eye);
 void OpenVREyeFinish(PyMOLGlobals * G);
 void OpenVRFrameFinish(PyMOLGlobals * G, unsigned width, unsigned height);
 
-void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height);
+void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear = false);
 void OpenVRMenuBufferFinish(PyMOLGlobals * G);
+void OpenVRMenuDraw(PyMOLGlobals * G, float Front, float Back);
 
 float* OpenVRGetHDMPose(PyMOLGlobals * G);
 float* OpenVRGetControllerPose(PyMOLGlobals * G);

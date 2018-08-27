@@ -59,8 +59,9 @@ void PyMOLDrawPixels(GLsizei width,
 #define P_GLUT_SINGLE_MIDDLE 101
 #define P_GLUT_SINGLE_RIGHT 102
 
-int PyMOLCheckOpenGLErr(const char *pos);
-
+#ifdef __cplusplus
+int PyMOLCheckOpenGLErr(const char *pos, const char *file = 0, int line = 0);
+#endif
 
 /* determine whether or not we have a real GLUT */
 
@@ -324,6 +325,9 @@ void p_glutMainLoop(void);
 
 #define GL_DEBUG_POP() \
   GLEW_KHR_debug ? glPopDebugGroup() : (void)0
+
+#define GL_CHECK(call) \
+  { call; PyMOLCheckOpenGLErr(#call, __FILE__, __LINE__); }
 
 #ifdef __cplusplus
 

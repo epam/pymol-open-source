@@ -8755,6 +8755,7 @@ void DoHandedStereo(PyMOLGlobals * G, CScene *I, void (*prepareViewPortForStereo
 
   glPopMatrix();        /* 0 */
   
+  OpenVRMenuDraw(G, I->FrontSafe, I->BackSafe);
   OpenVRDrawControllers(G, I->FrontSafe, I->BackSafe);
 
   if (stereo_mode == cStereo_openvr) {
