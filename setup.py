@@ -155,13 +155,17 @@ class build_py_pymol(build_py):
     def make_inno_setup_script(self):
         import uuid
         app_name = 'PyMOL'
-        app_version = get_pymol_version()
+        app_version = short_version = get_pymol_version()
+        parsed_version = re.match(r'^(?P<main>\d+(\.\d+)*)\+.*\.(?P<build>\d+)$', app_version, re.I)
+        if parsed_version:
+            short_version = '%s+VR.%02i' % (parsed_version.group('main'), int(parsed_version.group('build')))
         app_folder = app_name + '-' + app_version
         app_guid = str(uuid.uuid3(uuid.NAMESPACE_URL, app_name + ' ' + app_version)).upper()
         with open(os.path.join('build', app_folder + '.iss'), 'w') as f:
             f.write('''\
 #define MyAppName "%(name)s"
 #define MyAppVersion "%(version)s"
+#define MyAppShortVersion "%(short_version)s"
 #define MyAppPublisher "Open-Source"
 #define MyAppURL "https://github.com/schrodinger/pymol-open-source"
 #define MyAppExeName "pymol.bat"
@@ -172,16 +176,16 @@ class build_py_pymol(build_py):
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{%(guid)s}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
+AppVersion={#MyAppShortVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 SetupIconFile=pymol.ico
-UninstallDisplayIcon={app}\pymol.ico
-DefaultDirName={pf}\\{#MyAppName} {#MyAppVersion}
-DefaultGroupName={#MyAppName} {#MyAppVersion}
+UninstallDisplayIcon={app}\\pymol.ico
+DefaultDirName={pf}\\{#MyAppName} {#MyAppShortVersion}
+DefaultGroupName={#MyAppName} {#MyAppShortVersion}
 AllowNoIcons=yes
 LicenseFile={#MyAppName}-{#MyAppVersion}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\LICENSE
 OutputDir=.
@@ -199,7 +203,7 @@ Source: "{#MyAppName}-{#MyAppVersion}\\*"; DestDir: "{app}"; Flags: ignoreversio
 Source: "pymol.ico"; DestDir: "{app}"; Flags: ignoreversion 
 
 [Icons]
-Name: "{group}\\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\\%(pythonsubdir)s\\Scripts\\{#MyAppExeName}"; WorkingDir: "{app}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\"; IconFilename: "{app}\pymol.ico"
+Name: "{group}\\{#MyAppName} {#MyAppShortVersion}"; Filename: "{app}\\%(pythonsubdir)s\\Scripts\\{#MyAppExeName}"; WorkingDir: "{app}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\"; IconFilename: "{app}\\pymol.ico"
 Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 [Run]
@@ -207,6 +211,7 @@ Filename: "{app}\\%(pythonsubdir)s\\Scripts\\{#MyAppExeName}"; WorkingDir: "{app
 ''' % {
             'name': app_name,
             'version': app_version,
+            'short_version': short_version,
             'guid': app_guid,
             'pythonsubdir': 'python-2.7.13.amd64', # for WinPython-64bit-2.7.13.1Zero distribution
         })
