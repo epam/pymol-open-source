@@ -32,7 +32,7 @@ public:
  
   void Init(PyMOLGlobals * G) { InitAxes(G); InitAxesShader(G); }
   void Destroy() { DestroyAxes(); }
-  void Draw(PyMOLGlobals * G, float const *viewProjMat);
+  void Draw(PyMOLGlobals * G);
   float *GetPose() {return m_pose;} // it's not safe =)
 
 private:

@@ -92,26 +92,19 @@ void OpenVRController::InitAxes(PyMOLGlobals * G) {
 void OpenVRController::InitAxesShader(PyMOLGlobals * G) {
   // vertex shader
   const char *vs = 
-    "#version 410\n"
-    "uniform mat4 matrix;\n"
-    "layout(location = 0) in vec4 position;\n"
-    "layout(location = 1) in vec3 v3ColorIn;\n"
-    "out vec4 v4Color;\n"
-    "void main()\n"
-    "{\n"
-    "	v4Color.xyz = v3ColorIn; v4Color.a = 1.0;\n"
-    "	gl_Position = matrix * position;\n"
+    "attribute vec4 position;\n"
+    "attribute vec3 color_in;\n"
+    "varying vec3 color;\n"
+    "void main() {\n"
+      "color = color_in;\n"
+      "gl_Position = gl_ModelViewProjectionMatrix * position;\n"
     "}\n";
 
   // fragment shader
   const char *ps = 
-    "#version 410\n"
-    "in vec4 v4Color;\n"
-    "out vec4 outputColor;\n"
-    "void main()\n"
-    "{\n"
-    "   outputColor = v4Color;\n"
-    " //  outputColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+    "varying vec3 color;\n"
+    "void main() {\n"
+      "gl_FragColor = vec4(color, 1.0);\n"
     "}\n";
   
   m_pAxesShader = CShaderPrg_New(G, "Controller", vs, ps);
@@ -133,21 +126,17 @@ void OpenVRController::DestroyAxes() {
   }
 }
 
-void OpenVRController::Draw(PyMOLGlobals * G/*, float const *projMat, float const *headToEyeMat, float const *HDMPosMat*/, float const *viewProjMat) {
-   if (!viewProjMat)
-    return;
+void OpenVRController::Draw(PyMOLGlobals * G) {
+  glPushMatrix();
+  glMultMatrixf(m_pose);
 
-  float matrix[16];
-  identity44f(matrix);
-  MatrixMultiplyC44f(viewProjMat, (float *)matrix);
-  MatrixMultiplyC44f(m_pose, (float *)matrix);
-  
   CShaderPrg_Enable(m_pAxesShader);
-  CShaderPrg_SetMat4fc(m_pAxesShader, "matrix", (GLfloat*)matrix);
   glBindVertexArray( m_unControllerVAO );
 
   glDrawArrays( GL_LINES, 0, m_uiControllerVertcount );
 
   glBindVertexArray( 0 );
   CShaderPrg_Disable(m_pAxesShader);  
+
+  glPopMatrix();
 }

@@ -1,11 +1,12 @@
 #include "OpenVRMenu.h"
-#include "Matrix.h"
 
 OpenVRMenu::OpenVRMenu()
   : m_width(640)
   , m_height(480)
   , m_sceneColor(0.2f)
   , m_sceneAlpha(0.75f)
+  , m_distance(2.0f)
+  , m_fovTangent(1.0f)
   , m_valid(false)
   , m_visible(false)
   , m_frameBufferID(0)
@@ -14,7 +15,6 @@ OpenVRMenu::OpenVRMenu()
   , m_vertexBufferID(0)
   , m_vertexCount(0)
   , m_programID(0)
-  , m_matrixUniform(-1)
 {
 }
 
@@ -155,13 +155,12 @@ static GLuint CompileProgram(char const* vertexShader,  char const* fragmentShad
 bool OpenVRMenu::InitShaders()
 {
   const char* vs =
-    "uniform mat4 matrix;\n\n"
     "attribute vec2 position;\n"
     "attribute vec2 texcoords_in;\n\n"
     "varying vec2 texcoords;\n\n"
     "void main() {\n"
       "texcoords = texcoords_in;\n"
-      "gl_Position = matrix * vec4(position, 0.0, 1.0);\n"
+      "gl_Position = gl_ModelViewProjectionMatrix * vec4(position, 0.0, 1.0);\n"
     "}\n";
   const char* fs =
     "uniform sampler2D texture;\n"
@@ -171,8 +170,7 @@ bool OpenVRMenu::InitShaders()
     "}\n";
 
   m_programID = CompileProgram(vs, fs);
-  m_matrixUniform = m_programID ? glGetUniformLocation(m_programID, "matrix") : -1;
-  return m_programID && m_matrixUniform >= 0;
+  return m_programID;
 }
 
 void OpenVRMenu::FreeShaders()
@@ -230,32 +228,21 @@ void OpenVRMenu::Finish()
   glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
 }
 
-void OpenVRMenu::Draw(float* matrix)
+void OpenVRMenu::Draw()
 {
   if (!m_valid || !m_visible)
     return;
 
-  ///////////////////////////////////////////
-  // TODO: use matrix stack
-  static float z = 2.0f;
-  static float fovTan = 1.0f;
-  static float x = 0.0f;
-  static float y = 1.0f;
-  float w = z * fovTan;
-  float h = w * m_height / m_width;
+  // calculate extents of the panel
+  float worldWidth = m_distance * m_fovTangent;
+  float worldHeight = worldWidth * m_height / m_width;
 
-  float menuMatrix[16] = {
-       w, 0.0f, 0.0f, 0.0f,
-    0.0f,    h, 0.0f, 0.0f,
-    0.0f, 0.0f, 1.0f, 0.0f,
-       x,    y,   -z, 1.0f,
-  };
-  MatrixMultiplyC44f(menuMatrix, matrix);
-  ///////////////////////////////////////////
+  glPushMatrix();
+  glTranslatef(0.0f, 1.0f, -m_distance);
+  glScalef(worldWidth, worldHeight, 1.0f);
 
   glDisable(GL_DEPTH_TEST);
   glUseProgram(m_programID);
-  glUniformMatrix4fv(m_matrixUniform, 1, GL_FALSE, matrix);
   glBindVertexArray(m_vertexArrayID);
   glBindTexture(GL_TEXTURE_2D, m_textureID);
 
@@ -265,4 +252,6 @@ void OpenVRMenu::Draw(float* matrix)
   glBindVertexArray(0);
   glUseProgram(0);
   glEnable(GL_DEPTH_TEST);
+
+  glPopMatrix();
 }

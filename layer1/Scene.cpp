@@ -8754,11 +8754,9 @@ void DoHandedStereo(PyMOLGlobals * G, CScene *I, void (*prepareViewPortForStereo
   DoRendering(G, I, offscreen, grid, times, curState, normal, context, width_scale, 0, onlySelections, excludeSelections);
 
   glPopMatrix();        /* 0 */
-  
-  OpenVRMenuDraw(G, I->FrontSafe, I->BackSafe);
-  OpenVRDrawControllers(G, I->FrontSafe, I->BackSafe);
 
   if (stereo_mode == cStereo_openvr) {
+    OpenVRDraw(G);
     OpenVREyeFinish(G);
   }
 }
@@ -9830,11 +9828,10 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
     /* stereo OpenVR */
 
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(OpenVRGetProjection(G, I->FrontSafe, I->BackSafe));
-   
+    OpenVRLoadProjectionMatrix(G, I->FrontSafe, I->BackSafe);
+
     glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(OpenVRGetHeadToEye(G));
-    glMultMatrixf(OpenVRGetHDMPose(G));
+    OpenVRLoadWorld2EyeMatrix(G);
 
   } else {
 

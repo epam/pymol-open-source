@@ -33,15 +33,17 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned width, unsigned height);
 
 void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear = false);
 void OpenVRMenuBufferFinish(PyMOLGlobals * G);
-void OpenVRMenuDraw(PyMOLGlobals * G, float Front, float Back);
 
-float* OpenVRGetHDMPose(PyMOLGlobals * G);
-float* OpenVRGetControllerPose(PyMOLGlobals * G);
+float* OpenVRGetWorldToHead(PyMOLGlobals * G);
 float* OpenVRGetHeadToEye(PyMOLGlobals * G);
+float* OpenVRGetControllerPose(PyMOLGlobals * G);
 float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane);
+
+void OpenVRLoadProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane);
+void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G);
 
 void OpenVRHandleInput(PyMOLGlobals * G);
 
-void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back);
+void OpenVRDraw(PyMOLGlobals * G);
 
 #endif /* _H_OpenVRStereo */

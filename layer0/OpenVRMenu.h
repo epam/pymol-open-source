@@ -32,7 +32,7 @@ public:
   void Start(unsigned width, unsigned height, bool clear);
   void Finish();
 
-  void Draw(float* matrix);
+  void Draw();
 
 private:
   void InitGeometry();
@@ -49,6 +49,8 @@ private:
   unsigned m_height;
   float m_sceneColor;
   float m_sceneAlpha;
+  float m_distance;
+  float m_fovTangent;
   bool m_valid;
   bool m_visible;
 
@@ -63,7 +65,6 @@ private:
 
   // shader
   GLuint m_programID;
-  GLint m_matrixUniform;
 };
 
 #endif /* _H_OpenVRMenu */

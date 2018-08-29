@@ -59,7 +59,7 @@ struct COpenVR {
   vr::IVRSystem* System;
   vr::IVRCompositor* Compositor;
   vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount]; // todo remove from globals?
-  GLfloat HmdPose[16];
+  GLfloat WorldToHeadMatrix[16];
 
   unsigned Width;
   unsigned Height;
@@ -388,22 +388,6 @@ void OpenVRMenuBufferFinish(PyMOLGlobals * G)
   I->Menu.Finish();
 }
 
-void OpenVRMenuDraw(PyMOLGlobals * G, float Front, float Back)
-{
-  COpenVR *I = G->OpenVR;
-  if(!OpenVRReady(G))
-    return;
-
-  // TODO: use matrix stack
-  float matrix[16];
-  identity44f(matrix);
-  MatrixMultiplyC44f(OpenVRGetProjection(G, Front, Back), matrix);
-  MatrixMultiplyC44f(OpenVRGetHeadToEye(G), matrix);
-  MatrixMultiplyC44f(OpenVRGetHDMPose(G), matrix);
-
-  I->Menu.Draw(matrix);
-}
-
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
@@ -417,12 +401,12 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
   return E->HeadToEyeMatrix;
 }
 
-float* OpenVRGetHDMPose(PyMOLGlobals * G) {
+float* OpenVRGetWorldToHead(PyMOLGlobals * G) {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return NULL;
 
-  return I->HmdPose;
+  return I->WorldToHeadMatrix;
 }
 
 float* OpenVRGetControllerPose(PyMOLGlobals * G, EHand handIdx) {
@@ -479,6 +463,17 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
   return E->ProjectionMatrix;
 }
 
+void OpenVRLoadProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane)
+{
+  glLoadMatrixf(OpenVRGetProjection(G, near_plane, far_plane));
+}
+
+void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G)
+{
+  glLoadMatrixf(OpenVRGetHeadToEye(G));
+  glMultMatrixf(OpenVRGetWorldToHead(G));
+}
+
 void OpenVRHandleInput(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
@@ -499,7 +494,7 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
       vr::ETrackedDeviceClass device = I->System->GetTrackedDeviceClass(nDevice);
       switch (device) {
         case vr::TrackedDeviceClass_HMD:
-          FastInverseAffineSteamVRMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->HmdPose);
+          FastInverseAffineSteamVRMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->WorldToHeadMatrix);
           break;
         case vr::TrackedDeviceClass_Controller:
          {
@@ -517,22 +512,26 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
   }
 }
 
-void OpenVRDrawControllers(PyMOLGlobals * G, float Front, float Back)
+void OpenVRDraw(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return;
 
   GL_DEBUG_FUN();
-  float viewProjMat[16];
-  identity44f(viewProjMat);
-  MatrixMultiplyC44f(OpenVRGetProjection(G, Front, Back), (float *)viewProjMat);
-  MatrixMultiplyC44f(OpenVRGetHeadToEye(G), (float *)viewProjMat);
-  MatrixMultiplyC44f(OpenVRGetHDMPose(G), (float *)viewProjMat);
 
+  glPushMatrix();
+  OpenVRLoadWorld2EyeMatrix(G);
+
+  // render menu if present
+  I->Menu.Draw();
+
+  // render controllers
   for (int i = HLeft; i <= HRight; ++i) {
-    I->Hands[i].Draw(G, viewProjMat);  
+    I->Hands[i].Draw(G);  
   }
+
+  glPopMatrix();
 }
 
 // Fast affine inverse matrix, row major to column major, whew...
@@ -570,5 +569,3 @@ static void ConvertSteamVRMatrixToGLMat(float const* srcMat34, float *dstMat44)
   dst[2][0] = src[0][2]; dst[2][1] = src[1][2]; dst[2][2] = src[2][2]; dst[2][3] = 0.0f;
   dst[3][0] = src[0][3]; dst[3][1] = src[1][3]; dst[3][2] = src[2][3]; dst[3][3] = 1.0f;
 }
-
-
