@@ -1,7 +1,6 @@
 #ifndef _H_OpenVRStubDevice
 #define _H_OpenVRStubDevice
 
-#define nullptr 0
 #include "openvr.h"
 
 namespace vr {

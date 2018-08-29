@@ -439,6 +439,7 @@ if sys.platform=='win32':
     def_macros += [
         ("WIN32",None),
         ("_PYMOL_FREETYPE",None),
+        ("nullptr","0"),
     ]
     data_files += [("Lib/site-packages/pymol", get_sources(["win32/dll"], (".dll",".pdb")))]
     ext_link_args=['/NODEFAULTLIB:"LIBC"', "/DEBUG"]

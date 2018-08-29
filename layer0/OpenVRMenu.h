@@ -16,7 +16,6 @@ Z* -------------------------------------------------------------------
 #ifndef _H_OpenVRMenu
 #define _H_OpenVRMenu
 
-#define nullptr 0
 #include "openvr.h"
 
 #include "os_gl.h"

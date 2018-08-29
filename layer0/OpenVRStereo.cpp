@@ -21,7 +21,6 @@ Z* -------------------------------------------------------------------
 #include <string>
 #include <vector>
 
-#define nullptr 0
 #include "openvr.h"
 
 #include "OpenVRStereo.h"

@@ -16,7 +16,6 @@ Z* -------------------------------------------------------------------
 #ifndef _H_OpenVRController
 #define _H_OpenVRController
 
-#define nullptr 0
 #include "openvr.h"
 
 #include "PyMOLGlobals.h"

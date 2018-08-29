@@ -1,7 +1,6 @@
 #ifndef _H_OpenVRStub
 #define _H_OpenVRStub
 
-#define nullptr 0
 #include "openvr.h"
 
 
