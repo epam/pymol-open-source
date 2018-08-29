@@ -9819,41 +9819,22 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
   /* start afresh, looking in the negative Z direction (0,0,-1) from (0,0,0) */
   glLoadIdentity();
 
+  /* *** PER-MODE VIEW MATRIX *** */
+
   if(!mode) {
 
     /* mono */
 
-    /* *** COMMON CODE BELOW *** */
-
-    /* move the camera to the location we are looking at */
-    glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
-
-    /* rotate about the origin (the the center of rotation) */
-    glMultMatrixf(I->RotMatrix);
-
-    /* move the origin to the center of rotation */
-    glTranslatef(-I->Origin[0], -I->Origin[1], -I->Origin[2]);
-
   } else if(stereo_mode == cStereo_openvr && OpenVRReady(G)) {
 
     /* stereo OpenVR */
+
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(OpenVRGetProjection(G, I->FrontSafe, I->BackSafe));
    
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(OpenVRGetHeadToEye(G));
     glMultMatrixf(OpenVRGetHDMPose(G));
-
-    /* *** COMMON CODE BELOW *** */
-
-    /* move the camera to the location we are looking at */
-    glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
-
-    /* rotate about the origin (the the center of rotation) */
-    glMultMatrixf(I->RotMatrix);
-
-    /* move the origin to the center of rotation */
-    glTranslatef(-I->Origin[0], -I->Origin[1], -I->Origin[2]);
 
   } else {
 
@@ -9879,17 +9860,18 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
     glRotatef(stAng, 0.0, 1.0, 0.0);
     glTranslatef(stShift, 0.0, 0.0);
 
-    /* *** COMMON CODE BELOW *** */
-
-    /* move the camera to the location we are looking at */
-    glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
-
-    /* rotate about the origin (the center of rotation) */
-    glMultMatrixf(I->RotMatrix);
-
-    /* move the origin to the center of rotation */
-    glTranslatef(-I->Origin[0], -I->Origin[1], -I->Origin[2]);
   }
+
+  /* *** COMMON MODEL MATRIX *** */
+
+  /* move the camera to the location we are looking at */
+  glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
+
+  /* rotate about the origin (the the center of rotation) */
+  glMultMatrixf(I->RotMatrix);
+
+  /* move the origin to the center of rotation */
+  glTranslatef(-I->Origin[0], -I->Origin[1], -I->Origin[2]);
 }
 
 
