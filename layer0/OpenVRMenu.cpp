@@ -16,15 +16,14 @@ OpenVRMenu::OpenVRMenu()
   , m_vertexCount(0)
   , m_programID(0)
 {
+  memset(m_matrix, 0, sizeof(m_matrix));
+  m_matrix[0] = m_matrix[5] = m_matrix[10] = m_matrix[15] = 1.0f;
 }
 
 void OpenVRMenu::Init()
 {
   InitGeometry();
   m_valid = InitShaders();
-
-  // TODO: show when button is pressed
-  m_visible = m_valid;
 }
 
 void OpenVRMenu::Free()
@@ -228,6 +227,22 @@ void OpenVRMenu::Finish()
   glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
 }
 
+void OpenVRMenu::Show(GLfloat const* headMatrix)
+{
+  memcpy(m_matrix, headMatrix, sizeof(m_matrix));
+  m_visible = true;
+}
+
+void OpenVRMenu::Hide()
+{
+  m_visible = false;
+}
+
+bool OpenVRMenu::IsVisible() const
+{
+  return m_visible;
+}
+
 void OpenVRMenu::Draw()
 {
   if (!m_valid || !m_visible)
@@ -238,7 +253,8 @@ void OpenVRMenu::Draw()
   float worldHeight = worldWidth * m_height / m_width;
 
   glPushMatrix();
-  glTranslatef(0.0f, 1.0f, -m_distance);
+  glMultMatrixf(m_matrix);
+  glTranslatef(0.0f, 0.0f, -m_distance);
   glScalef(worldWidth, worldHeight, 1.0f);
 
   glDisable(GL_DEPTH_TEST);

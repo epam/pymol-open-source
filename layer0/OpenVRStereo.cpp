@@ -59,6 +59,8 @@ struct COpenVR {
   vr::IVRSystem* System;
   vr::IVRCompositor* Compositor;
   vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount]; // todo remove from globals?
+
+  GLfloat HeadPose[16];
   GLfloat WorldToHeadMatrix[16];
 
   unsigned Width;
@@ -494,6 +496,7 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
       vr::ETrackedDeviceClass device = I->System->GetTrackedDeviceClass(nDevice);
       switch (device) {
         case vr::TrackedDeviceClass_HMD:
+          ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, I->HeadPose);
           FastInverseAffineSteamVRMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->WorldToHeadMatrix);
           break;
         case vr::TrackedDeviceClass_Controller:

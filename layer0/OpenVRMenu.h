@@ -32,6 +32,10 @@ public:
   void Start(unsigned width, unsigned height, bool clear);
   void Finish();
 
+  void Show(GLfloat const* headMatrix);
+  void Hide();
+  bool IsVisible() const;
+
   void Draw();
 
 private:
@@ -53,6 +57,8 @@ private:
   float m_fovTangent;
   bool m_valid;
   bool m_visible;
+
+  GLfloat m_matrix[16];
 
   // offscreen framebuffer
   GLuint m_frameBufferID;
