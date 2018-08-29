@@ -2143,7 +2143,7 @@ namespace vr
 
 	class CVRSettingHelper
 	{
-		IVRSettings *m_pSettings = nullptr;
+		IVRSettings *m_pSettings;
 	public:
 		CVRSettingHelper( IVRSettings *pSettings ) 
 		{ 
