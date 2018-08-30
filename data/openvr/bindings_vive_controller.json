@@ -1,39 +1,39 @@
 {
-  "bindings" : {
-    "/actions/pymol" : {
-      "poses" : [
-        {
-          "output" : "/actions/pymol/in/hand_left",
-          "path" : "/user/hand/left/pose/raw"
-        },
-        {
-          "output" : "/actions/pymol/in/hand_right",
-          "path" : "/user/hand/right/pose/raw"
+  "app_key": "system.generated.python.exe",
+  "controller_type": "vive_controller",
+
+  "name": "Vive Controller Bindings",
+  "description": "Default Vive Controller bindings for PyMOL VR",
+
+  "bindings": {
+    "/actions/pymol": {
+
+      "poses": [{
+        "path": "/user/hand/left/pose/raw",
+        "output": "/actions/pymol/in/Hand_Left"
+      }, {
+        "path": "/user/hand/right/pose/raw",
+        "output": "/actions/pymol/in/Hand_Right"
+      }],
+
+      "sources": [{
+        "path": "/user/hand/left/input/application_menu",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/ToggleMenu"
+          }
         }
-      ],
-      "sources" : [
-        {
-          "inputs" : {
-            "click" : {
-                "output" : "/actions/pymol/in/hidethiscontroller"
-            }
-          },
-          "mode" : "button",
-          "path" : "/user/hand/left/input/application_menu"
-        },
-        {
-          "inputs" : {
-            "click" : {
-                "output" : "/actions/pymol/in/hidethiscontroller"
-            }
-          },
-          "mode" : "button",
-          "path" : "/user/hand/right/input/application_menu"
+      }, {
+        "path": "/user/hand/right/input/application_menu",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/ToggleMenu"
+          }
         }
-      ]
+      }]
+
     }
-  },
-  "controller_type" : "vive_controller",
-  "description" : "Bindings for the PyMOL for the Vive controller",
-  "name" : "PyMOL bindings for Vive Controller"
+  }
 }

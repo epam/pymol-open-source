@@ -84,7 +84,7 @@ struct COpenVR {
     return mem;
   }
 
-  vr::VRActionHandle_t m_actionHideThisController;
+  vr::VRActionHandle_t m_actionToggleMenu;
   vr::VRActionSetHandle_t m_actionset; 
 };
 
@@ -198,8 +198,6 @@ int OpenVRInit(PyMOLGlobals * G)
     std::string manifestPath = std::string(getenv("PYMOL_PATH")) + "\\data\\openvr\\actions.json";
     I->Input->SetActionManifestPath(manifestPath.c_str());
 
-    I->Input->GetActionHandle("/actions/pymol/in/HideThisController", &I->m_actionHideThisController);
-
     I->Input->GetActionSetHandle("/actions/pymol", &I->m_actionset); 
 
     I->Input->GetInputSourceHandle("/user/hand/left", &I->Hands[HLeft].m_source);
@@ -207,6 +205,8 @@ int OpenVRInit(PyMOLGlobals * G)
 
     I->Input->GetInputSourceHandle("/user/hand/right", &I->Hands[HRight].m_source);
     I->Input->GetActionHandle("/actions/pymol/in/Hand_Right", &I->Hands[HRight].m_actionPose);
+
+    I->Input->GetActionHandle("/actions/pymol/in/ToggleMenu", &I->m_actionToggleMenu);
   }
   
   return 1;
@@ -559,23 +559,22 @@ void OpenVRHandleInput(PyMOLGlobals * G)
   actionSet.ulActionSet = I->m_actionset;
   I->Input->UpdateActionState( &actionSet, sizeof(actionSet), 1 );
 
-  // check controllers visibility
-  {
-    I->Hands[HLeft].m_bShowController = true;
-    I->Hands[HRight].m_bShowController = true;
-    
-    vr::VRInputValueHandle_t ulHideDevice;
-    if ( GetDigitalActionState(G, I->m_actionHideThisController, &ulHideDevice)) {
-      if (ulHideDevice == I->Hands[HLeft].m_source) {
-        I->Hands[HLeft].m_bShowController = false;
-      }
-      if (ulHideDevice == I->Hands[HRight].m_source) {
-        I->Hands[HRight].m_bShowController = false;
+  // process menu button
+  if (I->Input) {
+    vr::InputDigitalActionData_t actionData;
+    if (I->Input->GetDigitalActionData(I->m_actionToggleMenu, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle) == vr::VRInputError_None) {
+      if (actionData.bChanged && actionData.bState) {
+        if (!I->Menu.IsVisible())
+          I->Menu.Show(I->HeadPose);
+        else
+          I->Menu.Hide();
       }
     }
   }
 
-  // get posiotn and source if needed
+  // get position and source if needed
+  I->Hands[HLeft].m_bShowController = true;
+  I->Hands[HRight].m_bShowController = true;
   for (int i = HLeft; i <= HRight; i++) {
     vr::InputPoseActionData_t poseData;
     vr::EVRInputError result = I->Input->GetPoseActionData( I->Hands[i].m_actionPose, vr::TrackingUniverseSeated, 0, &poseData, sizeof(poseData),
