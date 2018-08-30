@@ -6,6 +6,7 @@
 static bool _stubEnabled = false;
 static vr::IVRSystem* _stubSystem = nullptr;
 static vr::IVRCompositor* _stubCompositor = nullptr;
+static vr::IVRInput* _stubInput = nullptr;
 
 namespace vr {
 namespace stub {
@@ -28,6 +29,11 @@ IVRSystem* VRSystem()
 IVRCompositor* VRCompositor()
 {
   return _stubEnabled ? _stubCompositor : vr::VRCompositor();
+}
+
+IVRInput* VRInput()
+{
+  return _stubEnabled ? _stubInput : vr::VRInput();
 }
 
 IVRSystem *VR_Init(EVRInitError *peError, EVRApplicationType eApplicationType, const char *pStartupInfo /* = nullptr */)

@@ -58,6 +58,7 @@ struct COpenVR {
   vr::EVRInitError InitError;
   vr::IVRSystem* System;
   vr::IVRCompositor* Compositor;
+  vr::IVRInput* Input;
   vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount]; // todo remove from globals?
 
   GLfloat HeadPose[16];
@@ -82,6 +83,9 @@ struct COpenVR {
     memset(mem, 0, size);
     return mem;
   }
+
+  vr::VRActionHandle_t m_actionHideThisController;
+  vr::VRActionSetHandle_t m_actionset; 
 };
 
 static const float OPEN_VR_FRONT = 0.1f;
@@ -105,7 +109,7 @@ bool OpenVRAvailable(PyMOLGlobals *)
   return vr::stub::VR_IsHmdPresent();
 }
 
-bool OpenVRReady(PyMOLGlobals * G)
+bool OpenVRReady(PyMOLGlobals * G) 
 {
   COpenVR *I = G->OpenVR;
   return I && I->InitError == vr::VRInitError_None && I->System != NULL;
@@ -175,23 +179,43 @@ int OpenVRInit(PyMOLGlobals * G)
     return 0; // don't bother initializing the whole system
 
   COpenVR *I = G->OpenVR = new COpenVR();
-  if(I) {
-    I->InitError = vr::VRInitError_None;
-    I->System = vr::stub::VR_Init(&I->InitError, vr::VRApplication_Scene);
-    if (I->InitError != vr::VRInitError_None) {
-      I->System = NULL;
-      return 0;
-    }
-
-    I->Compositor = vr::stub::VRCompositor();
-    I->ForcedFront = true;
-    return 1;
-  } else
+  if(!I) 
     return 0;
+
+  I->InitError = vr::VRInitError_None;
+  I->System = vr::stub::VR_Init(&I->InitError, vr::VRApplication_Scene);
+  if (I->InitError != vr::VRInitError_None) {
+    I->System = NULL;
+    return 0;
+  }
+
+  I->Compositor = vr::stub::VRCompositor();
+  I->ForcedFront = true;
+
+  I->Input = vr::stub::VRInput(); 
+  if (I->Input) {
+    // init manifest
+    std::string manifestPath = std::string(getenv("PYMOL_PATH")) + "\\data\\openvr\\actions.json";
+    I->Input->SetActionManifestPath(manifestPath.c_str());
+
+    I->Input->GetActionHandle("/actions/pymol/in/HideThisController", &I->m_actionHideThisController);
+
+    I->Input->GetActionSetHandle("/actions/pymol", &I->m_actionset); 
+
+    I->Input->GetInputSourceHandle("/user/hand/left", &I->Hands[HLeft].m_source);
+    I->Input->GetActionHandle("/actions/pymol/in/Hand_Left", &I->Hands[HLeft].m_actionPose);
+
+    I->Input->GetInputSourceHandle("/user/hand/right", &I->Hands[HRight].m_source);
+    I->Input->GetActionHandle("/actions/pymol/in/Hand_Right", &I->Hands[HRight].m_actionPose);
+  }
+  
+  return 1;
 }
 
 void OpenVRFree(PyMOLGlobals * G)
 {
+  ShutdownRenderModels();
+
   if(!G->OpenVR)
     return;
 
@@ -475,6 +499,45 @@ void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G)
   glLoadMatrixf(OpenVRGetHeadToEye(G));
   glMultMatrixf(OpenVRGetWorldToHead(G));
 }
+//---------------------------------------------------------------------------------------------------------------------
+// Purpose: Returns true if the action is active and its state is true
+//---------------------------------------------------------------------------------------------------------------------
+bool GetDigitalActionState(PyMOLGlobals * G, vr::VRActionHandle_t action, vr::VRInputValueHandle_t *pDevicePath = nullptr )
+{
+  COpenVR *I = G->OpenVR;
+  if (!I || !I->Input)
+    return false;
+  
+  vr::InputDigitalActionData_t actionData;
+  I->Input->GetDigitalActionData(action, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle);
+  if (pDevicePath) {
+    *pDevicePath = vr::k_ulInvalidInputValueHandle;
+    if (actionData.bActive) {
+      vr::InputOriginInfo_t originInfo;
+      if (vr::VRInputError_None == I->Input->GetOriginTrackedDeviceInfo(actionData.activeOrigin, &originInfo, sizeof(originInfo))) {
+        *pDevicePath = originInfo.devicePath;
+      }
+    }
+  }
+  return actionData.bActive && actionData.bState;
+}
+
+std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL )
+{
+  COpenVR *I = G->OpenVR;
+  if (!I || !I->System) 
+    return "";
+
+  uint32_t unRequiredBufferLen = I->System->GetStringTrackedDeviceProperty( unDevice, prop, NULL, 0, peError );
+  if( unRequiredBufferLen == 0 )
+    return "";
+
+  char *pchBuffer = new char[ unRequiredBufferLen ];
+  unRequiredBufferLen = I->System->GetStringTrackedDeviceProperty( unDevice, prop, pchBuffer, unRequiredBufferLen, peError );
+  std::string sResult = pchBuffer;
+  delete [] pchBuffer;
+  return sResult;
+}
 
 void OpenVRHandleInput(PyMOLGlobals * G)
 {
@@ -485,6 +548,54 @@ void OpenVRHandleInput(PyMOLGlobals * G)
   vr::VREvent_t event;
   while (I->System->PollNextEvent(&event, sizeof(event)))
     /* pass */;
+
+  if (!I->Input)
+    return;
+  
+  // Process SteamVR action state
+  // UpdateActionState is called each frame to update the state of the actions themselves. The application
+  // controls which action sets are active with the provided array of VRActiveActionSet_t structs.
+  vr::VRActiveActionSet_t actionSet = { 0 };
+  actionSet.ulActionSet = I->m_actionset;
+  I->Input->UpdateActionState( &actionSet, sizeof(actionSet), 1 );
+
+  // check controllers visibility
+  {
+    I->Hands[HLeft].m_bShowController = true;
+    I->Hands[HRight].m_bShowController = true;
+    
+    vr::VRInputValueHandle_t ulHideDevice;
+    if ( GetDigitalActionState(G, I->m_actionHideThisController, &ulHideDevice)) {
+      if (ulHideDevice == I->Hands[HLeft].m_source) {
+        I->Hands[HLeft].m_bShowController = false;
+      }
+      if (ulHideDevice == I->Hands[HRight].m_source) {
+        I->Hands[HRight].m_bShowController = false;
+      }
+    }
+  }
+
+  // get posiotn and source if needed
+  for (int i = HLeft; i <= HRight; i++) {
+    vr::InputPoseActionData_t poseData;
+    vr::EVRInputError result = I->Input->GetPoseActionData( I->Hands[i].m_actionPose, vr::TrackingUniverseSeated, 0, &poseData, sizeof(poseData),
+      vr::k_ulInvalidInputValueHandle);
+    if (result != vr::VRInputError_None || !poseData.bActive || !poseData.pose.bPoseIsValid) {
+      I->Hands[i].m_bShowController = false;
+    } else {
+      //FIXME
+    //	m_rHand[eHand].m_rmat4Pose = ConvertSteamVRMatrixToMatrix4( poseData.pose.mDeviceToAbsoluteTracking );
+      vr::InputOriginInfo_t originInfo;
+      if ( I->Input->GetOriginTrackedDeviceInfo(poseData.activeOrigin, &originInfo, sizeof(originInfo)) == vr::VRInputError_None 
+        && originInfo.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid ) {
+        std::string sRenderModelName = GetTrackedDeviceString(G, originInfo.trackedDeviceIndex, vr::Prop_RenderModelName_String);
+        if ( sRenderModelName != I->Hands[i].m_sRenderModelName ) {
+          I->Hands[i].m_pRenderModel = FindOrLoadRenderModel(G, sRenderModelName.c_str());
+          I->Hands[i].m_sRenderModelName = sRenderModelName;
+        }
+      }
+    }
+  }
 }
 
 void UpdateDevicePoses(PyMOLGlobals * G) {
@@ -500,7 +611,7 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
           FastInverseAffineSteamVRMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->WorldToHeadMatrix);
           break;
         case vr::TrackedDeviceClass_Controller:
-         {
+          {
             vr::ETrackedControllerRole role = I->System->GetControllerRoleForTrackedDeviceIndex(nDevice);
             if (role == vr::TrackedControllerRole_LeftHand)
               ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)I->Hands[HLeft].GetPose());
@@ -556,7 +667,7 @@ static void FastInverseAffineSteamVRMatrix(float const *srcMat34, float *dstMat4
     dst[2][2] = src[2][2];
     dst[2][3] = 0.0f;
     
-    // trnspose-rotated negative translation
+    // transpose-rotated negative translation
     dst[3][0] = -(src[0][0] * src[0][3] + src[1][0] * src[1][3] + src[2][0] * src[2][3]);
     dst[3][1] = -(src[0][1] * src[0][3] + src[1][1] * src[1][3] + src[2][1] * src[2][3]);
     dst[3][2] = -(src[0][2] * src[0][3] + src[1][2] * src[1][3] + src[2][2] * src[2][3]);

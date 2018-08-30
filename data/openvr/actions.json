@@ -1,0 +1,30 @@
+{
+  "default_bindings": [
+    {
+      "controller_type" : "vive_controller",
+      "binding_url" : "bindings_vive_controller.json"
+    }
+  ], 
+  "actions": [
+    {
+      "name": "/actions/pymol/in/HideThisController",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/pymol/in/Hand_Right",
+      "type": "pose"
+    },
+    {
+      "name": "/actions/pymol/in/Hand_Left",
+      "type": "pose"
+    }
+  ],
+  "localization" : [
+    {
+      "language_tag": "en_US",
+      "/actions/pymol/in/HideThisController" : "Hide this Controller",
+      "/actions/pymol/in/Hand_Right" : "Right Hand Pose",
+      "/actions/pymol/in/Hand_Left" : "Left Hand Pose"
+    }
+  ]
+}

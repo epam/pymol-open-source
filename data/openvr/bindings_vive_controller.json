@@ -1,0 +1,39 @@
+{
+  "bindings" : {
+    "/actions/pymol" : {
+      "poses" : [
+        {
+          "output" : "/actions/pymol/in/hand_left",
+          "path" : "/user/hand/left/pose/raw"
+        },
+        {
+          "output" : "/actions/pymol/in/hand_right",
+          "path" : "/user/hand/right/pose/raw"
+        }
+      ],
+      "sources" : [
+        {
+          "inputs" : {
+            "click" : {
+                "output" : "/actions/pymol/in/hidethiscontroller"
+            }
+          },
+          "mode" : "button",
+          "path" : "/user/hand/left/input/application_menu"
+        },
+        {
+          "inputs" : {
+            "click" : {
+                "output" : "/actions/pymol/in/hidethiscontroller"
+            }
+          },
+          "mode" : "button",
+          "path" : "/user/hand/right/input/application_menu"
+        }
+      ]
+    }
+  },
+  "controller_type" : "vive_controller",
+  "description" : "Bindings for the PyMOL for the Vive controller",
+  "name" : "PyMOL bindings for Vive Controller"
+}

@@ -37,7 +37,7 @@ const char *VR_GetVRInitErrorAsEnglishDescription(EVRInitError error);
 
 IVRSystem *VRSystem();
 IVRCompositor *VRCompositor();
-
+IVRInput *VRInput();
 
 #define VRSTUB_NOT_IMPLEMENTED \
   throw __FUNCTION__ " not implemented";
@@ -526,6 +526,83 @@ public:
   * Returns VRCompositorError_RequestFailed if SetExplicitTimingMode is not enabled. */
   virtual EVRCompositorError SubmitExplicitTimingData() { VRSTUB_NOT_IMPLEMENTED }
 };
+
+class VRInputStub: public IVRInput {
+public:
+
+  // ---------------  Handle management   --------------- //
+
+  /** Sets the path to the action manifest JSON file that is used by this application. If this information
+  * was set on the Steam partner site, calls to this function are ignored. If the Steam partner site
+  * setting and the path provided by this call are different, VRInputError_MismatchedActionManifest is returned. 
+  * This call must be made before the first call to UpdateActionState or IVRSystem::PollNextEvent. */
+  virtual EVRInputError SetActionManifestPath( const char *pchActionManifestPath ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Returns a handle for an action set. This handle is used for all performance-sensitive calls. */
+  virtual EVRInputError GetActionSetHandle( const char *pchActionSetName, VRActionSetHandle_t *pHandle ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Returns a handle for an action. This handle is used for all performance-sensitive calls. */
+  virtual EVRInputError GetActionHandle( const char *pchActionName, VRActionHandle_t *pHandle ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Returns a handle for any path in the input system. E.g. /user/hand/right */
+  virtual EVRInputError GetInputSourceHandle( const char *pchInputSourcePath, VRInputValueHandle_t  *pHandle ) { VRSTUB_NOT_IMPLEMENTED }
+
+  // --------------- Reading action state ------------------- //
+
+  /** Reads the current state into all actions. After this call, the results of Get*Action calls 
+  * will be the same until the next call to UpdateActionState. */
+  virtual EVRInputError UpdateActionState( VR_ARRAY_COUNT( unSetCount ) VRActiveActionSet_t *pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Reads the state of a digital action given its handle. This will return VRInputError_WrongType if the type of
+  * action is something other than digital */
+  virtual EVRInputError GetDigitalActionData( VRActionHandle_t action, InputDigitalActionData_t *pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Reads the state of an analog action given its handle. This will return VRInputError_WrongType if the type of
+  * action is something other than analog */
+  virtual EVRInputError GetAnalogActionData( VRActionHandle_t action, InputAnalogActionData_t *pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Reads the state of a pose action given its handle. */
+  virtual EVRInputError GetPoseActionData( VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, InputPoseActionData_t *pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Reads the state of a skeletal action given its handle. */
+  virtual EVRInputError GetSkeletalActionData( VRActionHandle_t action, InputSkeletalActionData_t *pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice ) { VRSTUB_NOT_IMPLEMENTED }
+
+  // --------------- Skeletal Bone Data ------------------- //
+
+  /** Reads the state of the skeletal bone data associated with this action and copies it into the given buffer. */
+  virtual EVRInputError GetSkeletalBoneData( VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, VR_ARRAY_COUNT( unTransformArrayCount ) VRBoneTransform_t *pTransformArray, uint32_t unTransformArrayCount, VRInputValueHandle_t ulRestrictToDevice ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Reads the state of the skeletal bone data in a compressed form that is suitable for
+  * sending over the network. The required buffer size will never exceed ( sizeof(VR_BoneTransform_t)*boneCount + 2).
+  * Usually the size will be much smaller. */
+  virtual EVRInputError GetSkeletalBoneDataCompressed( VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, VR_OUT_BUFFER_COUNT( unCompressedSize ) void *pvCompressedData, uint32_t unCompressedSize, uint32_t *punRequiredCompressedSize, VRInputValueHandle_t ulRestrictToDevice ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Turns a compressed buffer from GetSkeletalBoneDataCompressed and turns it back into a bone transform array. */
+  virtual EVRInputError DecompressSkeletalBoneData( void *pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace *peTransformSpace, VR_ARRAY_COUNT( unTransformArrayCount ) VRBoneTransform_t *pTransformArray, uint32_t unTransformArrayCount ) { VRSTUB_NOT_IMPLEMENTED }
+
+  // --------------- Haptics ------------------- //
+
+  /** Triggers a haptic event as described by the specified action */
+  virtual EVRInputError TriggerHapticVibrationAction( VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude, VRInputValueHandle_t ulRestrictToDevice ) { VRSTUB_NOT_IMPLEMENTED }
+
+  // --------------- Action Origins ---------------- //
+
+  /** Retrieve origin handles for an action */
+  virtual EVRInputError GetActionOrigins( VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VR_ARRAY_COUNT( originOutCount ) VRInputValueHandle_t *originsOut, uint32_t originOutCount ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Retrieves the name of the origin in the current language */
+  virtual EVRInputError GetOriginLocalizedName( VRInputValueHandle_t origin, VR_OUT_STRING() char *pchNameArray, uint32_t unNameArraySize ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Retrieves useful information for the origin of this action */
+  virtual EVRInputError GetOriginTrackedDeviceInfo( VRInputValueHandle_t origin, InputOriginInfo_t *pOriginInfo, uint32_t unOriginInfoSize ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Shows the current binding for the action in-headset */
+  virtual EVRInputError ShowActionOrigins( VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle ) { VRSTUB_NOT_IMPLEMENTED }
+
+  /** Shows the current binding all the actions in the specified action sets */
+  virtual EVRInputError ShowBindingsForActionSet( VR_ARRAY_COUNT( unSetCount ) VRActiveActionSet_t *pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight ) { VRSTUB_NOT_IMPLEMENTED }
+};
+
 
 } // stub
 } // vr 

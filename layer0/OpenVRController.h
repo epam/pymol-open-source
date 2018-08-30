@@ -21,6 +21,30 @@ Z* -------------------------------------------------------------------
 #include "PyMOLGlobals.h"
 #include "ShaderMgr.h"
 
+class CGLRenderModel
+{
+public:
+  CGLRenderModel( const std::string & sRenderModelName );
+  ~CGLRenderModel();
+
+  bool BInit(PyMOLGlobals * G, const vr::RenderModel_t & vrModel, const vr::RenderModel_TextureMap_t & vrDiffuseTexture);
+  void Cleanup();
+  void Draw();
+  const std::string & GetName() const { return m_sModelName; }
+
+private:
+  GLuint m_glVertBuffer;
+  GLuint m_glIndexBuffer;
+  GLuint m_glVertArray;
+  GLuint m_glTexture;
+  GLsizei m_unVertexCount;
+  std::string m_sModelName;
+  CShaderPrg *m_pShader;
+};
+
+void ShutdownRenderModels();
+CGLRenderModel *FindOrLoadRenderModel(PyMOLGlobals *G, const char *pchRenderModelName);
+
 class OpenVRController {
 public:
   OpenVRController():  m_uiControllerVertcount(0), m_glControllerVertBuffer(0),
@@ -34,6 +58,14 @@ public:
   void Destroy() { DestroyAxes(); }
   void Draw(PyMOLGlobals * G);
   float *GetPose() {return m_pose;} // it's not safe =)
+
+public:
+// FIXME make good initialization
+  vr::VRInputValueHandle_t m_source;
+  vr::VRActionHandle_t m_actionPose;
+  bool m_bShowController;
+  CGLRenderModel *m_pRenderModel;
+  std::string m_sRenderModelName;
 
 private:
   unsigned int m_uiControllerVertcount;
