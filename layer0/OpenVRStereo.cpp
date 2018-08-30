@@ -225,6 +225,9 @@ void OpenVRFree(PyMOLGlobals * G)
 
     I->Menu.Free();
 
+    I->Hands[HLeft].Free();
+    I->Hands[HRight].Free();
+
     EyeFree(&I->Right);
     EyeFree(&I->Left);
 
@@ -573,14 +576,14 @@ void OpenVRHandleInput(PyMOLGlobals * G)
   }
 
   // get position and source if needed
-  I->Hands[HLeft].m_bShowController = true;
-  I->Hands[HRight].m_bShowController = true;
+  I->Hands[HLeft].Show(true);
+  I->Hands[HRight].Show(true);
   for (int i = HLeft; i <= HRight; i++) {
     vr::InputPoseActionData_t poseData;
     vr::EVRInputError result = I->Input->GetPoseActionData( I->Hands[i].m_actionPose, vr::TrackingUniverseSeated, 0, &poseData, sizeof(poseData),
       vr::k_ulInvalidInputValueHandle);
     if (result != vr::VRInputError_None || !poseData.bActive || !poseData.pose.bPoseIsValid) {
-      I->Hands[i].m_bShowController = false;
+      I->Hands[i].Show(false);
     } else {
       //FIXME
     //	m_rHand[eHand].m_rmat4Pose = ConvertSteamVRMatrixToMatrix4( poseData.pose.mDeviceToAbsoluteTracking );
