@@ -9,6 +9,8 @@ OpenVRMenu::OpenVRMenu()
   , m_fovTangent(1.0f)
   , m_valid(false)
   , m_visible(false)
+  , m_worldHalfWidth(2.0f)
+  , m_worldHalfHeight(1.5f)
   , m_frameBufferID(0)
   , m_textureID(0)
   , m_vertexArrayID(0)
@@ -18,6 +20,8 @@ OpenVRMenu::OpenVRMenu()
 {
   memset(m_matrix, 0, sizeof(m_matrix));
   m_matrix[0] = m_matrix[5] = m_matrix[10] = m_matrix[15] = 1.0f;
+
+  ShowtHotspot(100, 100); // HideHotspot();
 }
 
 void OpenVRMenu::Init()
@@ -163,13 +167,19 @@ bool OpenVRMenu::InitShaders()
     "}\n";
   const char* fs =
     "uniform sampler2D texture;\n"
+    "uniform vec4 hotspot;\n"
+    "uniform vec4 hotspotColor;\n"
     "varying vec2 texcoords;\n"
     "void main() {\n"
-      "gl_FragColor = texture2D(texture, texcoords);\n"
+      "vec2 delta = (texcoords - hotspot.xy) / hotspot.zw;\n"
+      "float spotFactor = step(dot(delta, delta), 1.0);\n"
+      "gl_FragColor = texture2D(texture, texcoords) + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, 1);\n"
     "}\n";
 
   m_programID = CompileProgram(vs, fs);
-  return m_programID;
+  m_hotspotUniform = glGetUniformLocation(m_programID, "hotspot");
+  m_hotspotColorUniform = glGetUniformLocation(m_programID, "hotspotColor");
+  return m_programID && m_hotspotUniform != -1 && m_hotspotColorUniform != -1;
 }
 
 void OpenVRMenu::FreeShaders()
@@ -243,24 +253,43 @@ bool OpenVRMenu::IsVisible() const
   return m_visible;
 }
 
+void OpenVRMenu::ShowtHotspot(int x, int y)
+{
+  m_hotspot.x = x;
+  m_hotspot.y = y;
+}
+
+void OpenVRMenu::HideHotspot()
+{
+  m_hotspot.x = -2 * m_hotspot.radius;
+  m_hotspot.y = -2 * m_hotspot.radius;
+}
+
 void OpenVRMenu::Draw()
 {
   if (!m_valid || !m_visible)
     return;
 
-  // calculate extents of the panel
-  float worldWidth = m_distance * m_fovTangent;
-  float worldHeight = worldWidth * m_height / m_width;
+  // recalculate extents of the panel
+  m_worldHalfWidth = m_distance * m_fovTangent;
+  m_worldHalfHeight = m_worldHalfWidth * m_height / m_width;
 
   glPushMatrix();
   glMultMatrixf(m_matrix);
   glTranslatef(0.0f, 0.0f, -m_distance);
-  glScalef(worldWidth, worldHeight, 1.0f);
+  glScalef(m_worldHalfWidth, m_worldHalfHeight, 1.0f);
 
   glDisable(GL_DEPTH_TEST);
   glUseProgram(m_programID);
   glBindVertexArray(m_vertexArrayID);
   glBindTexture(GL_TEXTURE_2D, m_textureID);
+
+  float hotspot[4] = {
+    (float)m_hotspot.x / m_width, (float)m_hotspot.y / m_height,
+    (float)m_hotspot.radius / m_width, (float)m_hotspot.radius / m_height
+  };
+  glUniform4fv(m_hotspotUniform, 1, hotspot);
+  glUniform4fv(m_hotspotColorUniform, 1, m_hotspot.color);
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, m_vertexCount);
 
@@ -271,3 +300,4 @@ void OpenVRMenu::Draw()
 
   glPopMatrix();
 }
+

@@ -23,6 +23,16 @@ Z* -------------------------------------------------------------------
 #include "ShaderMgr.h"
 
 class OpenVRMenu {
+  struct Hotspot_t {
+    int x, y, radius;
+    float color[4];
+
+    Hotspot_t() : x(0), y(0), radius(5) {
+      color[0] = color[1] = color[2] = 1.0f;
+      color[3] = 0.25f;
+    }
+  };
+
 public:
   OpenVRMenu();
 
@@ -35,6 +45,9 @@ public:
   void Show(GLfloat const* headMatrix);
   void Hide();
   bool IsVisible() const;
+
+  void ShowtHotspot(int x, int y);
+  void HideHotspot();
 
   void Draw();
 
@@ -59,6 +72,10 @@ private:
   bool m_visible;
 
   GLfloat m_matrix[16];
+  GLfloat m_worldHalfWidth;
+  GLfloat m_worldHalfHeight;
+
+  Hotspot_t m_hotspot;
 
   // offscreen framebuffer
   GLuint m_frameBufferID;
@@ -71,6 +88,8 @@ private:
 
   // shader
   GLuint m_programID;
+  GLint m_hotspotUniform;
+  GLint m_hotspotColorUniform;
 };
 
 #endif /* _H_OpenVRMenu */
