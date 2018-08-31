@@ -28,7 +28,9 @@ class OpenVRMenu {
     float color[4];
 
     Hotspot_t() : x(0), y(0), radius(5) {
-      color[0] = color[1] = color[2] = 1.0f;
+      color[0] = 0.92f;
+      color[1] = 0.92f;
+      color[2] = 0.71f;
       color[3] = 0.25f;
     }
   };
@@ -50,6 +52,8 @@ public:
   void HideHotspot();
 
   void Draw();
+
+  bool IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y);
 
 private:
   void InitGeometry();

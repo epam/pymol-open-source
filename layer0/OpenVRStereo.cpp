@@ -633,6 +633,26 @@ void OpenVRHandleInput(PyMOLGlobals * G)
       }
     }
   }
+
+  // intersect the laser ray with the UI
+  if (I->Menu.IsVisible()) {
+    OpenVRController* hand = &I->Hands[HRight];
+    if (!hand->IsVisible())
+      hand = &I->Hands[HLeft];
+    if (hand->IsVisible()) {
+      float const* handPose = hand->GetPose();
+      float const* origin = handPose + 12;
+      float direction[3] = {-handPose[8], -handPose[9], -handPose[10]};
+
+      int x, y;
+      bool hit = I->Menu.IntersectRay(origin, direction, &x, &y);
+      if (hit) {
+        I->Menu.ShowtHotspot(x, y);
+      } else {
+        I->Menu.HideHotspot();
+      }
+    }
+  }
 }
 
 void UpdateDevicePoses(PyMOLGlobals * G) {

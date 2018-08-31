@@ -37,7 +37,7 @@ public:
   float *GetPose() {return m_pose;} // it's not safe =)
 
   void Show(bool isVisible) {m_bShowController = isVisible;}
-  bool IsVisible() const;
+  bool IsVisible() const { return m_bShowController; }
 
 public:
 // FIXME make good initialization

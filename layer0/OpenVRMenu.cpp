@@ -279,7 +279,7 @@ void OpenVRMenu::Draw()
   glTranslatef(0.0f, 0.0f, -m_distance);
   glScalef(m_worldHalfWidth, m_worldHalfHeight, 1.0f);
 
-  glDisable(GL_DEPTH_TEST);
+  glDepthFunc(GL_ALWAYS);
   glUseProgram(m_programID);
   glBindVertexArray(m_vertexArrayID);
   glBindTexture(GL_TEXTURE_2D, m_textureID);
@@ -296,8 +296,46 @@ void OpenVRMenu::Draw()
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);
-  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
 
   glPopMatrix();
 }
 
+bool OpenVRMenu::IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y)
+{
+  GLfloat const* right = &m_matrix[0];  // head coordinates X-axis
+  GLfloat const* up = &m_matrix[4];     // head coordinates Y-axis
+  GLfloat const* normal = &m_matrix[8]; // head coordinates Z-axis
+  GLfloat const* pivot = &m_matrix[12]; // head coordinates origin
+
+  // check ray direction
+  float DdotN = dir[0] * normal[0] + dir[1] * normal[1] + dir[2] * normal[2];
+  static const float COS100 = -0.173648f;
+  if (DdotN > COS100)
+    return false; // no chance/need to intersect
+
+  // check ray distance
+  float OtoP[3] = {pivot[0] - origin[0], pivot[1] - origin[1], pivot[2] - origin[2]};
+  float OtoPdotN = OtoP[0] * normal[0] + OtoP[1] * normal[1] + OtoP[2] * normal[2];
+  float distance = (OtoPdotN - m_distance) / DdotN;
+  if (distance < 0.0f)
+    return false;
+
+  // get raw intersection
+  float DdotX = dir[0] * right[0] + dir[1] * right[1] + dir[2] * right[2];
+  float OtoPdotX = OtoP[0] * right[0] + OtoP[1] * right[1] + OtoP[2] * right[2];
+  float rawX = distance * DdotX - OtoPdotX;
+  float DdotY = dir[0] * up[0] + dir[1] * up[1] + dir[2] * up[2];
+  float OtoPdotY = OtoP[0] * up[0] + OtoP[1] * up[1] + OtoP[2] * up[2];
+  float rawY = distance * DdotY - OtoPdotY;
+
+  // check out of bounds
+  int pixelX = (int)((rawX + m_worldHalfWidth) * 0.5f * m_width / m_worldHalfWidth + 0.5f);
+  int pixelY = (int)((rawY + m_worldHalfHeight) * 0.5f * m_height / m_worldHalfHeight + 0.5f);
+  if (pixelX < 0 || pixelY < 0 || pixelX >= m_width || pixelY >= m_width)
+    return false;
+
+  *x = pixelX;
+  *y = pixelY;
+  return true;
+}
