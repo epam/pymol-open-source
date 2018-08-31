@@ -33,6 +33,7 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned width, unsigned height);
 
 void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear = false);
 void OpenVRMenuBufferFinish(PyMOLGlobals * G);
+void OpenVRMenuToggle(PyMOLGlobals * G);
 
 float* OpenVRGetWorldToHead(PyMOLGlobals * G);
 float* OpenVRGetHeadToEye(PyMOLGlobals * G);

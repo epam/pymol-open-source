@@ -417,6 +417,18 @@ void OpenVRMenuBufferFinish(PyMOLGlobals * G)
   I->Menu.Finish();
 }
 
+void OpenVRMenuToggle(PyMOLGlobals * G)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  if (!I->Menu.IsVisible())
+    I->Menu.Show(I->HeadPose);
+  else
+    I->Menu.Hide();
+}
+
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
@@ -502,27 +514,55 @@ void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G)
   glLoadMatrixf(OpenVRGetHeadToEye(G));
   glMultMatrixf(OpenVRGetWorldToHead(G));
 }
-//---------------------------------------------------------------------------------------------------------------------
-// Purpose: Returns true if the action is active and its state is true
-//---------------------------------------------------------------------------------------------------------------------
-bool GetDigitalActionState(PyMOLGlobals * G, vr::VRActionHandle_t action, vr::VRInputValueHandle_t *pDevicePath = nullptr )
+
+void GetActionDevice(COpenVR* I, vr::VRInputValueHandle_t actionOrigin, vr::TrackedDeviceIndex_t* deviceIndex = 0)
 {
-  COpenVR *I = G->OpenVR;
-  if (!I || !I->Input)
-    return false;
-  
-  vr::InputDigitalActionData_t actionData;
-  I->Input->GetDigitalActionData(action, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle);
-  if (pDevicePath) {
-    *pDevicePath = vr::k_ulInvalidInputValueHandle;
-    if (actionData.bActive) {
-      vr::InputOriginInfo_t originInfo;
-      if (vr::VRInputError_None == I->Input->GetOriginTrackedDeviceInfo(actionData.activeOrigin, &originInfo, sizeof(originInfo))) {
-        *pDevicePath = originInfo.devicePath;
-      }
+  if (deviceIndex) {
+    vr::InputOriginInfo_t originInfo;
+    if (I->Input->GetOriginTrackedDeviceInfo(actionOrigin, &originInfo, sizeof(originInfo)) == vr::VRInputError_None) {
+      *deviceIndex = originInfo.trackedDeviceIndex;
+    } else {
+      *deviceIndex = vr::k_unTrackedDeviceIndexInvalid;
     }
   }
-  return actionData.bActive && actionData.bState;
+}
+
+// generic function for acquiring button state, use inline specializations defined below
+bool CheckButtonAction(COpenVR* I, vr::VRActionHandle_t action, bool pressOnly, bool changeOnly, vr::TrackedDeviceIndex_t* deviceIndex = 0)
+{
+  if (deviceIndex)
+    *deviceIndex = vr::k_unTrackedDeviceIndexInvalid;
+
+  if (!I || !I->Input)
+    return false;
+
+  vr::InputDigitalActionData_t actionData;
+  if (I->Input->GetDigitalActionData(action, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle) == vr::VRInputError_None) {
+    if (actionData.bActive && (!changeOnly || actionData.bChanged) && (!pressOnly || actionData.bState)) {
+      GetActionDevice(I, actionData.activeOrigin, deviceIndex);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// returns true while the button is pressed
+inline bool CheckButtonState(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0)
+{
+  return CheckButtonAction(I, action, true, false, deviceIndex);
+}
+
+// returns true when user has just pressed the button
+inline bool CheckButtonClick(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0)
+{
+  return CheckButtonAction(I, action, true, true, deviceIndex);
+}
+
+// returns true when user has just pressed or released the button
+inline bool CheckButtonToggle(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0)
+{
+  return CheckButtonAction(I, action, false, true, deviceIndex);
 }
 
 std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL )
@@ -562,17 +602,12 @@ void OpenVRHandleInput(PyMOLGlobals * G)
   actionSet.ulActionSet = I->m_actionset;
   I->Input->UpdateActionState( &actionSet, sizeof(actionSet), 1 );
 
-  // process menu button
+  // process actions
   if (I->Input) {
-    vr::InputDigitalActionData_t actionData;
-    if (I->Input->GetDigitalActionData(I->m_actionToggleMenu, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle) == vr::VRInputError_None) {
-      if (actionData.bChanged && actionData.bState) {
-        if (!I->Menu.IsVisible())
-          I->Menu.Show(I->HeadPose);
-        else
-          I->Menu.Hide();
-      }
+    if (CheckButtonClick(I, I->m_actionToggleMenu)) {
+      OpenVRMenuToggle(G); // TODO: call user action handler
     }
+    // ...etc
   }
 
   // get position and source if needed
