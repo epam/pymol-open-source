@@ -92,6 +92,7 @@ struct COpenVR {
 
   vr::VRActionSetHandle_t m_actionset; 
   vr::VRActionHandle_t m_actionToggleMenu;
+  vr::VRActionHandle_t m_actionLClick;
   vr::VRActionHandle_t m_actionPadCenter;
   vr::VRActionHandle_t m_actionPadEast;
   vr::VRActionHandle_t m_actionPadWest;
@@ -246,6 +247,7 @@ int OpenVRInit(PyMOLGlobals * G)
     I->Input->GetActionHandle("/actions/pymol/in/Hand_Right", &I->Hands[HRight].m_actionPose);
 
     I->Input->GetActionHandle("/actions/pymol/in/ToggleMenu", &I->m_actionToggleMenu);
+    I->Input->GetActionHandle("/actions/pymol/in/LClick", &I->m_actionLClick);
     I->Input->GetActionHandle("/actions/pymol/in/PadCenter", &I->m_actionPadCenter);
     I->Input->GetActionHandle("/actions/pymol/in/PadEast", &I->m_actionPadEast);
     I->Input->GetActionHandle("/actions/pymol/in/PadWest", &I->m_actionPadWest);
@@ -602,7 +604,7 @@ void GetActionDevice(COpenVR* I, vr::VRInputValueHandle_t actionOrigin, vr::Trac
 }
 
 // generic function for acquiring button state, use inline specializations defined below
-bool CheckButtonAction(COpenVR* I, vr::VRActionHandle_t action, bool pressOnly, bool changeOnly, vr::TrackedDeviceIndex_t* deviceIndex = 0)
+bool CheckButtonAction(COpenVR* I, vr::VRActionHandle_t action, bool pressOnly, bool changeOnly, vr::TrackedDeviceIndex_t* deviceIndex = 0, vr::InputDigitalActionData_t* actionData = 0)
 {
   if (deviceIndex)
     *deviceIndex = vr::k_unTrackedDeviceIndexInvalid;
@@ -610,10 +612,13 @@ bool CheckButtonAction(COpenVR* I, vr::VRActionHandle_t action, bool pressOnly, 
   if (!I || !I->Input)
     return false;
 
-  vr::InputDigitalActionData_t actionData;
-  if (I->Input->GetDigitalActionData(action, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle) == vr::VRInputError_None) {
-    if (actionData.bActive && (!changeOnly || actionData.bChanged) && (!pressOnly || actionData.bState)) {
-      GetActionDevice(I, actionData.activeOrigin, deviceIndex);
+  vr::InputDigitalActionData_t actionDataBuffer;
+  if (!actionData)
+    actionData = &actionDataBuffer;
+
+  if (I->Input->GetDigitalActionData(action, actionData, sizeof(*actionData), vr::k_ulInvalidInputValueHandle) == vr::VRInputError_None) {
+    if (actionData->bActive && (!changeOnly || actionData->bChanged) && (!pressOnly || actionData->bState)) {
+      GetActionDevice(I, actionData->activeOrigin, deviceIndex);
       return true;
     }
   }
@@ -634,9 +639,13 @@ inline bool CheckButtonClick(COpenVR* I, vr::VRActionHandle_t action, vr::Tracke
 }
 
 // returns true when user has just pressed or released the button
-inline bool CheckButtonToggle(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0)
+inline bool CheckButtonToggle(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0, bool* pressed = 0)
 {
-  return CheckButtonAction(I, action, false, true, deviceIndex);
+  vr::InputDigitalActionData_t actionDataBuffer;
+  bool res = CheckButtonAction(I, action, false, true, deviceIndex, &actionDataBuffer);
+  if (pressed)
+    *pressed = res ? actionDataBuffer.bState : false;
+  return res;
 }
 
 std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL )
@@ -734,6 +743,12 @@ void OpenVRHandleInput(PyMOLGlobals * G)
       bool hit = I->Menu.IntersectRay(origin, direction, &x, &y);
       if (hit) {
         I->Menu.ShowtHotspot(x, y);
+
+        bool pressed;
+        if (CheckButtonToggle(I, I->m_actionLClick, 0, &pressed)) {
+          I->MouseFunc(G, P_GLUT_LEFT_BUTTON, pressed ? P_GLUT_DOWN : P_GLUT_UP, x, y, 0);
+        }
+        I->MotionFunc(G, x, y, 0);
       } else {
         I->Menu.HideHotspot();
       }

@@ -33,6 +33,22 @@
           }
         }
       }, {
+        "path": "/user/hand/right/input/trigger",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/LClick"
+          }
+        }
+      }, {
+        "path": "/user/hand/left/input/trigger",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/LClick"
+          }
+        }
+      }, {
         "path": "/user/hand/right/input/trackpad",
         "mode": "dpad_click",
         "inputs": {
