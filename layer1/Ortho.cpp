@@ -1073,6 +1073,37 @@ void OrthoKey(PyMOLGlobals * G, unsigned char k, int x, int y, int mod)
 
 
 /*========================================================================*/
+void OrthoAction(PyMOLGlobals * G, OpenVRAction_t a)
+{
+  COrtho *I = G->Ortho;
+
+  switch(a) {
+  case OPENVR_ACTION_SCENE_NEXT:
+    OrthoCommandIn(G, "scene action=next");
+    break;
+
+  case OPENVR_ACTION_SCENE_PREV:
+    OrthoCommandIn(G, "scene action=previous");
+    break;
+
+  case OPENVR_ACTION_MOVIE_TOGGLE:
+    OrthoCommandIn(G, "mtoggle");
+    break;
+
+  case OPENVR_ACTION_MOVIE_NEXT:
+    OrthoCommandIn(G, "forward");
+    break;
+
+  case OPENVR_ACTION_MOVIE_PREV:
+    OrthoCommandIn(G, "backward");
+    break;
+  }
+
+  OrthoInvalidateDoDraw(G);
+}
+
+
+/*========================================================================*/
 void OrthoParseCurrentLine(PyMOLGlobals * G)
 {
   COrtho *I = G->Ortho;
@@ -2633,6 +2664,12 @@ int OrthoInit(PyMOLGlobals * G, int showSplash)
       for(a = 0; a <= OrthoHistoryLines; a++)
         I->History[a][0] = 0;
     }
+
+    OpenVRSetKeyboardFunc(G, OrthoKey);
+    OpenVRSetSpecialFunc(G, OrthoSpecial);
+    OpenVRSetMouseFunc(G, OrthoButton);
+    OpenVRSetMotionFunc(G, OrthoDrag);
+    OpenVRSetActionFunc(G, OrthoAction);
 
     return 1;
   } else {

@@ -77,6 +77,12 @@ struct COpenVR {
  
   OpenVRMenu Menu;
 
+  OpenVRKeyboardFunc_t* KeyboardFunc;
+  OpenVRSpecialFunc_t* SpecialFunc;
+  OpenVRMouseFunc_t* MouseFunc;
+  OpenVRMotionFunc_t* MotionFunc;
+  OpenVRActionFunc_t* ActionFunc;
+
   // Such structures used to be calloc-ed, this replicates that
   void *operator new(size_t size) {
     void *mem = ::operator new(size);
@@ -113,6 +119,28 @@ bool OpenVRReady(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
   return I && I->InitError == vr::VRInitError_None && I->System != NULL;
+}
+
+static void OpenVRDefaultKeyboardFunc(PyMOLGlobals * G, unsigned char k, int x, int y, int mod)
+{
+}
+
+static void OpenVRDefaultSpecialFunc(PyMOLGlobals * G, int k, int x, int y, int mod)
+{
+}
+
+static int OpenVRDefaultMouseFunc(PyMOLGlobals * G, int button, int state, int x, int y, int mod)
+{
+  return 0;
+}
+
+static int OpenVRDefaultMotionFunc(PyMOLGlobals * G, int x, int y, int mod)
+{
+  return 0;
+}
+
+static void OpenVRDefaultActionFunc(PyMOLGlobals * G, OpenVRAction_t a)
+{
 }
 
 static bool EyeInit(CEye * I, vr::EVREye eye, int scene_width, int scene_height)
@@ -192,6 +220,12 @@ int OpenVRInit(PyMOLGlobals * G)
   I->Compositor = vr::stub::VRCompositor();
   I->ForcedFront = true;
 
+  I->KeyboardFunc = OpenVRDefaultKeyboardFunc;
+  I->SpecialFunc = OpenVRDefaultSpecialFunc;
+  I->MouseFunc = OpenVRDefaultMouseFunc;
+  I->MotionFunc = OpenVRDefaultMotionFunc;
+  I->ActionFunc = OpenVRDefaultActionFunc;
+
   I->Input = vr::stub::VRInput(); 
   if (I->Input) {
     // init manifest
@@ -258,6 +292,36 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
       hand.Init(G);
     }  
   }  
+}
+
+void OpenVRSetKeyboardFunc(PyMOLGlobals * G, OpenVRKeyboardFunc_t* handler)
+{
+  if(G->OpenVR)
+    G->OpenVR->KeyboardFunc = handler ? handler : OpenVRDefaultKeyboardFunc;
+}
+
+void OpenVRSetSpecialFunc(PyMOLGlobals * G, OpenVRSpecialFunc_t* handler)
+{
+  if(G->OpenVR)
+    G->OpenVR->SpecialFunc = handler ? handler : OpenVRDefaultSpecialFunc;
+}
+
+void OpenVRSetMouseFunc(PyMOLGlobals * G, OpenVRMouseFunc_t* handler)
+{
+  if(G->OpenVR)
+    G->OpenVR->MouseFunc = handler ? handler : OpenVRDefaultMouseFunc;
+}
+
+void OpenVRSetMotionFunc(PyMOLGlobals * G, OpenVRMotionFunc_t* handler)
+{
+  if(G->OpenVR)
+    G->OpenVR->MotionFunc = handler ? handler : OpenVRDefaultMotionFunc;
+}
+
+void OpenVRSetActionFunc(PyMOLGlobals * G, OpenVRActionFunc_t* handler)
+{
+  if(G->OpenVR)
+    G->OpenVR->ActionFunc = handler ? handler : OpenVRDefaultActionFunc;
 }
 
 static std::string GetStringTrackedDeviceProperty(vr::IVRSystem *System, vr::TrackedDeviceIndex_t index, vr::TrackedDeviceProperty prop)

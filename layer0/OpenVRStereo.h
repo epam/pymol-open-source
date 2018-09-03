@@ -24,6 +24,27 @@ bool OpenVRReady(PyMOLGlobals * G);
 int OpenVRInit(PyMOLGlobals * G);
 void OpenVRFree(PyMOLGlobals * G);
 
+enum OpenVRAction_t {
+  OPENVR_ACTION_SCENE_NEXT,
+  OPENVR_ACTION_SCENE_PREV,
+
+  OPENVR_ACTION_MOVIE_TOGGLE,
+  OPENVR_ACTION_MOVIE_NEXT,
+  OPENVR_ACTION_MOVIE_PREV,
+};
+
+typedef void OpenVRKeyboardFunc_t(PyMOLGlobals * G, unsigned char k, int x, int y, int mod);
+typedef void OpenVRSpecialFunc_t(PyMOLGlobals * G, int k, int x, int y, int mod);
+typedef int OpenVRMouseFunc_t(PyMOLGlobals * G, int button, int state, int x, int y, int mod);
+typedef int OpenVRMotionFunc_t(PyMOLGlobals * G, int x, int y, int mod);
+typedef void OpenVRActionFunc_t(PyMOLGlobals * G, OpenVRAction_t a);
+
+void OpenVRSetKeyboardFunc(PyMOLGlobals * G, OpenVRKeyboardFunc_t* handler);
+void OpenVRSetSpecialFunc(PyMOLGlobals * G, OpenVRSpecialFunc_t* handler);
+void OpenVRSetMouseFunc(PyMOLGlobals * G, OpenVRMouseFunc_t* handler);
+void OpenVRSetMotionFunc(PyMOLGlobals * G, OpenVRMotionFunc_t* handler);
+void OpenVRSetActionFunc(PyMOLGlobals * G, OpenVRActionFunc_t* handler);
+
 void OpenVRFeedback(PyMOLGlobals * G);
 
 void OpenVRFrameStart(PyMOLGlobals * G);
