@@ -13,5 +13,20 @@
   }, {
     "name": "/actions/pymol/in/ToggleMenu",
     "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/PadCenter",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/PadEast",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/PadWest",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/PadNorth",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/PadSouth",
+    "type": "boolean"
   }]
 }

@@ -17,6 +17,14 @@
       }],
 
       "sources": [{
+        "path": "/user/hand/right/input/application_menu",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/ToggleMenu"
+          }
+        }
+      }, {
         "path": "/user/hand/left/input/application_menu",
         "mode": "button",
         "inputs": {
@@ -25,11 +33,43 @@
           }
         }
       }, {
-        "path": "/user/hand/right/input/application_menu",
-        "mode": "button",
+        "path": "/user/hand/right/input/trackpad",
+        "mode": "dpad_click",
         "inputs": {
-          "click": {
-            "output": "/actions/pymol/in/ToggleMenu"
+          "center": {
+            "output": "/actions/pymol/in/PadCenter"
+          },
+          "east": {
+            "output": "/actions/pymol/in/PadEast"
+          },
+          "west": {
+            "output": "/actions/pymol/in/PadWest"
+          },
+          "north": {
+            "output": "/actions/pymol/in/PadNorth"
+          },
+          "south": {
+            "output": "/actions/pymol/in/PadSouth"
+          }
+        }
+      }, {
+        "path": "/user/hand/left/input/trackpad",
+        "mode": "dpad_click",
+        "inputs": {
+          "center": {
+            "output": "/actions/pymol/in/PadCenter"
+          },
+          "east": {
+            "output": "/actions/pymol/in/PadEast"
+          },
+          "west": {
+            "output": "/actions/pymol/in/PadWest"
+          },
+          "north": {
+            "output": "/actions/pymol/in/PadNorth"
+          },
+          "south": {
+            "output": "/actions/pymol/in/PadSouth"
           }
         }
       }]

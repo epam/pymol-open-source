@@ -90,8 +90,13 @@ struct COpenVR {
     return mem;
   }
 
-  vr::VRActionHandle_t m_actionToggleMenu;
   vr::VRActionSetHandle_t m_actionset; 
+  vr::VRActionHandle_t m_actionToggleMenu;
+  vr::VRActionHandle_t m_actionPadCenter;
+  vr::VRActionHandle_t m_actionPadEast;
+  vr::VRActionHandle_t m_actionPadWest;
+  vr::VRActionHandle_t m_actionPadNorth;
+  vr::VRActionHandle_t m_actionPadSouth;
 };
 
 static const float OPEN_VR_FRONT = 0.1f;
@@ -241,6 +246,11 @@ int OpenVRInit(PyMOLGlobals * G)
     I->Input->GetActionHandle("/actions/pymol/in/Hand_Right", &I->Hands[HRight].m_actionPose);
 
     I->Input->GetActionHandle("/actions/pymol/in/ToggleMenu", &I->m_actionToggleMenu);
+    I->Input->GetActionHandle("/actions/pymol/in/PadCenter", &I->m_actionPadCenter);
+    I->Input->GetActionHandle("/actions/pymol/in/PadEast", &I->m_actionPadEast);
+    I->Input->GetActionHandle("/actions/pymol/in/PadWest", &I->m_actionPadWest);
+    I->Input->GetActionHandle("/actions/pymol/in/PadNorth", &I->m_actionPadNorth);
+    I->Input->GetActionHandle("/actions/pymol/in/PadSouth", &I->m_actionPadSouth);
   }
   
   return 1;
@@ -669,7 +679,19 @@ void OpenVRHandleInput(PyMOLGlobals * G)
   // process actions
   if (I->Input) {
     if (CheckButtonClick(I, I->m_actionToggleMenu)) {
-      OpenVRMenuToggle(G); // TODO: call user action handler
+      OpenVRMenuToggle(G);
+    }
+    if (!I->Menu.IsVisible()) {
+      if (CheckButtonClick(I, I->m_actionPadCenter))
+        I->ActionFunc(G, OPENVR_ACTION_MOVIE_TOGGLE);
+      if (CheckButtonClick(I, I->m_actionPadEast))
+        I->ActionFunc(G, OPENVR_ACTION_MOVIE_NEXT);
+      if (CheckButtonClick(I, I->m_actionPadWest))
+        I->ActionFunc(G, OPENVR_ACTION_MOVIE_PREV);
+      if (CheckButtonClick(I, I->m_actionPadNorth))
+        I->ActionFunc(G, OPENVR_ACTION_SCENE_PREV);
+      if (CheckButtonClick(I, I->m_actionPadSouth))
+        I->ActionFunc(G, OPENVR_ACTION_SCENE_NEXT);
     }
     // ...etc
   }
