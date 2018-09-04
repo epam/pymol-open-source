@@ -25,7 +25,8 @@ Z* -------------------------------------------------------------------
 class OpenVRController {
 public:
   OpenVRController():  m_uiControllerVertcount(0), m_glControllerVertBuffer(0),
-    m_unControllerVAO(0), m_unControllerTransformProgramID(0), m_pAxesShader(NULL)
+    m_unControllerVAO(0), m_unControllerTransformProgramID(0), m_pAxesShader(NULL),
+    m_deviceIndex(~0U), m_bShowController(true), m_bShowLaser(false)
     {}
  
   bool IsInitialized() {return m_uiControllerVertcount && m_glControllerVertBuffer && m_unControllerVAO &&
@@ -39,10 +40,13 @@ public:
   void Show(bool isVisible) {m_bShowController = isVisible;}
   bool IsVisible() const { return m_bShowController; }
 
+  void ShowLaser(bool isVisible) {m_bShowLaser = isVisible;}
+  bool IsLaserVisible() const { return m_bShowLaser; }
+  bool GetLaser(float* origin, float* dir);
+
 public:
 // FIXME make good initialization
-  vr::VRInputValueHandle_t m_source;
-  vr::VRActionHandle_t m_actionPose;
+  vr::TrackedDeviceIndex_t m_deviceIndex;
   OpenVRControllerModel *m_pRenderModel;
   std::string m_sRenderModelName;
 
@@ -54,6 +58,7 @@ private:
   CShaderPrg *m_pAxesShader;
   GLfloat m_pose[16]; // model2world matrix 
   bool m_bShowController;
+  bool m_bShowLaser;
   
   void InitAxes(PyMOLGlobals * G);
   void InitAxesShader(PyMOLGlobals * G);

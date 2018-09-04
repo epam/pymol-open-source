@@ -27,6 +27,7 @@ Z* -------------------------------------------------------------------
 #include "OpenVRStub.h"
 #include "OpenVRController.h"
 #include "OpenVRMenu.h"
+#include "OpenVRActionList.h"
 #include "PyMOLOptions.h"
 #include "Feedback.h"
 #include "Matrix.h"
@@ -55,6 +56,13 @@ enum EHand
 };
 
 struct COpenVR {
+  // Such structures used to be calloc-ed, this replicates that
+  void *operator new(size_t size) {
+    void *mem = ::operator new(size);
+    memset(mem, 0, size);
+    return mem;
+  }
+
   vr::EVRInitError InitError;
   vr::IVRSystem* System;
   vr::IVRCompositor* Compositor;
@@ -77,27 +85,9 @@ struct COpenVR {
  
   OpenVRMenu Menu;
 
-  OpenVRKeyboardFunc_t* KeyboardFunc;
-  OpenVRSpecialFunc_t* SpecialFunc;
-  OpenVRMouseFunc_t* MouseFunc;
-  OpenVRMotionFunc_t* MotionFunc;
-  OpenVRActionFunc_t* ActionFunc;
+  OpenVRInputHandlers* Handlers;
 
-  // Such structures used to be calloc-ed, this replicates that
-  void *operator new(size_t size) {
-    void *mem = ::operator new(size);
-    memset(mem, 0, size);
-    return mem;
-  }
-
-  vr::VRActionSetHandle_t m_actionset; 
-  vr::VRActionHandle_t m_actionToggleMenu;
-  vr::VRActionHandle_t m_actionLClick;
-  vr::VRActionHandle_t m_actionPadCenter;
-  vr::VRActionHandle_t m_actionPadEast;
-  vr::VRActionHandle_t m_actionPadWest;
-  vr::VRActionHandle_t m_actionPadNorth;
-  vr::VRActionHandle_t m_actionPadSouth;
+  OpenVRActionList* Actions;
 };
 
 static const float OPEN_VR_FRONT = 0.1f;
@@ -125,28 +115,6 @@ bool OpenVRReady(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
   return I && I->InitError == vr::VRInitError_None && I->System != NULL;
-}
-
-static void OpenVRDefaultKeyboardFunc(PyMOLGlobals * G, unsigned char k, int x, int y, int mod)
-{
-}
-
-static void OpenVRDefaultSpecialFunc(PyMOLGlobals * G, int k, int x, int y, int mod)
-{
-}
-
-static int OpenVRDefaultMouseFunc(PyMOLGlobals * G, int button, int state, int x, int y, int mod)
-{
-  return 0;
-}
-
-static int OpenVRDefaultMotionFunc(PyMOLGlobals * G, int x, int y, int mod)
-{
-  return 0;
-}
-
-static void OpenVRDefaultActionFunc(PyMOLGlobals * G, OpenVRAction_t a)
-{
 }
 
 static bool EyeInit(CEye * I, vr::EVREye eye, int scene_width, int scene_height)
@@ -226,11 +194,7 @@ int OpenVRInit(PyMOLGlobals * G)
   I->Compositor = vr::stub::VRCompositor();
   I->ForcedFront = true;
 
-  I->KeyboardFunc = OpenVRDefaultKeyboardFunc;
-  I->SpecialFunc = OpenVRDefaultSpecialFunc;
-  I->MouseFunc = OpenVRDefaultMouseFunc;
-  I->MotionFunc = OpenVRDefaultMotionFunc;
-  I->ActionFunc = OpenVRDefaultActionFunc;
+  OpenVRSetInputHandlers(G, new OpenVRInputHandlers());
 
   I->Input = vr::stub::VRInput(); 
   if (I->Input) {
@@ -238,21 +202,7 @@ int OpenVRInit(PyMOLGlobals * G)
     std::string manifestPath = std::string(getenv("PYMOL_PATH")) + "\\data\\openvr\\actions.json";
     I->Input->SetActionManifestPath(manifestPath.c_str());
 
-    I->Input->GetActionSetHandle("/actions/pymol", &I->m_actionset); 
-
-    I->Input->GetInputSourceHandle("/user/hand/left", &I->Hands[HLeft].m_source);
-    I->Input->GetActionHandle("/actions/pymol/in/Hand_Left", &I->Hands[HLeft].m_actionPose);
-
-    I->Input->GetInputSourceHandle("/user/hand/right", &I->Hands[HRight].m_source);
-    I->Input->GetActionHandle("/actions/pymol/in/Hand_Right", &I->Hands[HRight].m_actionPose);
-
-    I->Input->GetActionHandle("/actions/pymol/in/ToggleMenu", &I->m_actionToggleMenu);
-    I->Input->GetActionHandle("/actions/pymol/in/LClick", &I->m_actionLClick);
-    I->Input->GetActionHandle("/actions/pymol/in/PadCenter", &I->m_actionPadCenter);
-    I->Input->GetActionHandle("/actions/pymol/in/PadEast", &I->m_actionPadEast);
-    I->Input->GetActionHandle("/actions/pymol/in/PadWest", &I->m_actionPadWest);
-    I->Input->GetActionHandle("/actions/pymol/in/PadNorth", &I->m_actionPadNorth);
-    I->Input->GetActionHandle("/actions/pymol/in/PadSouth", &I->m_actionPadSouth);
+    I->Actions = new OpenVRActionList(I->Input);
   }
   
   return 1;
@@ -270,6 +220,7 @@ void OpenVRFree(PyMOLGlobals * G)
     vr::stub::VR_Shutdown();
 
     I->Menu.Free();
+    delete I->Handlers;
 
     I->Hands[HLeft].Free();
     I->Hands[HRight].Free();
@@ -295,7 +246,7 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     EyeInit(&I->Left, vr::Eye_Left, I->Width, I->Height);
     EyeInit(&I->Right, vr::Eye_Right, I->Width, I->Height);
 
-    I->Menu.Init();
+    I->Menu.Init(I->Handlers);
   }
 
   for (int i = HLeft; i <= HRight; ++i) {
@@ -306,34 +257,14 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
   }  
 }
 
-void OpenVRSetKeyboardFunc(PyMOLGlobals * G, OpenVRKeyboardFunc_t* handler)
+void OpenVRSetInputHandlers(PyMOLGlobals * G, OpenVRInputHandlers* handlers)
 {
-  if(G->OpenVR)
-    G->OpenVR->KeyboardFunc = handler ? handler : OpenVRDefaultKeyboardFunc;
-}
-
-void OpenVRSetSpecialFunc(PyMOLGlobals * G, OpenVRSpecialFunc_t* handler)
-{
-  if(G->OpenVR)
-    G->OpenVR->SpecialFunc = handler ? handler : OpenVRDefaultSpecialFunc;
-}
-
-void OpenVRSetMouseFunc(PyMOLGlobals * G, OpenVRMouseFunc_t* handler)
-{
-  if(G->OpenVR)
-    G->OpenVR->MouseFunc = handler ? handler : OpenVRDefaultMouseFunc;
-}
-
-void OpenVRSetMotionFunc(PyMOLGlobals * G, OpenVRMotionFunc_t* handler)
-{
-  if(G->OpenVR)
-    G->OpenVR->MotionFunc = handler ? handler : OpenVRDefaultMotionFunc;
-}
-
-void OpenVRSetActionFunc(PyMOLGlobals * G, OpenVRActionFunc_t* handler)
-{
-  if(G->OpenVR)
-    G->OpenVR->ActionFunc = handler ? handler : OpenVRDefaultActionFunc;
+  COpenVR *I = G->OpenVR;
+  if (I) {
+    if (I->Handlers)
+      delete I->Handlers;
+    I->Handlers = handlers;
+  }
 }
 
 static std::string GetStringTrackedDeviceProperty(vr::IVRSystem *System, vr::TrackedDeviceIndex_t index, vr::TrackedDeviceProperty prop)
@@ -493,16 +424,20 @@ void OpenVRMenuBufferFinish(PyMOLGlobals * G)
   I->Menu.Finish();
 }
 
-void OpenVRMenuToggle(PyMOLGlobals * G)
+void OpenVRMenuToggle(PyMOLGlobals * G, unsigned deviceIndex /* = ~0U */)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return;
 
-  if (!I->Menu.IsVisible())
-    I->Menu.Show(I->HeadPose);
-  else
-    I->Menu.Hide();
+  if (!I->Menu.IsVisible()) {
+    I->Menu.Show(I->HeadPose, deviceIndex);
+  } else {
+    unsigned ownerIndex = I->Menu.GetOwnerID();
+    if (deviceIndex == ownerIndex || deviceIndex == ~0U || ownerIndex == ~0U) {
+      I->Menu.Hide();
+    }
+  }
 }
 
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)
@@ -591,63 +526,6 @@ void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G)
   glMultMatrixf(OpenVRGetWorldToHead(G));
 }
 
-void GetActionDevice(COpenVR* I, vr::VRInputValueHandle_t actionOrigin, vr::TrackedDeviceIndex_t* deviceIndex = 0)
-{
-  if (deviceIndex) {
-    vr::InputOriginInfo_t originInfo;
-    if (I->Input->GetOriginTrackedDeviceInfo(actionOrigin, &originInfo, sizeof(originInfo)) == vr::VRInputError_None) {
-      *deviceIndex = originInfo.trackedDeviceIndex;
-    } else {
-      *deviceIndex = vr::k_unTrackedDeviceIndexInvalid;
-    }
-  }
-}
-
-// generic function for acquiring button state, use inline specializations defined below
-bool CheckButtonAction(COpenVR* I, vr::VRActionHandle_t action, bool pressOnly, bool changeOnly, vr::TrackedDeviceIndex_t* deviceIndex = 0, vr::InputDigitalActionData_t* actionData = 0)
-{
-  if (deviceIndex)
-    *deviceIndex = vr::k_unTrackedDeviceIndexInvalid;
-
-  if (!I || !I->Input)
-    return false;
-
-  vr::InputDigitalActionData_t actionDataBuffer;
-  if (!actionData)
-    actionData = &actionDataBuffer;
-
-  if (I->Input->GetDigitalActionData(action, actionData, sizeof(*actionData), vr::k_ulInvalidInputValueHandle) == vr::VRInputError_None) {
-    if (actionData->bActive && (!changeOnly || actionData->bChanged) && (!pressOnly || actionData->bState)) {
-      GetActionDevice(I, actionData->activeOrigin, deviceIndex);
-      return true;
-    }
-  }
-
-  return false;
-}
-
-// returns true while the button is pressed
-inline bool CheckButtonState(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0)
-{
-  return CheckButtonAction(I, action, true, false, deviceIndex);
-}
-
-// returns true when user has just pressed the button
-inline bool CheckButtonClick(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0)
-{
-  return CheckButtonAction(I, action, true, true, deviceIndex);
-}
-
-// returns true when user has just pressed or released the button
-inline bool CheckButtonToggle(COpenVR* I, vr::VRActionHandle_t action, vr::TrackedDeviceIndex_t* deviceIndex = 0, bool* pressed = 0)
-{
-  vr::InputDigitalActionData_t actionDataBuffer;
-  bool res = CheckButtonAction(I, action, false, true, deviceIndex, &actionDataBuffer);
-  if (pressed)
-    *pressed = res ? actionDataBuffer.bState : false;
-  return res;
-}
-
 std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL )
 {
   COpenVR *I = G->OpenVR;
@@ -677,81 +555,53 @@ void OpenVRHandleInput(PyMOLGlobals * G)
 
   if (!I->Input)
     return;
-  
-  // Process SteamVR action state
-  // UpdateActionState is called each frame to update the state of the actions themselves. The application
-  // controls which action sets are active with the provided array of VRActiveActionSet_t structs.
-  vr::VRActiveActionSet_t actionSet = { 0 };
-  actionSet.ulActionSet = I->m_actionset;
-  I->Input->UpdateActionState( &actionSet, sizeof(actionSet), 1 );
 
-  // process actions
-  if (I->Input) {
-    if (CheckButtonClick(I, I->m_actionToggleMenu)) {
-      OpenVRMenuToggle(G);
-    }
-    if (!I->Menu.IsVisible()) {
-      if (CheckButtonClick(I, I->m_actionPadCenter))
-        I->ActionFunc(G, OPENVR_ACTION_MOVIE_TOGGLE);
-      if (CheckButtonClick(I, I->m_actionPadEast))
-        I->ActionFunc(G, OPENVR_ACTION_MOVIE_NEXT);
-      if (CheckButtonClick(I, I->m_actionPadWest))
-        I->ActionFunc(G, OPENVR_ACTION_MOVIE_PREV);
-      if (CheckButtonClick(I, I->m_actionPadNorth))
-        I->ActionFunc(G, OPENVR_ACTION_SCENE_PREV);
-      if (CheckButtonClick(I, I->m_actionPadSouth))
-        I->ActionFunc(G, OPENVR_ACTION_SCENE_NEXT);
-    }
-    // ...etc
+  OpenVRActionList* Actions = I->Actions;
+  Actions->Update(I->Input);
+
+  OpenVRController& LeftHand = I->Hands[HLeft];
+  OpenVRController& RightHand = I->Hands[HRight];
+
+  // update VR GUI state
+  if (Actions->ToggleMenu->WasPressed()) {
+    OpenVRMenuToggle(G, Actions->ToggleMenu->origin.trackedDeviceIndex);
   }
 
-  // get position and source if needed
-  I->Hands[HLeft].Show(true);
-  I->Hands[HRight].Show(true);
-  for (int i = HLeft; i <= HRight; i++) {
-    vr::InputPoseActionData_t poseData;
-    vr::EVRInputError result = I->Input->GetPoseActionData( I->Hands[i].m_actionPose, vr::TrackingUniverseSeated, 0, &poseData, sizeof(poseData),
-      vr::k_ulInvalidInputValueHandle);
-    if (result != vr::VRInputError_None || !poseData.bActive || !poseData.pose.bPoseIsValid) {
-      I->Hands[i].Show(false);
-    } else {
-      //FIXME
-    //	m_rHand[eHand].m_rmat4Pose = ConvertSteamVRMatrixToMatrix4( poseData.pose.mDeviceToAbsoluteTracking );
-      vr::InputOriginInfo_t originInfo;
-      if ( I->Input->GetOriginTrackedDeviceInfo(poseData.activeOrigin, &originInfo, sizeof(originInfo)) == vr::VRInputError_None 
-        && originInfo.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid ) {
-        std::string sRenderModelName = GetTrackedDeviceString(G, originInfo.trackedDeviceIndex, vr::Prop_RenderModelName_String);
-        if ( sRenderModelName != I->Hands[i].m_sRenderModelName ) {
-          I->Hands[i].m_pRenderModel = FindOrLoadRenderModel(G, sRenderModelName.c_str());
-          I->Hands[i].m_sRenderModelName = sRenderModelName;
-        }
+  // update controllers visibility
+  LeftHand.Show(Actions->LeftHand->PoseValid());
+  LeftHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == LeftHand.m_deviceIndex);
+  RightHand.Show(Actions->RightHand->PoseValid());
+  RightHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == RightHand.m_deviceIndex);
+
+  if (!I->Menu.IsVisible()) {
+
+    // process in-app actions
+
+    if (Actions->PadCenter->WasPressed())
+      I->Handlers->ActionFunc(cAction_movie_toggle);
+    if (Actions->PadEast->WasPressed())
+      I->Handlers->ActionFunc(cAction_movie_next);
+    if (Actions->PadWest->WasPressed())
+      I->Handlers->ActionFunc(cAction_movie_prev);
+    if (Actions->PadNorth->WasPressed())
+      I->Handlers->ActionFunc(cAction_scene_prev);
+    if (Actions->PadSouth->WasPressed())
+      I->Handlers->ActionFunc(cAction_scene_next);
+
+  } else {
+
+    // process GUI actions
+
+    OpenVRController* menuHand = RightHand.IsLaserVisible() ? &RightHand : LeftHand.IsLaserVisible() ? &LeftHand : 0;
+    if (menuHand) {
+      float origin[3], dir[3];
+      if (menuHand->GetLaser(origin, dir)) {
+        I->Menu.LaserShoot(origin, dir);
       }
     }
-  }
 
-  // intersect the laser ray with the UI
-  if (I->Menu.IsVisible()) {
-    OpenVRController* hand = &I->Hands[HRight];
-    if (!hand->IsVisible())
-      hand = &I->Hands[HLeft];
-    if (hand->IsVisible()) {
-      float const* handPose = hand->GetPose();
-      float const* origin = handPose + 12;
-      float direction[3] = {-handPose[8], -handPose[9], -handPose[10]};
-
-      int x, y;
-      bool hit = I->Menu.IntersectRay(origin, direction, &x, &y);
-      if (hit) {
-        I->Menu.ShowtHotspot(x, y);
-
-        bool pressed;
-        if (CheckButtonToggle(I, I->m_actionLClick, 0, &pressed)) {
-          I->MouseFunc(G, P_GLUT_LEFT_BUTTON, pressed ? P_GLUT_DOWN : P_GLUT_UP, x, y, 0);
-        }
-        I->MotionFunc(G, x, y, 0);
-      } else {
-        I->Menu.HideHotspot();
-      }
+    if (Actions->LClick->WasPressedOrReleased() && Actions->LClick->DeviceIndex() == menuHand->m_deviceIndex) {
+      I->Menu.LaserClick(Actions->LClick->IsPressed());
     }
   }
 }
@@ -771,10 +621,23 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
         case vr::TrackedDeviceClass_Controller:
           {
             vr::ETrackedControllerRole role = I->System->GetControllerRoleForTrackedDeviceIndex(nDevice);
-            if (role == vr::TrackedControllerRole_LeftHand)
-              ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)I->Hands[HLeft].GetPose());
-            else if (role == vr::TrackedControllerRole_RightHand)
-              ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)I->Hands[HRight].GetPose());
+
+            OpenVRController* hand = 0;
+            if (role == vr::TrackedControllerRole_LeftHand) {
+              hand = &I->Hands[HLeft];
+            } else if (role == vr::TrackedControllerRole_RightHand) {
+              hand = &I->Hands[HRight];
+            }
+
+            if (hand) {
+              ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)hand->GetPose());
+              hand->m_deviceIndex = nDevice;
+              std::string sRenderModelName = GetTrackedDeviceString(G, nDevice, vr::Prop_RenderModelName_String);
+              if (sRenderModelName != hand->m_sRenderModelName) {
+                hand->m_pRenderModel = FindOrLoadRenderModel(G, sRenderModelName.c_str());
+                hand->m_sRenderModelName = sRenderModelName;
+              }
+            }
           }
           break;
         default:

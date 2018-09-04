@@ -10,10 +10,10 @@
 
       "poses": [{
         "path": "/user/hand/left/pose/raw",
-        "output": "/actions/pymol/in/Hand_Left"
+        "output": "/actions/pymol/in/LeftHand"
       }, {
         "path": "/user/hand/right/pose/raw",
-        "output": "/actions/pymol/in/Hand_Right"
+        "output": "/actions/pymol/in/RightHand"
       }],
 
       "sources": [{

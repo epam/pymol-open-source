@@ -5,10 +5,10 @@
   }], 
 
   "actions": [{
-    "name": "/actions/pymol/in/Hand_Right",
+    "name": "/actions/pymol/in/RightHand",
     "type": "pose"
   }, {
-    "name": "/actions/pymol/in/Hand_Left",
+    "name": "/actions/pymol/in/LeftHand",
     "type": "pose"
   }, {
     "name": "/actions/pymol/in/ToggleMenu",

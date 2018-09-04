@@ -136,16 +136,32 @@ void OpenVRController::Draw(PyMOLGlobals * G) {
   glMultMatrixf(m_pose);
 
   CShaderPrg_Enable(m_pAxesShader);
-  glBindVertexArray( m_unControllerVAO );
 
-  glDrawArrays( GL_LINES, 0, m_uiControllerVertcount );
-
-  glBindVertexArray( 0 );
+  if (m_bShowLaser) {
+    glBindVertexArray( m_unControllerVAO );
+    glDrawArrays( GL_LINES, 0, m_uiControllerVertcount );
+    glBindVertexArray( 0 );
+  }
 
   if (m_pRenderModel) {
     m_pRenderModel->Draw();
   }
+
   CShaderPrg_Disable(m_pAxesShader);  
 
   glPopMatrix();
+}
+
+bool OpenVRController::GetLaser(float* origin, float* dir)
+{
+  if (IsLaserVisible()) {
+    origin[0] = m_pose[12];
+    origin[1] = m_pose[13];
+    origin[2] = m_pose[14];
+    dir[0] = -m_pose[8];
+    dir[1] = -m_pose[9];
+    dir[2] = -m_pose[10];
+    return true;
+  }
+  return false;
 }

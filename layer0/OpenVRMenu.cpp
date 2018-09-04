@@ -24,8 +24,9 @@ OpenVRMenu::OpenVRMenu()
   ShowtHotspot(100, 100); // HideHotspot();
 }
 
-void OpenVRMenu::Init()
+void OpenVRMenu::Init(OpenVRInputHandlers* inputHandlers)
 {
+  m_inputHandlers = inputHandlers;
   InitGeometry();
   m_valid = InitShaders();
 }
@@ -237,20 +238,17 @@ void OpenVRMenu::Finish()
   glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
 }
 
-void OpenVRMenu::Show(GLfloat const* headMatrix)
+void OpenVRMenu::Show(GLfloat const* headMatrix, unsigned ownerID)
 {
   memcpy(m_matrix, headMatrix, sizeof(m_matrix));
   m_visible = true;
+  m_ownerID = ownerID;
 }
 
 void OpenVRMenu::Hide()
 {
   m_visible = false;
-}
-
-bool OpenVRMenu::IsVisible() const
-{
-  return m_visible;
+  m_ownerID = ~0U;
 }
 
 void OpenVRMenu::ShowtHotspot(int x, int y)
@@ -338,4 +336,23 @@ bool OpenVRMenu::IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x,
   *x = pixelX;
   *y = pixelY;
   return true;
+}
+
+void OpenVRMenu::LaserShoot(GLfloat const* origin, GLfloat const* dir)
+{
+  int x, y;
+  bool hit = IntersectRay(origin, dir, &x, &y);
+  if (hit) {
+    ShowtHotspot(x, y);
+    m_inputHandlers->MotionFunc(x, y, 0);
+  } else {
+    HideHotspot();
+  }
+}
+
+void OpenVRMenu::LaserClick(bool down)
+{
+  if (m_hotspot.x >= 0 && m_hotspot.y >= 0 && m_hotspot.x < m_width && m_hotspot.y < m_height) {
+    m_inputHandlers->MouseFunc(P_GLUT_LEFT_BUTTON, down ? P_GLUT_DOWN : P_GLUT_UP, m_hotspot.x, m_hotspot.y, 0);
+  }
 }

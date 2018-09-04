@@ -21,6 +21,7 @@ Z* -------------------------------------------------------------------
 #include "os_gl.h"
 #include "PyMOLGlobals.h"
 #include "ShaderMgr.h"
+#include "OpenVRStereo.h"
 
 class OpenVRMenu {
   struct Hotspot_t {
@@ -38,15 +39,16 @@ class OpenVRMenu {
 public:
   OpenVRMenu();
 
-  void Init();
+  void Init(OpenVRInputHandlers* inputHandlers);
   void Free();
 
   void Start(unsigned width, unsigned height, bool clear);
   void Finish();
 
-  void Show(GLfloat const* headMatrix);
+  void Show(GLfloat const* headMatrix, unsigned ownerID);
   void Hide();
   bool IsVisible() const;
+  unsigned GetOwnerID() const;
 
   void ShowtHotspot(int x, int y);
   void HideHotspot();
@@ -54,6 +56,9 @@ public:
   void Draw();
 
   bool IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y);
+
+  void LaserShoot(GLfloat const* origin, GLfloat const* dir);
+  void LaserClick(bool down);
 
 private:
   void InitGeometry();
@@ -66,6 +71,7 @@ private:
   void FreeBuffers();
 
 private:
+  OpenVRInputHandlers* m_inputHandlers;
   unsigned m_width;
   unsigned m_height;
   float m_sceneColor;
@@ -74,6 +80,7 @@ private:
   float m_fovTangent;
   bool m_valid;
   bool m_visible;
+  unsigned m_ownerID;
 
   GLfloat m_matrix[16];
   GLfloat m_worldHalfWidth;
@@ -95,5 +102,13 @@ private:
   GLint m_hotspotUniform;
   GLint m_hotspotColorUniform;
 };
+
+inline bool OpenVRMenu::IsVisible() const {
+  return m_visible;
+}
+
+inline unsigned OpenVRMenu::GetOwnerID() const {
+  return m_ownerID;
+}
 
 #endif /* _H_OpenVRMenu */

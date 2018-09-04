@@ -1073,28 +1073,28 @@ void OrthoKey(PyMOLGlobals * G, unsigned char k, int x, int y, int mod)
 
 
 /*========================================================================*/
-void OrthoAction(PyMOLGlobals * G, OpenVRAction_t a)
+void OrthoAction(PyMOLGlobals * G, int a)
 {
   COrtho *I = G->Ortho;
 
   switch(a) {
-  case OPENVR_ACTION_SCENE_NEXT:
+  case cAction_scene_next:
     OrthoCommandIn(G, "scene action=next");
     break;
 
-  case OPENVR_ACTION_SCENE_PREV:
+  case cAction_scene_prev:
     OrthoCommandIn(G, "scene action=previous");
     break;
 
-  case OPENVR_ACTION_MOVIE_TOGGLE:
+  case cAction_movie_toggle:
     OrthoCommandIn(G, "mtoggle");
     break;
 
-  case OPENVR_ACTION_MOVIE_NEXT:
+  case cAction_movie_next:
     OrthoCommandIn(G, "forward");
     break;
 
-  case OPENVR_ACTION_MOVIE_PREV:
+  case cAction_movie_prev:
     OrthoCommandIn(G, "backward");
     break;
   }
@@ -2665,12 +2665,29 @@ int OrthoInit(PyMOLGlobals * G, int showSplash)
         I->History[a][0] = 0;
     }
 
-    OpenVRSetKeyboardFunc(G, OrthoKey);
-    OpenVRSetSpecialFunc(G, OrthoSpecial);
-    OpenVRSetMouseFunc(G, OrthoButton);
-    OpenVRSetMotionFunc(G, OrthoDrag);
-    OpenVRSetActionFunc(G, OrthoAction);
+    class OrthoInputHandlers : public OpenVRInputHandlers {
+      PyMOLGlobals* G;
+    public:
+      explicit OrthoInputHandlers(PyMOLGlobals* G) : G(G) {}
 
+      virtual void KeyboardFunc(unsigned char k, int x, int y, int mod) {
+        OrthoKey(G, k, x, y, mod);
+      }
+      virtual void SpecialFunc(int k, int x, int y, int mod) {
+        OrthoSpecial(G, k, x, y, mod);
+      }
+      virtual int MouseFunc(int button, int state, int x, int y, int mod) {
+         return OrthoButton(G, button, state, x, y, mod);
+      }
+      virtual int MotionFunc(int x, int y, int mod) {
+        return OrthoDrag(G, x, y, mod);
+      }
+      virtual void ActionFunc(int a) {
+        OrthoAction(G, a);
+      }
+    };
+
+    OpenVRSetInputHandlers(G, new OrthoInputHandlers(G));
     return 1;
   } else {
     return 0;

@@ -24,26 +24,26 @@ bool OpenVRReady(PyMOLGlobals * G);
 int OpenVRInit(PyMOLGlobals * G);
 void OpenVRFree(PyMOLGlobals * G);
 
-enum OpenVRAction_t {
-  OPENVR_ACTION_SCENE_NEXT,
-  OPENVR_ACTION_SCENE_PREV,
+// PyMOL-style enum
+enum {
+  cAction_scene_next,
+  cAction_scene_prev,
 
-  OPENVR_ACTION_MOVIE_TOGGLE,
-  OPENVR_ACTION_MOVIE_NEXT,
-  OPENVR_ACTION_MOVIE_PREV,
+  cAction_movie_toggle,
+  cAction_movie_next,
+  cAction_movie_prev,
 };
 
-typedef void OpenVRKeyboardFunc_t(PyMOLGlobals * G, unsigned char k, int x, int y, int mod);
-typedef void OpenVRSpecialFunc_t(PyMOLGlobals * G, int k, int x, int y, int mod);
-typedef int OpenVRMouseFunc_t(PyMOLGlobals * G, int button, int state, int x, int y, int mod);
-typedef int OpenVRMotionFunc_t(PyMOLGlobals * G, int x, int y, int mod);
-typedef void OpenVRActionFunc_t(PyMOLGlobals * G, OpenVRAction_t a);
+class OpenVRInputHandlers {
+public:
+  virtual void KeyboardFunc(unsigned char k, int x, int y, int mod) {}
+  virtual void SpecialFunc(int k, int x, int y, int mod) {}
+  virtual int MouseFunc(int button, int state, int x, int y, int mod) { return 0; }
+  virtual int MotionFunc(int x, int y, int mod) { return 0; }
+  virtual void ActionFunc(int a) {}
+};
 
-void OpenVRSetKeyboardFunc(PyMOLGlobals * G, OpenVRKeyboardFunc_t* handler);
-void OpenVRSetSpecialFunc(PyMOLGlobals * G, OpenVRSpecialFunc_t* handler);
-void OpenVRSetMouseFunc(PyMOLGlobals * G, OpenVRMouseFunc_t* handler);
-void OpenVRSetMotionFunc(PyMOLGlobals * G, OpenVRMotionFunc_t* handler);
-void OpenVRSetActionFunc(PyMOLGlobals * G, OpenVRActionFunc_t* handler);
+void OpenVRSetInputHandlers(PyMOLGlobals * G, OpenVRInputHandlers* handlers);
 
 void OpenVRFeedback(PyMOLGlobals * G);
 
@@ -54,7 +54,7 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned width, unsigned height);
 
 void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear = false);
 void OpenVRMenuBufferFinish(PyMOLGlobals * G);
-void OpenVRMenuToggle(PyMOLGlobals * G);
+void OpenVRMenuToggle(PyMOLGlobals * G, unsigned deviceIndex = ~0U);
 
 float* OpenVRGetWorldToHead(PyMOLGlobals * G);
 float* OpenVRGetHeadToEye(PyMOLGlobals * G);
