@@ -34,5 +34,11 @@
   }, {
     "name": "/actions/pymol/in/LMouse",
     "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/MMouse",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/RMouse",
+    "type": "boolean"
   }]
 }

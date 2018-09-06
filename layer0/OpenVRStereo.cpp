@@ -544,13 +544,12 @@ std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t un
 }
 
 // process left pad as mouse lbutton
-void ProcessRightHWestPad(PyMOLGlobals * G, int SceneWidth, int SceneHeight) {
+void ProcessRightHWestPad(PyMOLGlobals * G, OpenVRAction *action, int glutButton, int SceneWidth, int SceneHeight) {
   COpenVR *I = G->OpenVR;
-  if (!I) return;
+  if (!action || !I) return;
 
   OpenVRInputHandlers* Handlers = I->Handlers;
-  OpenVRActionList* Actions = I->Actions;
-  if (!Handlers || !Actions)
+  if (!Handlers)
    return;
 
   // imitate mouse cursor position from controller camera position
@@ -564,13 +563,13 @@ void ProcessRightHWestPad(PyMOLGlobals * G, int SceneWidth, int SceneHeight) {
   int screenCenterX = SceneWidth / 2; 
   int screenCenterY = SceneHeight / 2; 
 
-  if (Actions->LMouse->WasPressedOrReleased()) {
-    nowPressed = Actions->LMouse->IsPressed();
+  if (action->WasPressedOrReleased()) {
+    nowPressed = action->IsPressed();
     if (nowPressed) {
       startX = x; startY = y;
-      Handlers->MouseFunc(P_GLUT_LEFT_BUTTON, P_GLUT_DOWN, screenCenterX, screenCenterY, 0);
+      Handlers->MouseFunc(glutButton, P_GLUT_DOWN, screenCenterX, screenCenterY, 0);
     } else {
-      Handlers->MouseFunc(P_GLUT_LEFT_BUTTON, P_GLUT_UP, deltaX + screenCenterX, deltaY + screenCenterY, 0);
+      Handlers->MouseFunc(glutButton, P_GLUT_UP, deltaX + screenCenterX, deltaY + screenCenterY, 0);
     }
   }
   if (nowPressed) {
@@ -624,7 +623,9 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
       I->Handlers->ActionFunc(cAction_scene_prev);
     if (Actions->PadSouth->WasPressed())
       I->Handlers->ActionFunc(cAction_scene_next);
-    ProcessRightHWestPad(G, SceneWidth, SceneHeight);
+    ProcessRightHWestPad(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, SceneWidth, SceneHeight);
+    ProcessRightHWestPad(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, SceneWidth, SceneHeight);
+    ProcessRightHWestPad(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, SceneWidth, SceneHeight);
 
   } else {
 

@@ -56,13 +56,13 @@
             "output": "/actions/pymol/in/PadCenter"
           },
           "east": {
-            "output": "/actions/pymol/in/PadEast"
+            "output": "/actions/pymol/in/RMouse"
           },
           "west": {
             "output": "/actions/pymol/in/LMouse"
           },
           "north": {
-            "output": "/actions/pymol/in/PadNorth"
+            "output": "/actions/pymol/in/MMouse"
           },
           "south": {
             "output": "/actions/pymol/in/PadSouth"
