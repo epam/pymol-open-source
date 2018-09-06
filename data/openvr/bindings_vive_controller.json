@@ -52,9 +52,6 @@
         "path": "/user/hand/right/input/trackpad",
         "mode": "dpad_click",
         "inputs": {
-          "center": {
-            "output": "/actions/pymol/in/PadCenter"
-          },
           "east": {
             "output": "/actions/pymol/in/RMouse"
           },
@@ -63,9 +60,6 @@
           },
           "north": {
             "output": "/actions/pymol/in/MMouse"
-          },
-          "south": {
-            "output": "/actions/pymol/in/PadSouth"
           }
         }
       }, {

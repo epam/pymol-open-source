@@ -543,8 +543,7 @@ std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t un
   return sResult;
 }
 
-// process left pad as mouse lbutton
-void ProcessRightHWestPad(PyMOLGlobals * G, OpenVRAction *action, int glutButton, int SceneWidth, int SceneHeight) {
+void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutButton, int SceneWidth, int SceneHeight) {
   COpenVR *I = G->OpenVR;
   if (!action || !I) return;
 
@@ -559,6 +558,7 @@ void ProcessRightHWestPad(PyMOLGlobals * G, OpenVRAction *action, int glutButton
   static bool nowPressed = false;
   static int startX  = 0, startY = 0;
   static int deltaX = 0, deltaY = 0;
+
   // starting point for cursor movement
   int screenCenterX = SceneWidth / 2; 
   int screenCenterY = SceneHeight / 2; 
@@ -566,7 +566,8 @@ void ProcessRightHWestPad(PyMOLGlobals * G, OpenVRAction *action, int glutButton
   if (action->WasPressedOrReleased()) {
     nowPressed = action->IsPressed();
     if (nowPressed) {
-      startX = x; startY = y;
+      startX = x;
+      startY = y;
       Handlers->MouseFunc(glutButton, P_GLUT_DOWN, screenCenterX, screenCenterY, 0);
     } else {
       Handlers->MouseFunc(glutButton, P_GLUT_UP, deltaX + screenCenterX, deltaY + screenCenterY, 0);
@@ -623,9 +624,10 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
       I->Handlers->ActionFunc(cAction_scene_prev);
     if (Actions->PadSouth->WasPressed())
       I->Handlers->ActionFunc(cAction_scene_next);
-    ProcessRightHWestPad(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, SceneWidth, SceneHeight);
-    ProcessRightHWestPad(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, SceneWidth, SceneHeight);
-    ProcessRightHWestPad(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, SceneWidth, SceneHeight);
+
+    ProcessButtonDragAsMouse(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, SceneWidth, SceneHeight);
+    ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, SceneWidth, SceneHeight);
+    ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, SceneWidth, SceneHeight);
 
   } else {
 
