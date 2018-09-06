@@ -1,5 +1,5 @@
 #ifndef _PyMOL_VERSION
-#define _PyMOL_VERSION "2.1.0+EPAM.OpenVR.2018.08.2"
+#define _PyMOL_VERSION "2.1.0+EPAM.OpenVR.2018.09.3"
 #endif
 
 /* for session file compatibility */
