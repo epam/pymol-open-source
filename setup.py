@@ -204,7 +204,7 @@ Source: "pymol.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\\{#MyAppName} {#MyAppShortVersion}"; Filename: "{app}\\%(pythonsubdir)s\\Scripts\\{#MyAppExeName}"; WorkingDir: "{app}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\"; IconFilename: "{app}\\pymol.ico"
-Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+Name: "{group}\\{cm:UninstallProgram,{#MyAppName} {#MyAppShortVersion}}"; Filename: "{uninstallexe}"
 
 [Run]
 Filename: "{app}\\%(pythonsubdir)s\\Scripts\\{#MyAppExeName}"; WorkingDir: "{app}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
