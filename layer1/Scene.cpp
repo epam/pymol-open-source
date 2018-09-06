@@ -9594,7 +9594,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	  }
           if(stereo_mode == cStereo_openvr) {
             OpenVRFrameStart(G);
-            OpenVRHandleInput(G);
+            OpenVRHandleInput(G, I->Width, I->Height);
           }
 	  DoHandedStereo(G, I, PrepareViewPortForStereo, stereo_mode, offscreen, times, x, y, oversize_width, oversize_height, 
 			 GL_BACK_LEFT, mono_as_quad_stereo, stereo_using_mono_matrix ? 0 : 1, &I->grid, curState, normal, &context, width_scale, 0, 0, offscreen);

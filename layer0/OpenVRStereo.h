@@ -64,7 +64,7 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane);
 void OpenVRLoadProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane);
 void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G);
 
-void OpenVRHandleInput(PyMOLGlobals * G);
+void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight);
 
 void OpenVRDraw(PyMOLGlobals * G);
 

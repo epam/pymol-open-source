@@ -543,7 +543,44 @@ std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t un
   return sResult;
 }
 
-void OpenVRHandleInput(PyMOLGlobals * G)
+// process left pad as mouse lbutton
+void ProcessRightHWestPad(PyMOLGlobals * G, int SceneWidth, int SceneHeight) {
+  COpenVR *I = G->OpenVR;
+  if (!I) return;
+
+  OpenVRInputHandlers* Handlers = I->Handlers;
+  OpenVRActionList* Actions = I->Actions;
+  if (!Handlers || !Actions)
+   return;
+
+  // imitate mouse cursor position from controller camera position
+  float (*mat)[4] = (float (*)[4])I->Hands[HRight].GetPose();
+  int x = (int)(mat[3][0]* 500.0f), y = (int)(mat[3][1] * 500.0f); // magic factors
+
+  static bool nowPressed = false;
+  static int startX  = 0, startY = 0;
+  static int deltaX = 0, deltaY = 0;
+  // starting point for cursor movement
+  int screenCenterX = SceneWidth / 2; 
+  int screenCenterY = SceneHeight / 2; 
+
+  if (Actions->LMouse->WasPressedOrReleased()) {
+    nowPressed = Actions->LMouse->IsPressed();
+    if (nowPressed) {
+      startX = x; startY = y;
+      Handlers->MouseFunc(P_GLUT_LEFT_BUTTON, P_GLUT_DOWN, screenCenterX, screenCenterY, 0);
+    } else {
+      Handlers->MouseFunc(P_GLUT_LEFT_BUTTON, P_GLUT_UP, deltaX + screenCenterX, deltaY + screenCenterY, 0);
+    }
+  }
+  if (nowPressed) {
+    deltaX = x - startX;
+    deltaY = y - startY;
+    Handlers->MotionFunc(deltaX + screenCenterX, deltaY + screenCenterY, 0);
+  }
+}
+
+void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
@@ -587,6 +624,7 @@ void OpenVRHandleInput(PyMOLGlobals * G)
       I->Handlers->ActionFunc(cAction_scene_prev);
     if (Actions->PadSouth->WasPressed())
       I->Handlers->ActionFunc(cAction_scene_next);
+    ProcessRightHWestPad(G, SceneWidth, SceneHeight);
 
   } else {
 

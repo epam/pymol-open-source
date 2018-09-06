@@ -31,5 +31,8 @@
   }, {
     "name": "/actions/pymol/in/PadSouth",
     "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/LMouse",
+    "type": "boolean"
   }]
 }

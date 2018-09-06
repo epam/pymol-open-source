@@ -59,7 +59,7 @@
             "output": "/actions/pymol/in/PadEast"
           },
           "west": {
-            "output": "/actions/pymol/in/PadWest"
+            "output": "/actions/pymol/in/LMouse"
           },
           "north": {
             "output": "/actions/pymol/in/PadNorth"

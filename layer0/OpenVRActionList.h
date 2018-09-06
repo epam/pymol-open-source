@@ -19,6 +19,7 @@ struct OpenVRActionList {
   OpenVRAction* PadWest;
   OpenVRAction* PadNorth;
   OpenVRAction* PadSouth;
+  OpenVRAction* LMouse;
 
   explicit OpenVRActionList(vr::IVRInput* Input) {
     Input->GetActionSetHandle("/actions/pymol", &DefaultSet);
@@ -33,6 +34,7 @@ struct OpenVRActionList {
     OPENVR_ADD_ACTION("pymol", PadWest);
     OPENVR_ADD_ACTION("pymol", PadNorth);
     OPENVR_ADD_ACTION("pymol", PadSouth);
+    OPENVR_ADD_ACTION("pymol", LMouse);
 #undef OPENVR_ADD_ACTION
   }
 
