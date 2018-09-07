@@ -88,6 +88,10 @@ struct COpenVR {
   OpenVRInputHandlers* Handlers;
 
   OpenVRActionList* Actions;
+
+  // mouse cursor imitation information
+  int startX, startY;
+  int deltaX, deltaY;  
 };
 
 static const float OPEN_VR_FRONT = 0.1f;
@@ -555,28 +559,24 @@ void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutBu
   float (*mat)[4] = (float (*)[4])I->Hands[HRight].GetPose();
   int x = (int)(mat[3][0]* 500.0f), y = (int)(mat[3][1] * 500.0f); // magic factors
 
-  static bool nowPressed = false;
-  static int startX  = 0, startY = 0;
-  static int deltaX = 0, deltaY = 0;
-
   // starting point for cursor movement
   int screenCenterX = SceneWidth / 2; 
   int screenCenterY = SceneHeight / 2; 
 
+  bool nowPressed = action->IsPressed();
   if (action->WasPressedOrReleased()) {
-    nowPressed = action->IsPressed();
     if (nowPressed) {
-      startX = x;
-      startY = y;
+      I->startX = x;
+      I->startY = y;
       Handlers->MouseFunc(glutButton, P_GLUT_DOWN, screenCenterX, screenCenterY, 0);
     } else {
-      Handlers->MouseFunc(glutButton, P_GLUT_UP, deltaX + screenCenterX, deltaY + screenCenterY, 0);
+      Handlers->MouseFunc(glutButton, P_GLUT_UP, I->deltaX + screenCenterX, I->deltaY + screenCenterY, 0);
     }
   }
   if (nowPressed) {
-    deltaX = x - startX;
-    deltaY = y - startY;
-    Handlers->MotionFunc(deltaX + screenCenterX, deltaY + screenCenterY, 0);
+    I->deltaX = x - I->startX;
+    I->deltaY = y - I->startY;
+    Handlers->MotionFunc(I->deltaX + screenCenterX, I->deltaY + screenCenterY, 0);
   }
 }
 
