@@ -379,7 +379,7 @@ void OpenVREyeFinish(PyMOLGlobals * G)
   I->Eye = NULL;
 }
 
-void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_height)
+void OpenVRFrameFinish(PyMOLGlobals * G, unsigned sceneX, unsigned sceneY, unsigned sceneWidth, unsigned sceneHeight)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
@@ -392,8 +392,8 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   I->Compositor->Submit(vr::Eye_Right, &I->Right.Texture);
 
   // find a proper rectangle with the scene aspect ratio
-  unsigned width = I->Height * scene_width / scene_height;
-  unsigned height = I->Width * scene_height / scene_width;
+  unsigned width = I->Height * sceneWidth / sceneHeight;
+  unsigned height = I->Width * sceneHeight / sceneWidth;
   unsigned dx = 0, dy = 0;
   if (width < I->Width) {
     dx = (I->Width - width) / 2;
@@ -406,7 +406,7 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned scene_width, unsigned scene_he
   // display a copy of the VR framebuffer in the main PyMOL window
   glDrawBuffer(GL_BACK);
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, I->Left.ResolveBufferID);
-  glBlitFramebufferEXT(dx, dy, dx + width, dy + height, 0, 0, scene_width, scene_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+  glBlitFramebufferEXT(dx, dy, dx + width, dy + height, sceneX, sceneY, sceneX + sceneWidth, sceneY + sceneHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
 }
 

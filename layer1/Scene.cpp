@@ -9607,7 +9607,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	  DoHandedStereo(G, I, PrepareViewPortForStereo2nd, stereo_mode, offscreen, times, x, y, oversize_width, oversize_height, 
 			 GL_BACK_RIGHT, mono_as_quad_stereo, stereo_using_mono_matrix ? 0 : 2, &I->grid, curState, normal, &context, width_scale, 1, 0, offscreen);
           if(stereo_mode == cStereo_openvr) {
-            OpenVRFrameFinish(G, I->Width, I->Height);
+            OpenVRFrameFinish(G, I->Block->rect.left, I->Block->rect.bottom, I->Width, I->Height);
             PyMOL_NeedRedisplay(G->PyMOL);
           }
           /* restore draw buffer */

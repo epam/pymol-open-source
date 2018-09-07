@@ -50,7 +50,7 @@ void OpenVRFeedback(PyMOLGlobals * G);
 void OpenVRFrameStart(PyMOLGlobals * G);
 void OpenVREyeStart(PyMOLGlobals * G, int eye);
 void OpenVREyeFinish(PyMOLGlobals * G);
-void OpenVRFrameFinish(PyMOLGlobals * G, unsigned width, unsigned height);
+void OpenVRFrameFinish(PyMOLGlobals * G, unsigned sceneX, unsigned sceneY, unsigned sceneWidth, unsigned sceneHeight);
 
 void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear = false);
 void OpenVRMenuBufferFinish(PyMOLGlobals * G);
