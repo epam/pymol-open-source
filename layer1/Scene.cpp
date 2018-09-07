@@ -9592,9 +9592,13 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	  if (G->ShaderMgr && stereo_mode==cStereo_anaglyph) {
 	    G->ShaderMgr->stereo_flag = -1;
 	  }
+          int savedWidth, savedHeight;
           if(stereo_mode == cStereo_openvr) {
             OpenVRFrameStart(G);
             OpenVRHandleInput(G, I->Width, I->Height);
+            savedWidth = I->Width;
+            savedHeight = I->Height;
+            OpenVRGetWidthHeight(G, &I->Width, &I->Height);
           }
 	  DoHandedStereo(G, I, PrepareViewPortForStereo, stereo_mode, offscreen, times, x, y, oversize_width, oversize_height, 
 			 GL_BACK_LEFT, mono_as_quad_stereo, stereo_using_mono_matrix ? 0 : 1, &I->grid, curState, normal, &context, width_scale, 0, 0, offscreen);
@@ -9607,6 +9611,8 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	  DoHandedStereo(G, I, PrepareViewPortForStereo2nd, stereo_mode, offscreen, times, x, y, oversize_width, oversize_height, 
 			 GL_BACK_RIGHT, mono_as_quad_stereo, stereo_using_mono_matrix ? 0 : 2, &I->grid, curState, normal, &context, width_scale, 1, 0, offscreen);
           if(stereo_mode == cStereo_openvr) {
+            I->Width = savedWidth;
+            I->Height = savedHeight;
             OpenVRFrameFinish(G, I->Block->rect.left, I->Block->rect.bottom, I->Width, I->Height);
             PyMOL_NeedRedisplay(G->PyMOL);
           }

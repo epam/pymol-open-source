@@ -52,6 +52,8 @@ void OpenVREyeStart(PyMOLGlobals * G, int eye);
 void OpenVREyeFinish(PyMOLGlobals * G);
 void OpenVRFrameFinish(PyMOLGlobals * G, unsigned sceneX, unsigned sceneY, unsigned sceneWidth, unsigned sceneHeight);
 
+void OpenVRGetWidthHeight(PyMOLGlobals * G, int* width, int* height);
+
 void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear = false);
 void OpenVRMenuBufferFinish(PyMOLGlobals * G);
 void OpenVRMenuToggle(PyMOLGlobals * G, unsigned deviceIndex = ~0U);

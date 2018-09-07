@@ -410,6 +410,15 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned sceneX, unsigned sceneY, unsig
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
 }
 
+void OpenVRGetWidthHeight(PyMOLGlobals * G, int* width, int* height)
+{
+  COpenVR *I = G->OpenVR;
+  if (I) {
+    *width = I->Width;
+    *height = I->Height;
+  }
+}
+
 void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear /* = false */)
 {
   COpenVR *I = G->OpenVR;
