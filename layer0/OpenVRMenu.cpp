@@ -238,9 +238,41 @@ void OpenVRMenu::Finish()
   glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
 }
 
+static inline void CrossProduct(const float * v1, const float * v2, float * cross) {
+  cross[0] = (v1[1] * v2[2]) - (v1[2] * v2[1]);
+  cross[1] = (v1[2] * v2[0]) - (v1[0] * v2[2]);
+  cross[2] = (v1[0] * v2[1]) - (v1[1] * v2[0]);
+}
+
+static inline void Normalize(float *v)
+{
+  double len = sqrt((v[0] * v[0]) + (v[1] * v[1]) + (v[2] * v[2]));
+  if (len > 1.0e-5f) {
+    float a = 1.0f / len;
+    v[0] *= a;
+    v[1] *= a;
+    v[2] *= a;
+  }
+}
+
 void OpenVRMenu::Show(GLfloat const* headMatrix, unsigned ownerID)
 {
   memcpy(m_matrix, headMatrix, sizeof(m_matrix));
+
+  // constrain matrix to a zero roll angle
+  float* right = m_matrix;
+  float* up = m_matrix + 4;
+  float* back = m_matrix + 8;
+  if (fabsf(back[1]) < 0.95f) {
+    up[0] = 0.0f;
+    up[1] = 1.0f;
+    up[2] = 0.0f;
+    CrossProduct(up, back, right);
+    Normalize(right);
+    CrossProduct(back, right, up);
+    Normalize(up);
+  }
+
   m_visible = true;
   m_ownerID = ownerID;
 }
