@@ -12,7 +12,7 @@ OpenVRMenu::OpenVRMenu()
   , m_worldHalfWidth(2.0f)
   , m_worldHalfHeight(1.5f)
   , m_frameBufferID(0)
-  , m_textureID(0)
+  , m_guiTextureID(0)
   , m_vertexArrayID(0)
   , m_vertexBufferID(0)
   , m_vertexCount(0)
@@ -167,19 +167,25 @@ bool OpenVRMenu::InitShaders()
       "gl_Position = gl_ModelViewProjectionMatrix * vec4(position, 0.0, 1.0);\n"
     "}\n";
   const char* fs =
-    "uniform sampler2D texture;\n"
+    "uniform sampler2D guiTexture;\n"
+    "uniform sampler2D sceneTexture;\n"
     "uniform vec4 hotspot;\n"
     "uniform vec4 hotspotColor;\n"
     "varying vec2 texcoords;\n"
     "void main() {\n"
       "vec2 delta = (texcoords - hotspot.xy) / hotspot.zw;\n"
       "float spotFactor = step(dot(delta, delta), 1.0);\n"
-      "gl_FragColor = texture2D(texture, texcoords) + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, 1);\n"
+      "vec4 guiColor = texture2D(guiTexture, texcoords);\n"
+      "vec4 sceneColor = texture2D(sceneTexture, texcoords);\n"
+      "vec4 color = vec4(mix(sceneColor.rgb, guiColor.rgb, guiColor.a), guiColor.a);\n"
+      "gl_FragColor = color + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, 1);\n"
     "}\n";
 
   m_programID = CompileProgram(vs, fs);
   m_hotspotUniform = glGetUniformLocation(m_programID, "hotspot");
   m_hotspotColorUniform = glGetUniformLocation(m_programID, "hotspotColor");
+  m_guiTextureUniform = glGetUniformLocation(m_programID, "guiTexture");
+  m_sceneTextureUniform = glGetUniformLocation(m_programID, "sceneTexture");
   return m_programID && m_hotspotUniform != -1 && m_hotspotColorUniform != -1;
 }
 
@@ -201,13 +207,13 @@ void OpenVRMenu::InitBuffers(unsigned width, unsigned height)
   glBindFramebufferEXT(GL_FRAMEBUFFER, m_frameBufferID);
 
   // - color
-  glGenTextures(1, &m_textureID);
-  glBindTexture(GL_TEXTURE_2D, m_textureID);
+  glGenTextures(1, &m_guiTextureID);
+  glBindTexture(GL_TEXTURE_2D, m_guiTextureID);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-  glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureID, 0);
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_guiTextureID, 0);
 
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
@@ -215,7 +221,7 @@ void OpenVRMenu::InitBuffers(unsigned width, unsigned height)
 
 void OpenVRMenu::FreeBuffers()
 {
-  glDeleteTextures(1, &m_textureID);
+  glDeleteTextures(1, &m_guiTextureID);
   glDeleteFramebuffers(1, &m_frameBufferID);
 }
 
@@ -295,7 +301,7 @@ void OpenVRMenu::HideHotspot()
   m_hotspot.y = -2 * m_hotspot.radius;
 }
 
-void OpenVRMenu::Draw()
+void OpenVRMenu::Draw(GLuint sceneTextureID /* = 0 */)
 {
   if (!m_valid || !m_visible)
     return;
@@ -312,7 +318,10 @@ void OpenVRMenu::Draw()
   glDepthFunc(GL_ALWAYS);
   glUseProgram(m_programID);
   glBindVertexArray(m_vertexArrayID);
-  glBindTexture(GL_TEXTURE_2D, m_textureID);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_guiTextureID);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, sceneTextureID);
 
   float hotspot[4] = {
     (float)m_hotspot.x / m_width, (float)m_hotspot.y / m_height,
@@ -320,9 +329,14 @@ void OpenVRMenu::Draw()
   };
   glUniform4fv(m_hotspotUniform, 1, hotspot);
   glUniform4fv(m_hotspotColorUniform, 1, m_hotspot.color);
+  glUniform1i(m_guiTextureUniform, 0);
+  glUniform1i(m_sceneTextureUniform, 1);
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, m_vertexCount);
 
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);

@@ -53,7 +53,7 @@ public:
   void ShowtHotspot(int x, int y);
   void HideHotspot();
 
-  void Draw();
+  void Draw(GLuint sceneTextureID = 0);
 
   bool IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y);
 
@@ -90,7 +90,7 @@ private:
 
   // offscreen framebuffer
   GLuint m_frameBufferID;
-  GLuint m_textureID;
+  GLuint m_guiTextureID;
 
   // geometry
   GLuint m_vertexArrayID;
@@ -101,6 +101,8 @@ private:
   GLuint m_programID;
   GLint m_hotspotUniform;
   GLint m_hotspotColorUniform;
+  GLint m_guiTextureUniform;
+  GLint m_sceneTextureUniform;
 };
 
 inline bool OpenVRMenu::IsVisible() const {
