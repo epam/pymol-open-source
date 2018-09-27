@@ -256,7 +256,7 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
   for (int i = HLeft; i <= HRight; ++i) {
     OpenVRController &hand = I->Hands[i];
     if (!hand.IsInitialized()) {
-      hand.Init(G);
+      hand.Init();
     }  
   }  
 }
@@ -644,9 +644,12 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
 
     OpenVRController* menuHand = RightHand.IsLaserVisible() ? &RightHand : LeftHand.IsLaserVisible() ? &LeftHand : 0;
     if (menuHand) {
-      float origin[3], dir[3];
-      if (menuHand->GetLaser(origin, dir)) {
-        I->Menu.LaserShoot(origin, dir);
+      float origin[3], dir[3], color[4];
+      if (menuHand->GetLaser(origin, dir, color)) {
+        float distance = 0.0f;
+        bool hit = I->Menu.LaserShoot(origin, dir, color, &distance);
+        menuHand->SetLaserLength(distance);
+        menuHand->SetLaserColor(color[0], color[1], color[2], hit ? 1.0f : 0.25f);
       }
     }
 
@@ -713,7 +716,7 @@ void OpenVRDraw(PyMOLGlobals * G)
 
   // render controllers
   for (int i = HLeft; i <= HRight; ++i) {
-    I->Hands[i].Draw(G);  
+    I->Hands[i].Draw();
   }
 
   glPopMatrix();

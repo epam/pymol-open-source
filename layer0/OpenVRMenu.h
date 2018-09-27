@@ -28,10 +28,10 @@ class OpenVRMenu {
     int x, y, radius;
     float color[4];
 
-    Hotspot_t() : x(0), y(0), radius(5) {
-      color[0] = 0.92f;
-      color[1] = 0.92f;
-      color[2] = 0.71f;
+    Hotspot_t() : x(0), y(0), radius(3) {
+      color[0] = 1.0f;
+      color[1] = 1.0f;
+      color[2] = 1.0f;
       color[3] = 0.25f;
     }
   };
@@ -50,14 +50,12 @@ public:
   bool IsVisible() const;
   unsigned GetOwnerID() const;
 
-  void ShowtHotspot(int x, int y);
+  void ShowtHotspot(int x, int y, float const* color = 0);
   void HideHotspot();
 
   void Draw(GLuint sceneTextureID = 0);
 
-  bool IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y);
-
-  void LaserShoot(GLfloat const* origin, GLfloat const* dir);
+  bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0);
   void LaserClick(bool down);
 
 private:
@@ -69,6 +67,8 @@ private:
 
   void InitBuffers(unsigned width, unsigned height);
   void FreeBuffers();
+
+  bool IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y, float* distance = 0);
 
 private:
   OpenVRInputHandlers* m_inputHandlers;

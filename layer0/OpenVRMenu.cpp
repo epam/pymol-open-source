@@ -1,4 +1,5 @@
 #include "OpenVRMenu.h"
+#include "OpenVRUtils.h"
 
 OpenVRMenu::OpenVRMenu()
   : m_width(640)
@@ -21,7 +22,7 @@ OpenVRMenu::OpenVRMenu()
   memset(m_matrix, 0, sizeof(m_matrix));
   m_matrix[0] = m_matrix[5] = m_matrix[10] = m_matrix[15] = 1.0f;
 
-  ShowtHotspot(100, 100); // HideHotspot();
+  HideHotspot();
 }
 
 void OpenVRMenu::Init(OpenVRInputHandlers* inputHandlers)
@@ -81,81 +82,6 @@ void OpenVRMenu::FreeGeometry()
   }
 }
 
-static GLuint CompileShader(GLenum shaderType, char const* shader)
-{
-  GLuint shaderID = glCreateShader(shaderType);
-  glShaderSource(shaderID, 1, &shader, NULL);
-  glCompileShader(shaderID);
-
-  GLint success = GL_FALSE;
-  glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    int infoLogLength = 0;
-    glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-    if (infoLogLength > 0) {
-      char *infoLog = new char[infoLogLength];
-      glGetShaderInfoLog(shaderID, infoLogLength, 0, infoLog);
-      printf("GLSL shader compilation failed, log follows:\n"
-        "=============================================================================\n"
-        "%s"
-        "=============================================================================\n", infoLog);
-      delete[] infoLog;
-    }
-    glDeleteShader(shaderID);
-    shaderID = 0;
-  }
-  return shaderID;
-}
-
-static GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader)
-{
-  GLuint vertexShaderID = CompileShader(GL_VERTEX_SHADER, vertexShader);
-  GLuint fragmentShaderID = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-  GLuint programID = 0;
-  if (vertexShaderID && fragmentShaderID) {
-    programID = glCreateProgram();
-    glAttachShader(programID, vertexShaderID);
-    glAttachShader(programID, fragmentShaderID);
-    glLinkProgram(programID);
-
-    GLint success = GL_FALSE;
-    glGetProgramiv(programID, GL_LINK_STATUS, &success);
-    if (!success) {
-      int infoLogLength = 0;
-      glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-      if (infoLogLength > 0) {
-        char *infoLog = new char[infoLogLength];
-        glGetProgramInfoLog(programID, infoLogLength, 0, infoLog);
-        printf("GLSL program linking failed, log follows:\n"
-          "=============================================================================\n"
-          "%s"
-          "=============================================================================\n", infoLog);
-        delete[] infoLog;
-      }
-
-      glDeleteProgram(programID);
-      programID = 0;
-    }
-  }
-
-  if (vertexShaderID) {
-    glDeleteShader(vertexShaderID);
-  }
-
-  if (fragmentShaderID) {
-    glDeleteShader(fragmentShaderID);
-  }
-
-  if (programID) {
-    glUseProgram(programID);
-    glUseProgram(0);
-  }
-
-  return programID;
-}
-
-
 bool OpenVRMenu::InitShaders()
 {
   const char* vs =
@@ -181,7 +107,7 @@ bool OpenVRMenu::InitShaders()
       "gl_FragColor = color + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, 1);\n"
     "}\n";
 
-  m_programID = CompileProgram(vs, fs);
+  m_programID = OpenVRUtils::CompileProgram(vs, fs);
   m_hotspotUniform = glGetUniformLocation(m_programID, "hotspot");
   m_hotspotColorUniform = glGetUniformLocation(m_programID, "hotspotColor");
   m_guiTextureUniform = glGetUniformLocation(m_programID, "guiTexture");
@@ -289,10 +215,15 @@ void OpenVRMenu::Hide()
   m_ownerID = ~0U;
 }
 
-void OpenVRMenu::ShowtHotspot(int x, int y)
+void OpenVRMenu::ShowtHotspot(int x, int y, float const* color /* = 0 */)
 {
   m_hotspot.x = x;
   m_hotspot.y = y;
+  if (color) {
+    m_hotspot.color[0] = color[0];
+    m_hotspot.color[1] = color[1];
+    m_hotspot.color[2] = color[2];
+  }
 }
 
 void OpenVRMenu::HideHotspot()
@@ -345,7 +276,7 @@ void OpenVRMenu::Draw(GLuint sceneTextureID /* = 0 */)
   glPopMatrix();
 }
 
-bool OpenVRMenu::IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y)
+bool OpenVRMenu::IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y, float* out_distance /* = 0 */)
 {
   GLfloat const* right = &m_matrix[0];  // head coordinates X-axis
   GLfloat const* up = &m_matrix[4];     // head coordinates Y-axis
@@ -376,24 +307,27 @@ bool OpenVRMenu::IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x,
   // check out of bounds
   int pixelX = (int)((rawX + m_worldHalfWidth) * 0.5f * m_width / m_worldHalfWidth + 0.5f);
   int pixelY = (int)((rawY + m_worldHalfHeight) * 0.5f * m_height / m_worldHalfHeight + 0.5f);
-  if (pixelX < 0 || pixelY < 0 || pixelX >= m_width || pixelY >= m_width)
+  if (pixelX < 0 || pixelY < 0 || pixelX >= m_width || pixelY >= m_height)
     return false;
 
   *x = pixelX;
   *y = pixelY;
+  if (out_distance)
+    *out_distance = distance;
   return true;
 }
 
-void OpenVRMenu::LaserShoot(GLfloat const* origin, GLfloat const* dir)
+bool OpenVRMenu::LaserShoot(float const* origin, float const* dir, float const* color, float* distance /* = 0 */)
 {
   int x, y;
-  bool hit = IntersectRay(origin, dir, &x, &y);
+  bool hit = IntersectRay(origin, dir, &x, &y, distance);
   if (hit) {
-    ShowtHotspot(x, y);
+    ShowtHotspot(x, y, color);
     m_inputHandlers->MotionFunc(x, y, 0);
   } else {
     HideHotspot();
   }
+  return hit;
 }
 
 void OpenVRMenu::LaserClick(bool down)

@@ -18,31 +18,29 @@ Z* -------------------------------------------------------------------
 
 #include "openvr.h"
 
-#include "PyMOLGlobals.h"
-#include "ShaderMgr.h"
 #include "OpenVRControllerModel.h"
+#include "OpenVRLaser.h"
 
 class OpenVRController {
 public:
-  OpenVRController():  m_uiControllerVertcount(0), m_glControllerVertBuffer(0),
-    m_unControllerVAO(0), m_unControllerTransformProgramID(0), m_pAxesShader(NULL),
-    m_deviceIndex(~0U), m_bShowController(true), m_bShowLaser(false)
-    {}
+  OpenVRController();
  
-  bool IsInitialized() {return m_uiControllerVertcount && m_glControllerVertBuffer && m_unControllerVAO &&
-    m_pAxesShader;}
- 
-  void Init(PyMOLGlobals * G) { InitAxes(G); InitAxesShader(G); }
-  void Free() { DestroyAxes(); }
-  void Draw(PyMOLGlobals * G);
+  void Init();
+  void Free();
+  bool IsInitialized();
+
+  void Draw();
+
   float *GetPose() {return m_pose;} // it's not safe =)
 
-  void Show(bool isVisible) {m_bShowController = isVisible;}
-  bool IsVisible() const { return m_bShowController; }
+  void Show(bool isVisible);
+  bool IsVisible() const;
 
-  void ShowLaser(bool isVisible) {m_bShowLaser = isVisible;}
-  bool IsLaserVisible() const { return m_bShowLaser; }
-  bool GetLaser(float* origin, float* dir);
+  void ShowLaser(bool isVisible);
+  bool IsLaserVisible() const;
+  bool GetLaser(float* origin, float* dir, float* color = 0);
+  void SetLaserLength(float length);
+  void SetLaserColor(float r, float g, float b, float a);
 
 public:
 // FIXME make good initialization
@@ -51,18 +49,10 @@ public:
   std::string m_sRenderModelName;
 
 private:
-  unsigned int m_uiControllerVertcount;
-  GLuint m_glControllerVertBuffer;
-  GLuint m_unControllerVAO;
-  GLuint m_unControllerTransformProgramID;
-  CShaderPrg *m_pAxesShader;
-  GLfloat m_pose[16]; // model2world matrix 
+  bool m_init;
   bool m_bShowController;
-  bool m_bShowLaser;
-  
-  void InitAxes(PyMOLGlobals * G);
-  void InitAxesShader(PyMOLGlobals * G);
-  void DestroyAxes(); 	
+  GLfloat m_pose[16]; // model2world matrix 
+  OpenVRLaser m_laser;
 };
 
 #endif /* _H_OpenVRController */
