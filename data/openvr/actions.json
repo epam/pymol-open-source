@@ -14,6 +14,9 @@
     "name": "/actions/pymol/in/ToggleMenu",
     "type": "boolean"
   }, {
+    "name": "/actions/pymol/in/LaserShoot",
+    "type": "boolean"
+  }, {
     "name": "/actions/pymol/in/LClick",
     "type": "boolean"
   }, {

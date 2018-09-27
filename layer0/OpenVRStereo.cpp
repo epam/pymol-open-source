@@ -615,9 +615,7 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
 
   // update controllers visibility
   LeftHand.Show(Actions->LeftHand->PoseValid());
-  LeftHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == LeftHand.m_deviceIndex);
   RightHand.Show(Actions->RightHand->PoseValid());
-  RightHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == RightHand.m_deviceIndex);
 
   if (!I->Menu.IsVisible()) {
 
@@ -638,13 +636,26 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
     ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, SceneWidth, SceneHeight);
     ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, SceneWidth, SceneHeight);
 
+    LeftHand.ShowLaser(Actions->LaserShoot->IsPressed() && Actions->LaserShoot->DeviceIndex() == LeftHand.m_deviceIndex);
+    RightHand.ShowLaser(Actions->LaserShoot->IsPressed() && Actions->LaserShoot->DeviceIndex() == RightHand.m_deviceIndex);
+
+    OpenVRController* pickHand = RightHand.IsLaserVisible() ? &RightHand : LeftHand.IsLaserVisible() ? &LeftHand : 0;
+    if (pickHand) {
+      pickHand->SetLaserLength(0.0f);
+      pickHand->SetLaserColor(0.0f, 1.0f, 1.0f, 0.25f);
+    }
+
   } else {
 
     // process GUI actions
 
+    LeftHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == LeftHand.m_deviceIndex);
+    RightHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == RightHand.m_deviceIndex);
+
     OpenVRController* menuHand = RightHand.IsLaserVisible() ? &RightHand : LeftHand.IsLaserVisible() ? &LeftHand : 0;
     if (menuHand) {
       float origin[3], dir[3], color[4];
+      menuHand->SetLaserColor(0.0f, 1.0f, 1.0f, 0.25f);
       if (menuHand->GetLaser(origin, dir, color)) {
         float distance = 0.0f;
         bool hit = I->Menu.LaserShoot(origin, dir, color, &distance);

@@ -13,6 +13,7 @@ struct OpenVRActionList {
   OpenVRAction* LeftHand;
   OpenVRAction* RightHand;
   OpenVRAction* ToggleMenu;
+  OpenVRAction* LaserShoot;
   OpenVRAction* LClick;
   OpenVRAction* PadCenter;
   OpenVRAction* PadEast;
@@ -30,6 +31,7 @@ struct OpenVRActionList {
     OPENVR_ADD_ACTION("pymol", LeftHand, OpenVRAction::TYPE_POSE);
     OPENVR_ADD_ACTION("pymol", RightHand, OpenVRAction::TYPE_POSE);
     OPENVR_ADD_ACTION("pymol", ToggleMenu);
+    OPENVR_ADD_ACTION("pymol", LaserShoot);
     OPENVR_ADD_ACTION("pymol", LClick);
     OPENVR_ADD_ACTION("pymol", PadCenter);
     OPENVR_ADD_ACTION("pymol", PadEast);
