@@ -9594,8 +9594,6 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
 	  }
           int savedWidth, savedHeight;
           if(stereo_mode == cStereo_openvr) {
-            OpenVRFrameStart(G);
-            OpenVRHandleInput(G, I->Width, I->Height);
             savedWidth = I->Width;
             savedHeight = I->Height;
             OpenVRGetWidthHeight(G, &I->Width, &I->Height);
@@ -9613,8 +9611,6 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
           if(stereo_mode == cStereo_openvr) {
             I->Width = savedWidth;
             I->Height = savedHeight;
-            OpenVRFrameFinish(G, I->Block->rect.left, I->Block->rect.bottom, I->Width, I->Height);
-            PyMOL_NeedRedisplay(G->PyMOL);
           }
           /* restore draw buffer */
           if(mono_as_quad_stereo) {     /* double pumped mono...can't draw to GL_BACK so stick with LEFT */

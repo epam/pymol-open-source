@@ -85,6 +85,8 @@
 #include "MovieScene.h"
 #include "Texture.h"
 
+#include "OpenVRStereo.h"
+
 #ifndef _PYMOL_NOPY
 #include "ce_types.h"
 #endif
@@ -11929,7 +11931,16 @@ void ExecutiveDrawNow(PyMOLGlobals * G)
 	}
 	break;
       case cStereo_openvr:
-        OrthoDoDraw(G, -1);
+        {
+          Block* scene_block = SceneGetBlock(G);
+          int scene_width = scene_block->rect.right - scene_block->rect.left;
+          int scene_height = scene_block->rect.top - scene_block->rect.bottom;
+          OpenVRFrameStart(G);
+          OpenVRHandleInput(G, scene_width, scene_height);
+          OrthoDoDraw(G, -1);
+          OpenVRFrameFinish(G, scene_block->rect.left, scene_block->rect.bottom, scene_width, scene_height);
+          PyMOL_NeedRedisplay(G->PyMOL);
+        }
         break;
       default:
 	OrthoDoDraw(G, 0);
