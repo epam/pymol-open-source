@@ -22,13 +22,14 @@ Z* -------------------------------------------------------------------
 #include "PyMOLGlobals.h"
 #include "ShaderMgr.h"
 #include "OpenVRStereo.h"
+#include "OpenVRLaserTarget.h"
 
-class OpenVRMenu {
+class OpenVRMenu : public OpenVRLaserTarget {
   struct Hotspot_t {
     int x, y, radius;
     float color[4];
 
-    Hotspot_t() : x(0), y(0), radius(3) {
+    Hotspot_t() : x(0), y(0), radius(2) {
       color[0] = 1.0f;
       color[1] = 1.0f;
       color[2] = 1.0f;
@@ -50,13 +51,16 @@ public:
   bool IsVisible() const;
   unsigned GetOwnerID() const;
 
-  void ShowtHotspot(int x, int y, float const* color = 0);
+  void ShowtHotspot(int x, int y, float const color[] = 0);
   void HideHotspot();
 
   void Draw(GLuint sceneTextureID = 0);
 
   bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0);
   void LaserClick(bool down);
+  bool IsLaserAllowed(unsigned deviceIndex) const;
+
+  static float const (*GetLaserColors())[4];
 
 private:
   void InitGeometry();

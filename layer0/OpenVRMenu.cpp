@@ -215,7 +215,7 @@ void OpenVRMenu::Hide()
   m_ownerID = ~0U;
 }
 
-void OpenVRMenu::ShowtHotspot(int x, int y, float const* color /* = 0 */)
+void OpenVRMenu::ShowtHotspot(int x, int y, float const color[] /* = 0 */)
 {
   m_hotspot.x = x;
   m_hotspot.y = y;
@@ -223,6 +223,7 @@ void OpenVRMenu::ShowtHotspot(int x, int y, float const* color /* = 0 */)
     m_hotspot.color[0] = color[0];
     m_hotspot.color[1] = color[1];
     m_hotspot.color[2] = color[2];
+    m_hotspot.color[3] = color[3];
   }
 }
 
@@ -335,4 +336,18 @@ void OpenVRMenu::LaserClick(bool down)
   if (m_hotspot.x >= 0 && m_hotspot.y >= 0 && m_hotspot.x < m_width && m_hotspot.y < m_height) {
     m_inputHandlers->MouseFunc(P_GLUT_LEFT_BUTTON, down ? P_GLUT_DOWN : P_GLUT_UP, m_hotspot.x, m_hotspot.y, 0);
   }
+}
+
+bool OpenVRMenu::IsLaserAllowed(unsigned deviceIndex) const
+{
+  return m_ownerID == deviceIndex || m_ownerID == ~0u;
+}
+
+float const (*OpenVRMenu::GetLaserColors())[4]
+{
+  static const float colors[2][4] = {
+    {0.0f, 1.0f, 1.0f, 0.25f},
+    {0.0f, 1.0f, 1.0f, 1.0f},
+  };
+  return colors;
 }

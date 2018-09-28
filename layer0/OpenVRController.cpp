@@ -36,7 +36,7 @@ bool OpenVRController::IsVisible() const
   return m_bShowController;
 }
 
-void OpenVRController::ShowLaser(bool isVisible)
+void OpenVRController::LaserShow(bool isVisible)
 {
   if (isVisible)
     m_laser.Show();
@@ -65,7 +65,7 @@ void OpenVRController::Draw()
   glPopMatrix();
 }
 
-bool OpenVRController::GetLaser(float* origin, float* dir, float* color /* = 0 */)
+bool OpenVRController::GetLaserRay(float* origin, float* dir) const
 {
   if (IsLaserVisible()) {
     origin[0] = m_pose[12];
@@ -74,11 +74,14 @@ bool OpenVRController::GetLaser(float* origin, float* dir, float* color /* = 0 *
     dir[0] = -m_pose[8];
     dir[1] = -m_pose[9];
     dir[2] = -m_pose[10];
-    if (color)
-      m_laser.GetColor(color);
     return true;
   }
   return false;
+}
+
+unsigned OpenVRController::GetLaserDeviceIndex() const
+{
+  return m_deviceIndex;
 }
 
 void OpenVRController::SetLaserLength(float length)
@@ -89,4 +92,9 @@ void OpenVRController::SetLaserLength(float length)
 void OpenVRController::SetLaserColor(float r, float g, float b, float a)
 {
   m_laser.SetColor(r, g, b, a);
+}
+
+void OpenVRController::SetLaserColor(float const color[])
+{
+  m_laser.SetColor(color[0], color[1], color[2], color[3]);
 }

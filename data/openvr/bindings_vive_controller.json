@@ -57,6 +57,14 @@
           }
         }
       }, {
+        "path": "/user/hand/left/input/trackpad",
+        "mode": "trackpad",
+        "inputs": {
+          "touch": {
+            "output": "/actions/pymol/in/LaserShoot"
+          }
+        }
+      }, {
         "path": "/user/hand/right/input/trackpad",
         "mode": "dpad_click",
         "inputs": {

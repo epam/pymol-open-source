@@ -28,6 +28,8 @@ Z* -------------------------------------------------------------------
 #include "OpenVRController.h"
 #include "OpenVRMenu.h"
 #include "OpenVRActionList.h"
+#include "OpenVRScenePicker.h"
+#include "OpenVRLaserTarget.h"
 #include "PyMOLOptions.h"
 #include "Feedback.h"
 #include "Matrix.h"
@@ -84,6 +86,7 @@ struct COpenVR {
   bool ForcedFront;
  
   OpenVRMenu Menu;
+  OpenVRScenePicker Picker;
 
   OpenVRInputHandlers* Handlers;
 
@@ -610,7 +613,14 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
 
   // update VR GUI state
   if (Actions->ToggleMenu->WasPressed()) {
-    OpenVRMenuToggle(G, Actions->ToggleMenu->origin.trackedDeviceIndex);
+    OpenVRMenuToggle(G, Actions->ToggleMenu->DeviceIndex());
+  }
+
+  // update picking state
+  if (Actions->LaserShoot->IsPressed()) {
+    I->Picker.Activate(Actions->LaserShoot->DeviceIndex());
+  } else {
+    I->Picker.Deactivate();
   }
 
   // update controllers visibility
@@ -636,36 +646,39 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
     ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, SceneWidth, SceneHeight);
     ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, SceneWidth, SceneHeight);
 
-    LeftHand.ShowLaser(Actions->LaserShoot->IsPressed() && Actions->LaserShoot->DeviceIndex() == LeftHand.m_deviceIndex);
-    RightHand.ShowLaser(Actions->LaserShoot->IsPressed() && Actions->LaserShoot->DeviceIndex() == RightHand.m_deviceIndex);
-
-    OpenVRController* pickHand = RightHand.IsLaserVisible() ? &RightHand : LeftHand.IsLaserVisible() ? &LeftHand : 0;
-    if (pickHand) {
-      pickHand->SetLaserLength(0.0f);
-      pickHand->SetLaserColor(0.0f, 1.0f, 1.0f, 0.25f);
-    }
-
   } else {
 
     // process GUI actions
 
-    LeftHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == LeftHand.m_deviceIndex);
-    RightHand.ShowLaser(I->Menu.IsVisible() && I->Menu.GetOwnerID() == RightHand.m_deviceIndex);
+  }
 
-    OpenVRController* menuHand = RightHand.IsLaserVisible() ? &RightHand : LeftHand.IsLaserVisible() ? &LeftHand : 0;
-    if (menuHand) {
-      float origin[3], dir[3], color[4];
-      menuHand->SetLaserColor(0.0f, 1.0f, 1.0f, 0.25f);
-      if (menuHand->GetLaser(origin, dir, color)) {
-        float distance = 0.0f;
-        bool hit = I->Menu.LaserShoot(origin, dir, color, &distance);
-        menuHand->SetLaserLength(distance);
-        menuHand->SetLaserColor(color[0], color[1], color[2], hit ? 1.0f : 0.25f);
-      }
-    }
+  // process laser
 
-    if (Actions->LClick->WasPressedOrReleased() && Actions->LClick->DeviceIndex() == menuHand->m_deviceIndex) {
-      I->Menu.LaserClick(Actions->LClick->IsPressed());
+  OpenVRLaserTarget* laserTarget = 0;
+  float const (*laserColors)[4] = 0;
+  if (I->Menu.IsVisible()) {
+    laserTarget = &I->Menu;
+    laserColors = OpenVRMenu::GetLaserColors();
+  } else if (I->Picker.IsActive()) {
+    laserTarget = &I->Picker;
+    laserColors = OpenVRScenePicker::GetLaserColors();
+  }
+
+  for (size_t laserIndex = 0; laserIndex < sizeof(I->Hands) / sizeof(I->Hands[0]); ++laserIndex) {
+    OpenVRLaserSource* laserSource = &I->Hands[laserIndex];
+    laserSource->LaserShow(laserTarget && laserTarget->IsLaserAllowed(laserSource->GetLaserDeviceIndex()));
+
+    float origin[3], dir[3];
+    if (!laserSource->GetLaserRay(origin, dir))
+      continue;
+
+    float distance = 0.0f;
+    bool hit = laserTarget->LaserShoot(origin, dir, laserColors[1], &distance);
+    laserSource->SetLaserLength(distance);
+    laserSource->SetLaserColor(laserColors[int(hit)]);
+
+    if (Actions->LClick->WasPressedOrReleased() && Actions->LClick->DeviceIndex() == laserSource->GetLaserDeviceIndex()) {
+      laserTarget->LaserClick(Actions->LClick->IsPressed());
     }
   }
 }

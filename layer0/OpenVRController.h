@@ -18,10 +18,11 @@ Z* -------------------------------------------------------------------
 
 #include "openvr.h"
 
+#include "OpenVRLaserSource.h"
 #include "OpenVRControllerModel.h"
 #include "OpenVRLaser.h"
 
-class OpenVRController {
+class OpenVRController : public OpenVRLaserSource {
 public:
   OpenVRController();
  
@@ -36,11 +37,13 @@ public:
   void Show(bool isVisible);
   bool IsVisible() const;
 
-  void ShowLaser(bool isVisible);
+  void LaserShow(bool isVisible);
   bool IsLaserVisible() const;
-  bool GetLaser(float* origin, float* dir, float* color = 0);
+  bool GetLaserRay(float* origin, float* dir) const;
+  unsigned GetLaserDeviceIndex() const;
   void SetLaserLength(float length);
   void SetLaserColor(float r, float g, float b, float a);
+  void SetLaserColor(float const color[]);
 
 public:
 // FIXME make good initialization
