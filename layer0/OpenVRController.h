@@ -33,6 +33,7 @@ public:
   void Draw();
 
   float *GetPose() {return m_pose;} // it's not safe =)
+  float *GetWorldToControllerMatrix() {return m_worldToController;} // it's not safe =)
 
   void Show(bool isVisible);
   bool IsVisible() const;
@@ -56,6 +57,7 @@ private:
   bool m_bShowController;
   GLfloat m_pose[16]; // model2world matrix 
   OpenVRLaser m_laser;
+  GLfloat m_worldToController[16];   
 };
 
 #endif /* _H_OpenVRController */

@@ -98,6 +98,22 @@
             "output": "/actions/pymol/in/PadSouth"
           }
         }
+      }, {
+        "path": "/user/hand/left/input/grip",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/LGrip"
+          }
+        }
+      }, {
+        "path": "/user/hand/right/input/grip",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/RGrip"
+          }
+        }
       }]
 
     }

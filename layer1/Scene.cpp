@@ -9096,6 +9096,38 @@ void SceneSetupGLPicking(PyMOLGlobals * G){
       glShadeModel(GL_FLAT);
 }
 
+void SceneGetModel2WorldMatrix(PyMOLGlobals * G, float *matrix) {
+  CScene *I = G->Scene;
+  if (!I)
+    return;
+
+  identity44f(matrix);
+  MatrixTranslateC44f(matrix, I->Pos[0], I->Pos[1], I->Pos[2]);
+  MatrixMultiplyC44f(I->RotMatrix, matrix);
+  MatrixTranslateC44f(matrix, -I->Origin[0], -I->Origin[1], -I->Origin[2]);
+}
+
+void SceneSetModel2WorldMatrix(PyMOLGlobals * G, float const *matrix) {
+  CScene *I = G->Scene;
+  if (!I)
+    return;
+
+  // build inverse origin translate
+  float invOriginTranslate[16];  
+  identity44f(invOriginTranslate);
+  MatrixTranslateC44f(invOriginTranslate, I->Origin[0], I->Origin[1], I->Origin[2]);
+    // get shiftRot from m2wNew
+  float temp[16];
+  memcpy(temp, matrix, sizeof(temp));  
+  MatrixMultiplyC44f(invOriginTranslate, temp);
+  // decompose shiftRot
+  memcpy(I->RotMatrix, temp, sizeof(I->RotMatrix));
+  I->RotMatrix[12] = I->RotMatrix[13] = I->RotMatrix[14] = 0.0f;
+  I->Pos[0] = temp[12];
+  I->Pos[1] = temp[13];
+  I->Pos[2] = temp[14];
+}
+
 /*========================================================================*/
 void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
                  Multipick * smp, int oversize_width, int oversize_height,
@@ -9820,7 +9852,6 @@ void SceneRestartSweepTimer(PyMOLGlobals * G)
 
 }
 
-
 /*========================================================================*/
 void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
 {
@@ -9881,6 +9912,13 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
     glRotatef(stAng, 0.0, 1.0, 0.0);
     glTranslatef(stShift, 0.0, 0.0);
 
+  }
+
+  if(stereo_mode == cStereo_openvr && OpenVRReady(G)) {
+    if (OpenVRIsMoleculeCaptured(G)) {
+      float const *mol2world = OpenVRGetMolecule2WorldMatrix(G);
+      SceneSetModel2WorldMatrix(G, mol2world);
+    }
   }
 
   /* *** COMMON MODEL MATRIX *** */

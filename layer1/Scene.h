@@ -246,4 +246,7 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode = 0);
 
 void SceneCopy(PyMOLGlobals * G, GLenum buffer, int force, int entire_window);
 
+void SceneGetModel2WorldMatrix(PyMOLGlobals * G, float *matrix);
+void SceneSetModel2WorldMatrix(PyMOLGlobals * G, float const *matrix);
+
 #endif

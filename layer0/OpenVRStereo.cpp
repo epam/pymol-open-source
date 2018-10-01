@@ -39,6 +39,7 @@ struct CEye {
   vr::EVREye Eye;
 
   GLfloat HeadToEyeMatrix[16];
+  GLfloat InvHeadToEyeMatrix[16];
   GLfloat ProjectionMatrix[16];
 
   GLuint FrameBufferID;
@@ -95,7 +96,11 @@ struct COpenVR {
 
   // mouse cursor imitation information
   int startX, startY;
-  int deltaX, deltaY;  
+  int deltaX, deltaY;
+
+  float moleculeToWorldMatrix[16];
+  float moleculeToCapturingController[16];
+  int capturingHandIdx;
 };
 
 static const float OPEN_VR_FRONT = 0.1f;
@@ -210,6 +215,8 @@ int OpenVRInit(PyMOLGlobals * G)
 
     I->Actions = new OpenVRActionList(I->Input);
   }
+
+  I->capturingHandIdx = -1;
   
   return 1;
 }
@@ -466,7 +473,8 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
   CEye *E = I->Eye;
   vr::HmdMatrix34_t EyeToHeadTransform = I->System->GetEyeToHeadTransform(E->Eye);
   OpenVRUtils::MatrixFastInverseVRGL((const float *)EyeToHeadTransform.m, E->HeadToEyeMatrix);
-
+  OpenVRUtils::MatrixCopyVRGL((const float *)EyeToHeadTransform.m, E->InvHeadToEyeMatrix);
+  
   return E->HeadToEyeMatrix;
 }
 
@@ -598,7 +606,42 @@ void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutBu
   }
 }
 
-void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth, int SceneHeight)
+void GetCapturedMolecule2WorldMatrix(PyMOLGlobals * G, float* matrix, int handIdx) {
+  COpenVR *I = G->OpenVR;
+  if (!I || handIdx < HLeft || handIdx > HRight) 
+    return;
+
+  memcpy(matrix, I->Hands[handIdx].GetPose(), sizeof(float) * 16);
+  MatrixMultiplyC44f(I->moleculeToCapturingController, matrix);
+}
+
+bool OpenVRIsMoleculeCaptured(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+  OpenVRActionList* Actions = I->Actions;
+  return Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed();
+}
+
+float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+  if (!I)
+    return NULL;
+
+  float temp[16];
+  memcpy(temp, I->Hands[I->capturingHandIdx].GetPose(), sizeof(temp));
+  MatrixMultiplyC44f(I->moleculeToCapturingController, temp);
+  memcpy(I->moleculeToWorldMatrix, temp, sizeof(I->moleculeToWorldMatrix));
+  return I->moleculeToWorldMatrix;
+}
+
+void AttachMoleculeToController(PyMOLGlobals * G, int handIdx) {
+  COpenVR *I = G->OpenVR;
+  I->capturingHandIdx = handIdx;
+  // catch up
+  memcpy(I->moleculeToCapturingController, I->Hands[handIdx].GetWorldToControllerMatrix(), sizeof(I->moleculeToCapturingController));
+  MatrixMultiplyC44f(I->moleculeToWorldMatrix, I->moleculeToCapturingController);
+}
+
+void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth, int SceneHeight, float *model2World)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
@@ -638,7 +681,6 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
   if (!I->Menu.IsVisible()) {
 
     // process in-app actions
-
     if (Actions->PadCenter->WasPressed())
       I->Handlers->ActionFunc(cAction_movie_toggle);
     if (Actions->PadEast->WasPressed())
@@ -653,6 +695,20 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     ProcessButtonDragAsMouse(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, centerX, centerY);
     ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, centerX, centerY);
     ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, centerX, centerY);
+
+    if (Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed()) {
+      memcpy(I->moleculeToWorldMatrix, model2World, sizeof(I->moleculeToWorldMatrix)); 
+    }
+    if (Actions->LGrip->WasPressed()) {
+      AttachMoleculeToController(G, HLeft);
+    }
+    if (Actions->RGrip->WasPressed()) {
+      AttachMoleculeToController(G, HRight);
+    }
+    if ((Actions->LGrip->WasReleased() && !Actions->RGrip->IsPressed()) ||
+        (Actions->RGrip->WasReleased() && !Actions->LGrip->IsPressed())) {
+      I->capturingHandIdx = -1;
+    }
 
   } else {
 
@@ -716,6 +772,7 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
 
             if (hand) {
               OpenVRUtils::MatrixCopyVRGL((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)hand->GetPose());
+              OpenVRUtils::MatrixFastInverseVRGL((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)hand->GetWorldToControllerMatrix());
               hand->m_deviceIndex = nDevice;
               std::string sRenderModelName = GetTrackedDeviceString(G, nDevice, vr::Prop_RenderModelName_String);
               if (sRenderModelName != hand->m_sRenderModelName) {

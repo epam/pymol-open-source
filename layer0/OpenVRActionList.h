@@ -23,6 +23,8 @@ struct OpenVRActionList {
   OpenVRAction* LMouse;
   OpenVRAction* MMouse;
   OpenVRAction* RMouse;
+  OpenVRAction* LGrip;
+  OpenVRAction* RGrip;
 
   explicit OpenVRActionList(vr::IVRInput* Input) {
     Input->GetActionSetHandle("/actions/pymol", &DefaultSet);
@@ -41,6 +43,8 @@ struct OpenVRActionList {
     OPENVR_ADD_ACTION("pymol", LMouse);
     OPENVR_ADD_ACTION("pymol", MMouse);
     OPENVR_ADD_ACTION("pymol", RMouse);
+    OPENVR_ADD_ACTION("pymol", LGrip);
+    OPENVR_ADD_ACTION("pymol", RGrip);
 #undef OPENVR_ADD_ACTION
   }
 

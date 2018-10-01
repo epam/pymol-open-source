@@ -43,5 +43,11 @@
   }, {
     "name": "/actions/pymol/in/RMouse",
     "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/LGrip",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/RGrip",
+    "type": "boolean"
   }]
 }
