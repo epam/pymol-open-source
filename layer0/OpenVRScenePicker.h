@@ -17,21 +17,31 @@ Z* -------------------------------------------------------------------
 #define _H_OpenVRScenePicker
 
 #include "OpenVRLaserTarget.h"
+#include "OpenVRStereo.h"
 
 class OpenVRScenePicker : public OpenVRLaserTarget {
+  OpenVRInputHandlers* m_inputHandlers;
   unsigned m_ownerID;
+  int m_clickX;
+  int m_clickY;
   bool m_active;
+  float m_matrix[16];
 
 public:
-  OpenVRScenePicker() : m_ownerID(~0u), m_active(false) {}
+  OpenVRScenePicker();
 
-  void Activate(unsigned ownerID);
+  void Init(OpenVRInputHandlers* inputHandlers);
+  void Free();
+
+  void Activate(unsigned ownerID, int x, int y);
   void Deactivate();
   bool IsActive() const;
 
   bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0);
   void LaserClick(bool down);
   bool IsLaserAllowed(unsigned deviceIndex) const;
+
+  float const* GetMatrix() const;
 
   static float const (*GetLaserColors())[4];
 };

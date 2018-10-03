@@ -24,6 +24,7 @@ Z* -------------------------------------------------------------------
 #include "openvr.h"
 
 #include "OpenVRStereo.h"
+#include "OpenVRUtils.h"
 #include "OpenVRStub.h"
 #include "OpenVRController.h"
 #include "OpenVRMenu.h"
@@ -109,8 +110,6 @@ static char const* deviceClassNames[] = {
 };
 static const int deviceClassNamesCount = sizeof(deviceClassNames) / sizeof(*deviceClassNames);
 
-static void FastInverseAffineSteamVRMatrix(float const *srcMat34, float *dstMat44);
-static void ConvertSteamVRMatrixToGLMat(float const* srcMat34, float *dstMat44);
 void UpdateDevicePoses(PyMOLGlobals * G);
 
 bool OpenVRAvailable(PyMOLGlobals *)
@@ -226,6 +225,7 @@ void OpenVRFree(PyMOLGlobals * G)
   if(I->System) {
     vr::stub::VR_Shutdown();
 
+    I->Picker.Free();
     I->Menu.Free();
     delete I->Handlers;
 
@@ -254,6 +254,7 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     EyeInit(&I->Right, vr::Eye_Right, I->Width, I->Height);
 
     I->Menu.Init(I->Handlers);
+    I->Picker.Init(I->Handlers);
   }
 
   for (int i = HLeft; i <= HRight; ++i) {
@@ -464,7 +465,7 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 
   CEye *E = I->Eye;
   vr::HmdMatrix34_t EyeToHeadTransform = I->System->GetEyeToHeadTransform(E->Eye);
-  FastInverseAffineSteamVRMatrix((const float *)EyeToHeadTransform.m, E->HeadToEyeMatrix);
+  OpenVRUtils::MatrixFastInverseVRGL((const float *)EyeToHeadTransform.m, E->HeadToEyeMatrix);
 
   return E->HeadToEyeMatrix;
 }
@@ -531,6 +532,15 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
   return E->ProjectionMatrix;
 }
 
+float const* OpenVRGetPickingMatrix(PyMOLGlobals * G)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return NULL;
+
+  return I->Picker.GetMatrix();
+}
+
 void OpenVRLoadProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane)
 {
   glLoadMatrixf(OpenVRGetProjection(G, near_plane, far_plane));
@@ -559,7 +569,7 @@ std::string GetTrackedDeviceString(PyMOLGlobals * G, vr::TrackedDeviceIndex_t un
   return sResult;
 }
 
-void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutButton, int SceneWidth, int SceneHeight) {
+void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutButton, int screenCenterX, int screenCenterY) {
   COpenVR *I = G->OpenVR;
   if (!action || !I) return;
 
@@ -570,10 +580,6 @@ void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutBu
   // imitate mouse cursor position from controller camera position
   float (*mat)[4] = (float (*)[4])I->Hands[HRight].GetPose();
   int x = (int)(mat[3][0]* 500.0f), y = (int)(mat[3][1] * 500.0f); // magic factors
-
-  // starting point for cursor movement
-  int screenCenterX = SceneWidth / 2; 
-  int screenCenterY = SceneHeight / 2; 
 
   bool nowPressed = action->IsPressed();
   if (action->WasPressedOrReleased()) {
@@ -592,7 +598,7 @@ void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutBu
   }
 }
 
-void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
+void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth, int SceneHeight)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
@@ -610,6 +616,8 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
 
   OpenVRController& LeftHand = I->Hands[HLeft];
   OpenVRController& RightHand = I->Hands[HRight];
+  int centerX = SceneX + SceneWidth / 2;
+  int centerY = SceneY + SceneHeight / 2;
 
   // update VR GUI state
   if (Actions->ToggleMenu->WasPressed()) {
@@ -618,7 +626,7 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
 
   // update picking state
   if (Actions->LaserShoot->IsPressed()) {
-    I->Picker.Activate(Actions->LaserShoot->DeviceIndex());
+    I->Picker.Activate(Actions->LaserShoot->DeviceIndex(), centerX, centerY);
   } else {
     I->Picker.Deactivate();
   }
@@ -642,9 +650,9 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneWidth, int SceneHeight)
     if (Actions->PadSouth->WasPressed())
       I->Handlers->ActionFunc(cAction_scene_next);
 
-    ProcessButtonDragAsMouse(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, SceneWidth, SceneHeight);
-    ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, SceneWidth, SceneHeight);
-    ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, SceneWidth, SceneHeight);
+    ProcessButtonDragAsMouse(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, centerX, centerY);
+    ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, centerX, centerY);
+    ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, centerX, centerY);
 
   } else {
 
@@ -692,8 +700,8 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
       vr::ETrackedDeviceClass device = I->System->GetTrackedDeviceClass(nDevice);
       switch (device) {
         case vr::TrackedDeviceClass_HMD:
-          ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, I->HeadPose);
-          FastInverseAffineSteamVRMatrix((const float *)pose.mDeviceToAbsoluteTracking.m, I->WorldToHeadMatrix);
+          OpenVRUtils::MatrixCopyVRGL((const float *)pose.mDeviceToAbsoluteTracking.m, I->HeadPose);
+          OpenVRUtils::MatrixFastInverseVRGL((const float *)pose.mDeviceToAbsoluteTracking.m, I->WorldToHeadMatrix);
           break;
         case vr::TrackedDeviceClass_Controller:
           {
@@ -707,7 +715,7 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
             }
 
             if (hand) {
-              ConvertSteamVRMatrixToGLMat((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)hand->GetPose());
+              OpenVRUtils::MatrixCopyVRGL((const float *)pose.mDeviceToAbsoluteTracking.m, (float *)hand->GetPose());
               hand->m_deviceIndex = nDevice;
               std::string sRenderModelName = GetTrackedDeviceString(G, nDevice, vr::Prop_RenderModelName_String);
               if (sRenderModelName != hand->m_sRenderModelName) {
@@ -744,40 +752,4 @@ void OpenVRDraw(PyMOLGlobals * G)
   }
 
   glPopMatrix();
-}
-
-// Fast affine inverse matrix, row major to column major, whew...
-static void FastInverseAffineSteamVRMatrix(float const *srcMat34, float *dstMat44) {
-    float const (*src)[4] = (float const (*)[4])srcMat34;
-    float (*dst)[4] = (float (*)[4])dstMat44;
-
-    // transpose rotation
-    dst[0][0] = src[0][0];
-    dst[0][1] = src[0][1];
-    dst[0][2] = src[0][2];
-    dst[0][3] = 0.0f;
-    dst[1][0] = src[1][0];
-    dst[1][1] = src[1][1];
-    dst[1][2] = src[1][2];
-    dst[1][3] = 0.0f;
-    dst[2][0] = src[2][0];
-    dst[2][1] = src[2][1];
-    dst[2][2] = src[2][2];
-    dst[2][3] = 0.0f;
-    
-    // transpose-rotated negative translation
-    dst[3][0] = -(src[0][0] * src[0][3] + src[1][0] * src[1][3] + src[2][0] * src[2][3]);
-    dst[3][1] = -(src[0][1] * src[0][3] + src[1][1] * src[1][3] + src[2][1] * src[2][3]);
-    dst[3][2] = -(src[0][2] * src[0][3] + src[1][2] * src[1][3] + src[2][2] * src[2][3]);
-    dst[3][3] = 1.0f;
-}
-
-static void ConvertSteamVRMatrixToGLMat(float const* srcMat34, float *dstMat44)
-{
-  float (*dst)[4] = (float(*)[4])dstMat44;
-  float (*src)[4] = (float(*)[4])srcMat34;
-  dst[0][0] = src[0][0]; dst[0][1] = src[1][0]; dst[0][2] = src[2][0]; dst[0][3] = 0.0f;
-  dst[1][0] = src[0][1]; dst[1][1] = src[1][1]; dst[1][2] = src[2][1]; dst[1][3] = 0.0f;
-  dst[2][0] = src[0][2]; dst[2][1] = src[1][2]; dst[2][2] = src[2][2]; dst[2][3] = 0.0f;
-  dst[3][0] = src[0][3]; dst[3][1] = src[1][3]; dst[3][2] = src[2][3]; dst[3][3] = 1.0f;
 }

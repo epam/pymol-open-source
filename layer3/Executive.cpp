@@ -11936,7 +11936,7 @@ void ExecutiveDrawNow(PyMOLGlobals * G)
           int scene_width = scene_block->rect.right - scene_block->rect.left;
           int scene_height = scene_block->rect.top - scene_block->rect.bottom;
           OpenVRFrameStart(G);
-          OpenVRHandleInput(G, scene_width, scene_height);
+          OpenVRHandleInput(G, scene_block->rect.left, scene_block->rect.bottom, scene_width, scene_height);
           OrthoDoDraw(G, -1);
           OpenVRFrameFinish(G, scene_block->rect.left, scene_block->rect.bottom, scene_width, scene_height);
           PyMOL_NeedRedisplay(G->PyMOL);

@@ -9368,6 +9368,9 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
           case cStereo_sidebyside:
             ScenePrepareMatrix(G, (click_side < 0) ? 1 : 2);
             break;
+          case cStereo_openvr:
+            ScenePrepareMatrix(G, 0, cStereo_openvr);
+            break;
           }
       }
 
@@ -9815,25 +9818,35 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
   CScene *I = G->Scene;
 
   float stAng, stShift;
+  bool isOpenVR = (stereo_mode == cStereo_openvr) && OpenVRReady(G);
 
   /* start afresh, looking in the negative Z direction (0,0,-1) from (0,0,0) */
   glLoadIdentity();
 
   /* *** PER-MODE VIEW MATRIX *** */
 
-  if(!mode) {
+  if(!mode && !isOpenVR) {
 
     /* mono */
 
-  } else if(stereo_mode == cStereo_openvr && OpenVRReady(G)) {
+  } else if(isOpenVR) {
 
     /* stereo OpenVR */
 
-    glMatrixMode(GL_PROJECTION);
-    OpenVRLoadProjectionMatrix(G, I->FrontSafe, I->BackSafe);
+    if (!mode) {
 
-    glMatrixMode(GL_MODELVIEW);
-    OpenVRLoadWorld2EyeMatrix(G);
+      // mono matrix for picking
+      glLoadMatrixf(OpenVRGetPickingMatrix(G));
+
+    } else {
+
+      glMatrixMode(GL_PROJECTION);
+      OpenVRLoadProjectionMatrix(G, I->FrontSafe, I->BackSafe);
+
+      glMatrixMode(GL_MODELVIEW);
+      OpenVRLoadWorld2EyeMatrix(G);
+
+    }
 
   } else {
 
