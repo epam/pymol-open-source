@@ -1301,9 +1301,18 @@ void SceneSetStereo(PyMOLGlobals * G, int flag)
 #endif
   }
 
-  // reset camera position for openVR
+  // enter or leave OpenVR mode
   if (newStereoMode && (I->StereoMode == cStereo_openvr || cur_stereo == cStereo_openvr)) {
-    SceneResetOpenVRFov(G, I->StereoMode == cStereo_openvr);
+    bool enableOpenVR = I->StereoMode == cStereo_openvr;
+
+    // reset camera position
+    SceneResetOpenVRFov(G, enableOpenVR);
+
+    // force open internal menu
+    PParse(G, "cmd.set_wizard_stack()");
+    if (enableOpenVR) {
+      PParse(G, "wizard openvr");
+    }
   }
 
   SettingSetGlobal_b(G, cSetting_stereo, flag);
