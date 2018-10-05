@@ -39,7 +39,6 @@ struct CEye {
   vr::EVREye Eye;
 
   GLfloat HeadToEyeMatrix[16];
-  GLfloat InvHeadToEyeMatrix[16];
   GLfloat ProjectionMatrix[16];
 
   GLuint FrameBufferID;
@@ -473,7 +472,6 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G)
   CEye *E = I->Eye;
   vr::HmdMatrix34_t EyeToHeadTransform = I->System->GetEyeToHeadTransform(E->Eye);
   OpenVRUtils::MatrixFastInverseVRGL((const float *)EyeToHeadTransform.m, E->HeadToEyeMatrix);
-  OpenVRUtils::MatrixCopyVRGL((const float *)EyeToHeadTransform.m, E->InvHeadToEyeMatrix);
   
   return E->HeadToEyeMatrix;
 }
