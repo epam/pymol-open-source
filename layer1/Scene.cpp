@@ -9320,7 +9320,7 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
     if(!SettingGetGlobal_b(G, cSetting_ortho)) {
       height = I->FrontSafe * GetFovWidth(G) / 2.f;
       width = height * aspRat;
-      glFrustum(-width, width, -height, height, I->FrontSafe, I->BackSafe);
+      glFrustum(-width, width, -height, height, stereo_mode == cStereo_openvr ? 0.1f : I->FrontSafe, I->BackSafe);
     } else {
       height = std::max(R_SMALL4, -I->Pos[2]) * GetFovWidth(G) / 2.f;
       width = height * aspRat;
