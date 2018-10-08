@@ -85,6 +85,7 @@ struct COpenVR {
   OpenVRController Hands[COUNT];
 
   bool ForcedFront;
+  bool ForcedBack;
  
   OpenVRMenu Menu;
   OpenVRScenePicker Picker;
@@ -103,6 +104,7 @@ struct COpenVR {
 };
 
 static const float OPEN_VR_FRONT = 0.1f;
+static const float OPEN_VR_BACK = 10.0f;
 
 static char const* deviceClassNames[] = {
   "Invalid",
@@ -455,10 +457,12 @@ void OpenVRMenuToggle(PyMOLGlobals * G, unsigned deviceIndex /* = ~0U */)
 
   if (!I->Menu.IsVisible()) {
     I->Menu.Show(I->HeadPose, deviceIndex);
+    I->ForcedBack = true;
   } else {
     unsigned ownerIndex = I->Menu.GetOwnerID();
     if (deviceIndex == ownerIndex || deviceIndex == ~0U || ownerIndex == ~0U) {
       I->Menu.Hide();
+      I->ForcedBack = false;
     }
   }
 }
@@ -500,8 +504,14 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
 
   CEye *E = I->Eye;
 
-  if (I->ForcedFront)
+  if (I->ForcedFront) {
     near_plane = OPEN_VR_FRONT;
+  }
+  if (I->ForcedBack) {
+    far_plane = OPEN_VR_BACK;
+  }
+ 
+  far_plane = 100.0f;
 
   float left, right, top, bottom;
   I->System->GetProjectionRaw(E->Eye, &left, &right, &top, &bottom);

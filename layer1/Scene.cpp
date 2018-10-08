@@ -2692,8 +2692,12 @@ void SceneWindowSphere(PyMOLGlobals * G, float *location, float radius)
   MatrixTransformC44fAs33f3f(I->RotMatrix, v0, I->Pos); /* convert to view-space */
 
   if (I->Height > I->Width && I->Height && I->Width)
-    dist *= I->Height / I->Width;
+    dist *= I->Height / I->Width; 
 
+  /*lift up molecule to the user's head*/
+  if (I->StereoMode == cStereo_openvr) {
+    I->Pos[1] = 1.0f; //FIXME make it smart
+  }
   I->Pos[2] -= dist;
   I->Front = (-I->Pos[2] - radius * 1.2F);
   I->Back = (-I->Pos[2] + radius * 1.2F);
@@ -9938,7 +9942,7 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
   glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
 
   /* move the camera to the location we are looking at */
-  glScalef(I->Scale, I->Scale, I->Scale); 
+  glScalef(I->Scale, I->Scale, I->Scale);
 
   /* rotate about the origin (the the center of rotation) */
   glMultMatrixf(I->RotMatrix);
