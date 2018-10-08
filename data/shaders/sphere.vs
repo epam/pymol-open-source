@@ -46,7 +46,7 @@ void main(void)
     vec3 corner_direction =  (vertical_adjustment*up) * up_vector + (horizontal_adjustment*right) * right_vector;
 
     // Calculate vertex of screen-oriented quad (billboard)
-    vec4 vertex = vec4(a_Vertex.xyz + radius * corner_direction / openvr_size_scale, 1.);
+    vec4 vertex = vec4(a_Vertex.xyz + radius * corner_direction / openvr_size_scale / openvr_size_scale, 1.);
 
     // Calculate vertex position in modelview space
     vec4 eye_space_pos = gl_ModelViewMatrix * vertex;
