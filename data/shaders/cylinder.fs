@@ -21,6 +21,7 @@ uniform int spec_count;
 uniform float spec_value;
 uniform float spec_value_0;
 uniform float half_bond;
+uniform float openvr_size_scale;
 
 #include ANAGLYPH_HEADER
 
@@ -118,7 +119,7 @@ void main(void)
     vec3 tmp_point = new_point - base;
     vec3 normal = normalize(tmp_point - axis * dot(tmp_point, axis));
 
-    float ratio = dot(new_point-base, vec3(end_cyl-base)) * inv_sqr_height;
+    float ratio = dot(new_point-base, vec3(end_cyl-base)) * inv_sqr_height / openvr_size_scale / openvr_size_scale;
 
     ray_origin = mix(ray_origin, surface_point, ortho);
 
@@ -142,7 +143,7 @@ void main(void)
     
     vec4 color;
 
-    float dp = clamp(-half_bond*new_point.z*inv_height, 0., .5);
+    float dp = clamp(-half_bond*new_point.z*inv_height / openvr_size_scale, 0., .5);
     color = mix(color1, color2, smoothstep(.5 - dp, .5 + dp, ratio));
 
     // test front cap

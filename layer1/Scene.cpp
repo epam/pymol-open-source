@@ -1254,10 +1254,10 @@ void ResetFovWidth(PyMOLGlobals * G, float fov) {
 }
 
 /*========================================================================*/
-void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) { // TODO rename
+void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) { 
   CScene *I = G->Scene;
 
-  // set FOV = 110 fro openVR
+  // set FOV = 110 for openVR
   float openVRFov = 110.0 * 0.5;
 
   // old camera props
@@ -1265,19 +1265,18 @@ void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) { // TODO rename
   static float s_oldFov = SettingGetGlobal_i(G, cSetting_field_of_view);
 
   if (enableOpenVR) {
-
     s_oldFov =  SettingGetGlobal_f(G, cSetting_field_of_view);
     ResetFovWidth(G, openVRFov);
     commonCorrect = true;
     PRINTFB(G, FB_Scene, FB_Actions)
       " Scene: reset Fov for openVR.\n" ENDFB(G);
- } else if (commonCorrect){
+  } else if (commonCorrect){
     ResetFovWidth(G, s_oldFov);
     commonCorrect = false;
     PRINTFB(G, FB_Scene, FB_Actions)
       " Scene: restore Fov after openVR turning off.\n" ENDFB(G);
   }
-} 
+}
 
 /*========================================================================*/
 void SceneSetStereo(PyMOLGlobals * G, int flag)
@@ -2679,6 +2678,12 @@ void SceneWindowSphere(PyMOLGlobals * G, float *location, float radius)
 {
   CScene *I = G->Scene;
   float v0[3];
+  if (I->StereoMode == cStereo_openvr) {
+    I->Scale = 1.0f / radius;
+    radius = 1.0;
+  } else {
+    I->Scale = 1.0;
+  }
   float dist = 2.f * radius / GetFovWidth(G);
 
   /* find where this point is in relationship to the origin */
@@ -9103,6 +9108,9 @@ void SceneGetModel2WorldMatrix(PyMOLGlobals * G, float *matrix) {
 
   identity44f(matrix);
   MatrixTranslateC44f(matrix, I->Pos[0], I->Pos[1], I->Pos[2]);
+  /*matrix[0] *= I->Scale;
+  matrix[5] *= I->Scale;
+  matrix[10] *= I->Scale;*/
   MatrixMultiplyC44f(I->RotMatrix, matrix);
   MatrixTranslateC44f(matrix, -I->Origin[0], -I->Origin[1], -I->Origin[2]);
 }
@@ -9116,10 +9124,13 @@ void SceneSetModel2WorldMatrix(PyMOLGlobals * G, float const *matrix) {
   float invOriginTranslate[16];  
   identity44f(invOriginTranslate);
   MatrixTranslateC44f(invOriginTranslate, I->Origin[0], I->Origin[1], I->Origin[2]);
-    // get shiftRot from m2wNew
+  // get shiftRot from m2wNew
   float temp[16];
   memcpy(temp, matrix, sizeof(temp));  
   MatrixMultiplyC44f(invOriginTranslate, temp);
+ /* temp[0] /= I->Scale;
+  temp[5] /= I->Scale;
+  temp[10] /= I->Scale;*/
   // decompose shiftRot
   memcpy(I->RotMatrix, temp, sizeof(I->RotMatrix));
   I->RotMatrix[12] = I->RotMatrix[13] = I->RotMatrix[14] = 0.0f;
@@ -9926,9 +9937,12 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
   /* move the camera to the location we are looking at */
   glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
 
+  /* move the camera to the location we are looking at */
+  glScalef(I->Scale, I->Scale, I->Scale); 
+
   /* rotate about the origin (the the center of rotation) */
   glMultMatrixf(I->RotMatrix);
-
+  
   /* move the origin to the center of rotation */
   glTranslatef(-I->Origin[0], -I->Origin[1], -I->Origin[2]);
 }
@@ -10070,4 +10084,8 @@ void SceneGetGridModeSize(PyMOLGlobals * G, int *width, int *height){
 
 int SceneGetCopyType(PyMOLGlobals * G) {
   return G->Scene->CopyType;
+}
+
+float SceneGetScale(PyMOLGlobals * G) {
+  return G->Scene->Scale;
 }

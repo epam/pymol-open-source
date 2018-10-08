@@ -6724,6 +6724,13 @@ static void CGO_gl_draw_sphere_buffers(CCGORenderer * I, float **pc) {
   } else {
     shaderPrg = CShaderPrg_Get_DefaultSphereShader(I->G);
   }
+  if (SceneGetStereo(I->G) == cStereo_openvr) { // FIXME if is not required
+    CShaderPrg_Set1f(shaderPrg, "openvr_size_scale", SceneGetScale(I->G));
+  }
+  else {
+    CShaderPrg_Set1f(shaderPrg, "openvr_size_scale", 1.f);
+  }
+
   attr_a_vertex_radius = CShaderPrg_GetAttribLocation(shaderPrg, "a_vertex_radius");
   attr_color = CShaderPrg_GetAttribLocation(shaderPrg, "a_Color"); 
   attr_rightup = CShaderPrg_GetAttribLocation(shaderPrg, "a_rightUpFlags");
@@ -6776,6 +6783,14 @@ static void CGO_gl_draw_cylinder_buffers(CCGORenderer * I, float **pc) {
     shaderPrg = CShaderPrg_Get_CylinderShader(I->G);
   }
   if (!shaderPrg) return;
+  if (SceneGetStereo(I->G) == cStereo_openvr) {
+    CShaderPrg_Set1f(shaderPrg, "openvr_size_scale", SceneGetScale(I->G));
+  }
+  else {
+    CShaderPrg_Set1f(shaderPrg, "openvr_size_scale", 1.f);
+  }
+
+
   attr_origin = CShaderPrg_GetAttribLocation(shaderPrg, "attr_origin");
   attr_axis = CShaderPrg_GetAttribLocation(shaderPrg, "attr_axis"); 
   attr_colors = CShaderPrg_GetAttribLocation(shaderPrg, "attr_colors");
@@ -9312,3 +9327,4 @@ CGO *CGOOptimizeScreenTexturesAndPolygons(CGO * I, int est)
   }
   return cgo;
 }
+

@@ -1893,6 +1893,7 @@ CShaderPrg *CShaderPrg_Enable_SphereShader(PyMOLGlobals * G, char *name){
   CShaderPrg_Enable(shaderPrg);
   CShaderPrg_SetLightingEnabled(shaderPrg, 1);
   CShaderPrg_Set1f(shaderPrg, "sphere_size_scale", 1.f);
+  CShaderPrg_Set1f(shaderPrg, "openvr_size_scale", 1.f);
   fog_enabled = get_fog_enabled(G) ? 1.0 : 0.0;
   bg_gradient = SettingGetGlobal_b(G, cSetting_bg_gradient);
 

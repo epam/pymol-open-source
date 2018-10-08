@@ -3,6 +3,7 @@
 
 uniform bool lighting_enabled;
 uniform float sphere_size_scale;
+uniform float openvr_size_scale;
 
 uniform float horizontal_adjustment;
 uniform float vertical_adjustment;
@@ -20,7 +21,7 @@ varying vec2 bgTextureLookup;
 void main(void)
 {
     // Get billboard attributes
-    float radius = a_vertex_radius.w * sphere_size_scale;
+    float radius = a_vertex_radius.w * sphere_size_scale * openvr_size_scale;
     float right = -1. + 2.*mod(a_rightUpFlags, 2.);
     float up = -1. + 2.*floor(mod(a_rightUpFlags/2., 2.));
     vec4 a_Vertex = vec4(a_vertex_radius.xyz, 1.);
@@ -45,7 +46,7 @@ void main(void)
     vec3 corner_direction =  (vertical_adjustment*up) * up_vector + (horizontal_adjustment*right) * right_vector;
 
     // Calculate vertex of screen-oriented quad (billboard)
-    vec4 vertex = vec4(a_Vertex.xyz + radius * corner_direction, 1.);
+    vec4 vertex = vec4(a_Vertex.xyz + radius * corner_direction / openvr_size_scale, 1.);
 
     // Calculate vertex position in modelview space
     vec4 eye_space_pos = gl_ModelViewMatrix * vertex;

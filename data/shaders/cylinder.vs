@@ -7,6 +7,7 @@ attribute vec4 attr_colors;
 attribute vec4 attr_colors2;
 
 uniform float uni_radius;
+uniform float openvr_size_scale;
 
 //varying vec3 point; // surface point
 //varying vec3 axis; // cylinder axis
@@ -47,6 +48,8 @@ void main(void)
     } else {
         radius = attr_origin.w;
     }
+    radius *= openvr_size_scale;
+
     color1 = attr_colors;
     color2 = attr_colors2;
 
@@ -89,9 +92,9 @@ void main(void)
     vec4 vertex = vec4(attr_origin.xyz, 1.0); 
 
     vertex.xyz += up_v * attr_axis.xyz;
-    vertex.xyz += (2.0 * right_v - 1.0) * radius * u;
-    vertex.xyz += (2.0 * out_v - 1.0) * radius * v;
-    vertex.xyz += (2.0 * up_v - 1.0) * radius * h;
+    vertex.xyz += (2.0 * right_v - 1.0) * radius * u / openvr_size_scale;
+    vertex.xyz += (2.0 * out_v - 1.0) * radius * v / openvr_size_scale;
+    vertex.xyz += (2.0 * up_v - 1.0) * radius * h / openvr_size_scale;
 
     vec4 base4 = gl_ModelViewMatrix * vec4(attr_origin.xyz, 1.0);
     base = base4.xyz / base4.w;
