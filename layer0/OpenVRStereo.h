@@ -63,7 +63,7 @@ float* OpenVRGetHeadToEye(PyMOLGlobals * G);
 float* OpenVRGetControllerPose(PyMOLGlobals * G);
 float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane);
 float const* OpenVRGetPickingMatrix(PyMOLGlobals * G);
-float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G);
+float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G, float *scaler);
 
 void OpenVRLoadProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane);
 void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G);

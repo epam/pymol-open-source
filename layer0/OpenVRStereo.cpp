@@ -100,7 +100,9 @@ struct COpenVR {
 
   float moleculeToWorldMatrix[16];
   float moleculeToCapturingController[16];
+  float controllersCenterToWorld[16];
   int capturingHandIdx;
+  float controllersDistance;
 };
 
 static const float OPEN_VR_FRONT = 0.1f;
@@ -614,28 +616,46 @@ void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutBu
   }
 }
 
-void GetCapturedMolecule2WorldMatrix(PyMOLGlobals * G, float* matrix, int handIdx) {
-  COpenVR *I = G->OpenVR;
-  if (!I || handIdx < HLeft || handIdx > HRight) 
-    return;
-
-  memcpy(matrix, I->Hands[handIdx].GetPose(), sizeof(float) * 16);
-  MatrixMultiplyC44f(I->moleculeToCapturingController, matrix);
-}
-
 bool OpenVRIsMoleculeCaptured(PyMOLGlobals * G) {
   COpenVR *I = G->OpenVR;
   OpenVRActionList* Actions = I->Actions;
   return Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed();
 }
 
-float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G) {
+void CalculateScalingPivotToWorldMatrix(PyMOLGlobals * G, float *pivotToWorldMatrix) {
+  COpenVR *I = G->OpenVR;
+  if (!I || !pivotToWorldMatrix)
+    return;
+
+  identity44f(pivotToWorldMatrix);
+  float *lPose = I->Hands[HLeft].GetPose();
+  float *rPose = I->Hands[HRight].GetPose();
+  // get center traslation matrix
+  average3f(&lPose[12], &rPose[12], &pivotToWorldMatrix[12]); 
+}
+
+float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G, float *scaler) {
   COpenVR *I = G->OpenVR;
   if (!I)
     return NULL;
 
   float temp[16];
-  memcpy(temp, I->Hands[I->capturingHandIdx].GetPose(), sizeof(temp));
+  OpenVRActionList* Actions = I->Actions;
+  if (Actions->LGrip->IsPressed() && Actions->RGrip->IsPressed()) {
+    // translate after the scaling pivot
+    float pivotToWorldMatrix[16];
+    CalculateScalingPivotToWorldMatrix(G, pivotToWorldMatrix);
+    memcpy(temp, pivotToWorldMatrix, sizeof(temp));
+    // scale due to changing distance between controllers
+    if (scaler) {
+      float newDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
+      *scaler = newDistance / I->controllersDistance;
+      I->controllersDistance = newDistance;
+    }
+  } else {
+    memcpy(temp, I->Hands[I->capturingHandIdx].GetPose(), sizeof(temp));
+    *scaler = 1.0f;
+  }
   MatrixMultiplyC44f(I->moleculeToCapturingController, temp);
   memcpy(I->moleculeToWorldMatrix, temp, sizeof(I->moleculeToWorldMatrix));
   return I->moleculeToWorldMatrix;
@@ -647,6 +667,24 @@ void AttachMoleculeToController(PyMOLGlobals * G, int handIdx) {
   // catch up
   memcpy(I->moleculeToCapturingController, I->Hands[handIdx].GetWorldToControllerMatrix(), sizeof(I->moleculeToCapturingController));
   MatrixMultiplyC44f(I->moleculeToWorldMatrix, I->moleculeToCapturingController);
+}
+
+// FIXME generalize attach functions
+void AttachMoleculeToСenter(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+
+  // get scaling pivot center = controllers mass center
+  float worldToPivotMatrix[16];
+  CalculateScalingPivotToWorldMatrix(G, worldToPivotMatrix);
+  // inverse transform to be exactly WorldToPivot
+  worldToPivotMatrix[12] *= -1.0;
+  worldToPivotMatrix[13] *= -1.0;
+  worldToPivotMatrix[14] *= -1.0;
+  // attach molecule to pivot
+  memcpy(I->moleculeToCapturingController, worldToPivotMatrix, sizeof(I->moleculeToCapturingController));
+  MatrixMultiplyC44f(I->moleculeToWorldMatrix, I->moleculeToCapturingController);
+  // save distance between controllers
+  I->controllersDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
 }
 
 void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth, int SceneHeight, float *model2World)
@@ -707,11 +745,22 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     if (Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed()) {
       memcpy(I->moleculeToWorldMatrix, model2World, sizeof(I->moleculeToWorldMatrix)); 
     }
-    if (Actions->LGrip->WasPressed()) {
+    if (Actions->LGrip->WasPressed() && !Actions->RGrip->IsPressed()) {
       AttachMoleculeToController(G, HLeft);
     }
-    if (Actions->RGrip->WasPressed()) {
+    if (Actions->RGrip->WasPressed() && !Actions->LGrip->IsPressed()) {
       AttachMoleculeToController(G, HRight);
+    }
+    // TODO make it being less ugly
+    if ((Actions->RGrip->WasPressed() && Actions->LGrip->IsPressed()) ||
+       (Actions->LGrip->WasPressed() && Actions->RGrip->IsPressed())) {
+      AttachMoleculeToСenter(G);
+    }
+    if (Actions->LGrip->WasReleased() && Actions->RGrip->IsPressed()) {
+      AttachMoleculeToController(G, HRight);
+    }
+    if (Actions->RGrip->WasReleased() && Actions->LGrip->IsPressed()) {
+      AttachMoleculeToController(G, HLeft);
     }
     if ((Actions->LGrip->WasReleased() && !Actions->RGrip->IsPressed()) ||
         (Actions->RGrip->WasReleased() && !Actions->LGrip->IsPressed())) {

@@ -9960,8 +9960,10 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
 
   if(stereo_mode == cStereo_openvr && OpenVRReady(G)) {
     if (OpenVRIsMoleculeCaptured(G)) {
-      float const *mol2world = OpenVRGetMolecule2WorldMatrix(G);
+      float scaler;
+      float const *mol2world = OpenVRGetMolecule2WorldMatrix(G, &scaler);
       SceneSetModel2WorldMatrix(G, mol2world);
+      I->Scale *= scaler;
     }
   }
 
