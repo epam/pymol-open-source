@@ -43,6 +43,7 @@ public:
   void Init(OpenVRInputHandlers* inputHandlers);
   void Free();
 
+  void Crop(unsigned x, unsigned y, unsigned width, unsigned height);
   void Start(unsigned width, unsigned height, bool clear);
   void Finish();
 
@@ -78,6 +79,10 @@ private:
   OpenVRInputHandlers* m_inputHandlers;
   unsigned m_width;
   unsigned m_height;
+  unsigned m_visibleX;
+  unsigned m_visibleY;
+  unsigned m_visibleWidth;
+  unsigned m_visibleHeight;
   float m_sceneColor;
   float m_sceneAlpha;
   float m_distance;
@@ -103,7 +108,8 @@ private:
 
   // shader
   GLuint m_programID;
-  GLint m_hotspotUniform;
+  GLint m_guiTransformUniform;
+  GLint m_hotspotTransformUniform;
   GLint m_hotspotColorUniform;
   GLint m_guiTextureUniform;
   GLint m_sceneTextureUniform;

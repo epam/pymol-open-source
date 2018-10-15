@@ -469,6 +469,16 @@ void OpenVRMenuToggle(PyMOLGlobals * G, unsigned deviceIndex /* = ~0U */)
   }
 }
 
+void OpenVRMenuCrop(PyMOLGlobals * G, unsigned x, unsigned y, unsigned width, unsigned height)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  I->Menu.Crop(x, y, width, height);
+}
+
+
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 {
   COpenVR *I = G->OpenVR;
