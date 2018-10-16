@@ -127,6 +127,7 @@ void OpenVRLaser::Draw()
   glUniform4fv(m_scaleUniform, 1, scale);
   glUniform4fv(m_colorUniform, 1, m_color);
 
+  glLineWidth(1.0f); // set here to avoid the influence of previous rendering steps
   glDrawArrays(GL_LINES, 0, m_vertexCount);
 
   glBindVertexArray(0);
