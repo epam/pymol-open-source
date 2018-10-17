@@ -46,6 +46,7 @@ IVRSystem *VR_Init(EVRInitError *peError, EVRApplicationType eApplicationType, c
   // create a stub
   _stubSystem = new VRSystemStub();
   _stubCompositor = new VRCompositorStub();
+  _stubInput = new VRInputStub();
   if (peError)
     *peError = vr::VRInitError_None;
 
@@ -156,7 +157,7 @@ EVRCompositorError VRCompositorStub::WaitGetPoses(TrackedDevicePose_t* pRenderPo
 {
   static HmdMatrix34_t matrix = {{
     {1.000000000, 0.000000000, 0.000000000,  0.000000000},
-    {0.000000000, 1.000000000, 0.000000000,  0.000000000},
+    {0.000000000, 1.000000000, 0.000000000,  1.000000000},
     {0.000000000, 0.000000000, 1.000000000,  0.000000000},
   }};
 
@@ -176,6 +177,38 @@ EVRCompositorError VRCompositorStub::Submit(EVREye eEye, const Texture_t *pTextu
 {
   return VRCompositorError_None;
 }
+
+EVRInputError VRInputStub::GetDigitalActionData( VRActionHandle_t action, InputDigitalActionData_t *pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice )
+{
+  pActionData->bActive = false;
+  pActionData->activeOrigin = (VRInputValueHandle_t)0xFACEFACE;
+  pActionData->bState = false;
+  pActionData->bChanged = false;
+  pActionData->fUpdateTime = 0.0f;
+  return VRInputError_None;
+}
+
+EVRInputError VRInputStub::GetAnalogActionData( VRActionHandle_t action, InputAnalogActionData_t *pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice )
+{
+  pActionData->bActive = false;
+  pActionData->activeOrigin = (VRInputValueHandle_t)0xFACEFACE;
+  pActionData->x = pActionData->y = pActionData->z = 0.0f;
+  pActionData->deltaX = pActionData->deltaY = pActionData->deltaZ = 0.0f;
+  pActionData->fUpdateTime = 0.0f;
+  return VRInputError_None;
+}
+
+EVRInputError VRInputStub::GetPoseActionData( VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, InputPoseActionData_t *pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice )
+{
+  pActionData->bActive = false;
+  pActionData->activeOrigin = (VRInputValueHandle_t)0xFACEFACE;
+  memset(&pActionData->pose, 0, sizeof(TrackedDevicePose_t));
+  pActionData->pose.mDeviceToAbsoluteTracking.m[0][0] = 1.0f;
+  pActionData->pose.mDeviceToAbsoluteTracking.m[1][1] = 1.0f;
+  pActionData->pose.mDeviceToAbsoluteTracking.m[2][2] = 1.0f;
+  return VRInputError_None;
+}
+
 
 } // stub
 } // vr 
