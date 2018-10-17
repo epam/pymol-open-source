@@ -5,7 +5,10 @@
 
 namespace OpenVRUtils {
 
-GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader);
+GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader, char const* attributes[] = 0);
+
+GLuint LoadTexture(unsigned width, unsigned height, unsigned char const* ptr);
+GLuint LoadTexture(char const* filename);
 
 void VectorNormalize(float v[]);
 void VectorCrossProduct(float const v1[], float const v2[], float cross[]);

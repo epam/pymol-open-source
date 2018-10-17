@@ -84,6 +84,7 @@ struct COpenVR {
   CEye Right;
 
   OpenVRController Hands[COUNT];
+  GLuint ControllerHintsTexture;
 
   bool ForcedFront;
   bool ForcedBack;
@@ -264,6 +265,8 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     EyeInit(&I->Left, vr::Eye_Left, I->Width, I->Height);
     EyeInit(&I->Right, vr::Eye_Right, I->Width, I->Height);
 
+    I->ControllerHintsTexture = OpenVRUtils::LoadTexture("hints_vive_controller.png");
+
     I->Menu.Init(I->Handlers);
     I->Picker.Init(I->Handlers);
   }
@@ -272,8 +275,8 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     OpenVRController &hand = I->Hands[i];
     if (!hand.IsInitialized()) {
       hand.Init();
-    }  
-  }  
+    }
+  }
 }
 
 void OpenVRSetInputHandlers(PyMOLGlobals * G, OpenVRInputHandlers* handlers)
@@ -846,6 +849,7 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
               std::string sRenderModelName = GetTrackedDeviceString(G, nDevice, vr::Prop_RenderModelName_String);
               if (sRenderModelName != hand->m_sRenderModelName) {
                 hand->m_pRenderModel = FindOrLoadRenderModel(G, sRenderModelName.c_str());
+                hand->m_pRenderModel->SetHintsTexture(I->ControllerHintsTexture, 2);
                 hand->m_sRenderModelName = sRenderModelName;
               }
             }

@@ -1,6 +1,10 @@
 #include "OpenVRUtils.h"
+
 #include <stdio.h>
 #include <math.h>
+#include <string>
+
+#include "MyPNG.h"
 
 namespace OpenVRUtils {
 
@@ -30,7 +34,7 @@ static GLuint CompileShader(GLenum shaderType, char const* shader)
   return shaderID;
 }
 
-GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader)
+GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader, char const* attributes[] /* = 0 */)
 {
   GLuint vertexShaderID = CompileShader(GL_VERTEX_SHADER, vertexShader);
   GLuint fragmentShaderID = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
@@ -40,6 +44,11 @@ GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader)
     programID = glCreateProgram();
     glAttachShader(programID, vertexShaderID);
     glAttachShader(programID, fragmentShaderID);
+
+    if (attributes)
+      for (int i = 0; attributes[i] != 0; ++i)
+        glBindAttribLocation(programID, i, attributes[i]);
+
     glLinkProgram(programID);
 
     GLint success = GL_FALSE;
@@ -76,6 +85,36 @@ GLuint CompileProgram(char const* vertexShader,  char const* fragmentShader)
   }
 
   return programID;
+}
+
+GLuint LoadTexture(unsigned width, unsigned height, unsigned char const* ptr)
+{
+  GLuint texture = 0;
+
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ptr);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  return texture;
+}
+
+GLuint LoadTexture(char const* filename)
+{
+  std::string filePath = std::string(getenv("PYMOL_PATH")) + "\\data\\openvr\\" + filename;
+  unsigned width = 0, height = 0;
+  unsigned char* ptr = 0;
+  if (MyPNGRead(filePath.c_str(), &ptr, &width, &height)) {
+    return LoadTexture(width, height, ptr);
+  }
+  return 0;
 }
 
 void VectorNormalize(float v[])
