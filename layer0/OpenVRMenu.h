@@ -43,6 +43,8 @@ public:
   void Init(OpenVRInputHandlers* inputHandlers);
   void Free();
 
+  void SetSceneAlpha(float alpha);
+
   void Crop(unsigned x, unsigned y, unsigned width, unsigned height);
   void Start(unsigned width, unsigned height, bool clear);
   void Finish();

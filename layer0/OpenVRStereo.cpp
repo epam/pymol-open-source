@@ -32,6 +32,7 @@ Z* -------------------------------------------------------------------
 #include "OpenVRScenePicker.h"
 #include "OpenVRLaserTarget.h"
 #include "PyMOLOptions.h"
+#include "Setting.h"
 #include "Feedback.h"
 #include "Matrix.h"
 
@@ -439,6 +440,7 @@ void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bo
   if(!OpenVRReady(G))
     return;
 
+  I->Menu.SetSceneAlpha(SettingGetGlobal_f(G, cSetting_openvr_gui_scene_alpha));
   I->Menu.Start(width, height, clear);
 }
 

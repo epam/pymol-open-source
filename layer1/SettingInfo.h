@@ -870,7 +870,8 @@ enum {
   REC_b( 762, surface_smooth_edges                    , ostate    , 1 ),
   REC_i( 763, chem_comp_cartn_use                     , global    , 0 ),
   REC_b( 764, colored_feedback                        , global    , 0 ),
-  REC_b( 765, openvr_crop_gui                         , global    , 1 ),
+  REC_b( 765, openvr_gui_crop                         , global    , 1 ),
+  REC_f( 766, openvr_gui_scene_alpha                  , global    , 0.75f ),
 
 #ifdef SETTINGINFO_IMPLEMENTATION
 #undef SETTINGINFO_IMPLEMENTATION

@@ -158,6 +158,11 @@ void OpenVRMenu::FreeBuffers()
   glDeleteFramebuffers(1, &m_frameBufferID);
 }
 
+void OpenVRMenu::SetSceneAlpha(float alpha)
+{
+  m_sceneAlpha = alpha;
+}
+
 void OpenVRMenu::Crop(unsigned x, unsigned y, unsigned width, unsigned height)
 {
   m_visibleX = x;

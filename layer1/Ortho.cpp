@@ -1617,7 +1617,7 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
       double_pump = false;
       offscreen_vr = true;
 
-      if (SettingGetGlobal_b(G, cSetting_openvr_crop_gui)) {
+      if (SettingGetGlobal_b(G, cSetting_openvr_gui_crop)) {
         OpenVRMenuCrop(G, I->Width - cOrthoRightSceneMargin, 0, cOrthoRightSceneMargin, I->Height);
       } else {
         OpenVRMenuCrop(G, 0, 0, I->Width, I->Height);
