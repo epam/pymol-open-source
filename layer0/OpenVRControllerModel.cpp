@@ -156,6 +156,7 @@ void OpenVRControllerModel::FreeShaders() {
 void OpenVRControllerModel::SetHintsTexture(GLuint hintsTexture, unsigned spriteCount)
 {
   m_hintsQuad->SetTexture(hintsTexture, spriteCount);
+  m_hintsQuad->SetMirror(true);
 }
 
 //-----------------------------------------------------------------------------

@@ -13,6 +13,7 @@ public:
   void SetSprite(unsigned index);
   void SetSize(float width, float height);
   void SetAlpha(float alpha);
+  void SetMirror(bool mirror);
 
   void Draw();
 
@@ -29,6 +30,7 @@ private:
   unsigned m_spriteIndex;
   unsigned m_spriteCount;
   float m_alpha;
+  bool m_mirror;
 
   // geometry
   GLuint m_vertexArrayID;

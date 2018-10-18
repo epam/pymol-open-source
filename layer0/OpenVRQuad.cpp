@@ -7,6 +7,7 @@ OpenVRQuad::OpenVRQuad()
   , m_spriteIndex(0)
   , m_spriteCount(1)
   , m_alpha(1.0f)
+  , m_mirror(false)
   , m_vertexArrayID(0)
   , m_vertexBufferID(0)
   , m_vertexCount(0)
@@ -130,6 +131,11 @@ void OpenVRQuad::SetAlpha(float alpha)
   m_alpha = alpha;
 }
 
+void OpenVRQuad::SetMirror(bool mirror)
+{
+  m_mirror = mirror;
+}
+
 void OpenVRQuad::Draw()
 {
   glUseProgram(m_programID);
@@ -138,7 +144,7 @@ void OpenVRQuad::Draw()
   glBindTexture(GL_TEXTURE_2D, m_textureID);
 
   float positionMulAdd[4] = {0.5f * m_width, 0.5f * m_height, 0.0f, 0.0f};
-  float texcoordMulAdd[4] = {1.0f / m_spriteCount, 1.0f, (float)m_spriteIndex / m_spriteCount, 0.0f};
+  float texcoordMulAdd[4] = {1.0f / m_spriteCount, m_mirror ? -1.0f : 1.0f, (float)m_spriteIndex / m_spriteCount, m_mirror ? 1.0f : 0.0f};
   float hasTexture = m_textureID ? 1.0f : 0.0f;
   float colorMulAdd[4] = {hasTexture, hasTexture * m_alpha, 1.0f - hasTexture, (1.0f - hasTexture) * m_alpha};
 
