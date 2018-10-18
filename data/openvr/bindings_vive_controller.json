@@ -67,6 +67,10 @@
       }, {
         "path": "/user/hand/right/input/trackpad",
         "mode": "dpad_click",
+        "parameters": {
+          "deadzone_pct": "50",
+          "overlap_pct": "0"
+        },
         "inputs": {
           "center": {
             "output": "/actions/pymol/in/PadCenter"
@@ -87,6 +91,10 @@
       }, {
         "path": "/user/hand/left/input/trackpad",
         "mode": "dpad_click",
+        "parameters": {
+          "deadzone_pct": "50",
+          "overlap_pct": "0"
+        },
         "inputs": {
           "center": {
             "output": "/actions/pymol/in/PadCenter"
