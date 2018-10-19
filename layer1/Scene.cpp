@@ -1283,7 +1283,7 @@ void ResetFovWidth(PyMOLGlobals * G, float fov) {
 }
 
 /*========================================================================*/
-void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) { 
+void SceneResetOpenVRSettings(PyMOLGlobals * G, bool enableOpenVR) { 
   CScene *I = G->Scene;
 
   // set FOV = 110 for openVR
@@ -1298,11 +1298,13 @@ void SceneResetOpenVRFov(PyMOLGlobals * G, bool enableOpenVR) {
     s_oldFov =  SettingGetGlobal_f(G, cSetting_field_of_view);
     ResetFovWidth(G, openVRFov);
     commonCorrect = true;
+    SettingSetGlobal_f(G, cSetting_dynamic_width_factor, 0.004f); // for correct line width in lines mode
     PRINTFB(G, FB_Scene, FB_Actions)
       " Scene: reset Fov for openVR.\n" ENDFB(G);
   } else if (commonCorrect){
     ResetFovWidth(G, s_oldFov);
     commonCorrect = false;
+    SettingSetGlobal_f(G, cSetting_dynamic_width_factor, 0.06f);
     PRINTFB(G, FB_Scene, FB_Actions)
       " Scene: restore Fov after openVR turning off.\n" ENDFB(G);
   }
@@ -1339,7 +1341,7 @@ void SceneSetStereo(PyMOLGlobals * G, int flag)
     bool enableOpenVR = I->StereoMode == cStereo_openvr;
 
     // reset camera position
-    SceneResetOpenVRFov(G, enableOpenVR);
+    SceneResetOpenVRSettings(G, enableOpenVR);
 
     // force open internal menu
     PParse(G, "cmd.set_wizard_stack()");
