@@ -257,8 +257,6 @@ class CScene {
   GridInfo grid;
   int last_grid_size;
 
-  SceneViewType saved_view;
-
   // This structure used to be calloc-ed, this replicates that
   void *operator new(size_t size) {
     void *mem = ::operator new(size);
@@ -1411,10 +1409,6 @@ void SceneSetStereo(PyMOLGlobals * G, int flag)
   CScene *I = G->Scene;
   int cur_stereo = I->StereoMode;
 
-  // remember view
-  //if (flag && SettingGetGlobal_i(G, cSetting_stereo_mode) == cStereo_openvr && cur_stereo != cStereo_openvr)
-  //  SceneGetView(G, I->saved_view);
-
   if(flag) {
     I->StereoMode = SettingGetGlobal_i(G, cSetting_stereo_mode);
   } else {
@@ -1443,10 +1437,6 @@ void SceneSetStereo(PyMOLGlobals * G, int flag)
     if (enableOpenVR) {
       PParse(G, "wizard openvr");
     }
-
-    // restore view
-    //if (!enableOpenVR)
-    //  SceneSetView(G, I->saved_view, true, 0, 0);
   }
 
   SettingSetGlobal_b(G, cSetting_stereo, flag);
