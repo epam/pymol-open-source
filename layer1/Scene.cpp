@@ -56,7 +56,7 @@ Z* -------------------------------------------------------------------
 #include "ShaderMgr.h"
 #include"OpenVRStereo.h"
 
-#define _OPENVR_STEREO_DEBUG_VIEWS
+// #define _OPENVR_STEREO_DEBUG_VIEWS
 
 #include <string>
 #include <vector>
@@ -1398,14 +1398,10 @@ void SceneResetOpenVRSettings(PyMOLGlobals * G, bool enableOpenVR) {
     ResetFovWidth(G, enableOpenVR, openVRFov);
     commonCorrect = true;
     SettingSetGlobal_f(G, cSetting_dynamic_width_factor, 0.004f); // for correct line width in lines mode
-    PRINTFB(G, FB_Scene, FB_Actions)
-      " Scene: reset Fov for openVR.\n" ENDFB(G);
   } else if (commonCorrect){
     ResetFovWidth(G, enableOpenVR, s_oldFov);
     commonCorrect = false;
     SettingSetGlobal_f(G, cSetting_dynamic_width_factor, 0.06f);
-    PRINTFB(G, FB_Scene, FB_Actions)
-      " Scene: restore Fov after openVR turning off.\n" ENDFB(G);
   }
 }
 
