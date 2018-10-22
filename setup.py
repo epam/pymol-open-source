@@ -188,6 +188,7 @@ DefaultDirName={pf}\\{#MyAppName} {#MyAppShortVersion}
 DefaultGroupName={#MyAppName} {#MyAppShortVersion}
 AllowNoIcons=yes
 LicenseFile={#MyAppName}-{#MyAppVersion}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\LICENSE
+InfoBeforeFile={#MyAppName}-{#MyAppVersion}\\%(pythonsubdir)s\\Lib\\site-packages\\pymol\\pymol_path\\README-VR
 OutputDir=.
 OutputBaseFilename={#MyAppName}-{#MyAppVersion}
 Compression=lzma
@@ -271,7 +272,7 @@ class install_pymol(install):
 
     def install_pymol_path(self):
         self.mkpath(self.pymol_path)
-        for name in [ 'LICENSE', 'data', 'test', 'scripts', 'examples', ]:
+        for name in [ 'LICENSE', 'README-VR', 'data', 'test', 'scripts', 'examples', ]:
             self.copy(name, os.path.join(self.pymol_path, name))
 
     def make_launch_script(self):
