@@ -14,6 +14,7 @@ OpenVRController::OpenVRController()
 void OpenVRController::Init()
 {
   m_laser.Init();
+  m_init = true;
 }
 
 void OpenVRController::Free()
