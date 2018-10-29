@@ -598,17 +598,14 @@ static void RepWireBondRender(RepWireBond * I, RenderInfo * info)
 	} else {
 	  CShaderPrg *shaderPrg;
 	  if (line_as_cylinders){
-	    // vertex scale is bound so that cylinders cannot disappear when it gets too low
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
-	    if (!shaderPrg) return;
+	    float uni_radius = 0.0f;
+      if (!shaderPrg) return;
 	    if (vw){
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width_setting/ 2.f);
-	    } else {
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width/ 2.f);
-	    }
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width_setting, line_width_setting));
+      } else {
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width, I->Width));
+      }
 	  } else {
 	    shaderPrg = CShaderPrg_Enable_DefaultShader(G);
 	    if (!shaderPrg) return;
@@ -761,16 +758,12 @@ static void RepWireBondRender(RepWireBond * I, RenderInfo * info)
 	if (ok){
 	  CShaderPrg *shaderPrg;
 	  if (line_as_cylinders){
-	    // vertex scale is bound so that cylinders cannot disappear when it gets too low
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
 	    if (!shaderPrg) return;
 	    if (vw){
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width_setting/ 2.f);
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width_setting, line_width_setting));
 	    } else {
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width/ 2.f);
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width, I->Width));
 	    }
 	  } else {
 	    shaderPrg = CShaderPrg_Enable_DefaultShader(G);

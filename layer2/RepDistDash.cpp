@@ -132,12 +132,10 @@ static void RepDistDashRender(RepDistDash * I, RenderInfo * info)
 	} else if (ok) {
 	  CShaderPrg *shaderPrg;
 	  if (dash_as_cylinders){
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
 	    if(I->radius == 0.0F) {
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width/ 2.f);
+        float dash_size = SettingGet_f(G, NULL, I->ds->Obj->Obj.Setting, cSetting_dash_width);
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width, dash_size));
 	    } else {
 	      CShaderPrg_Set1f(shaderPrg, "uni_radius", I->radius);
 	    }
@@ -253,12 +251,10 @@ static void RepDistDashRender(RepDistDash * I, RenderInfo * info)
 	if (ok) {
 	  CShaderPrg *shaderPrg;
 	  if (dash_as_cylinders){
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
 	    if(I->radius == 0.0F) {
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width/ 2.f);
+        float dash_size = SettingGet_f(G, NULL, I->ds->Obj->Obj.Setting, cSetting_dash_width);
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width, dash_size));
 	    } else {
 	      CShaderPrg_Set1f(shaderPrg, "uni_radius", I->radius);
 	    }

@@ -10217,6 +10217,21 @@ float SceneGetLineWidthForCylinders(PyMOLGlobals * G, RenderInfo * info, float l
   return info->vertex_scale * pixel_scale_value * line_width / 2.f;
 }
 
+// line width arg has been processed as dynamic already
+float SceneGetLineWidthForCylindersStatic(PyMOLGlobals * G, RenderInfo * info, float dynamic_line_width_arg, float line_width_arg){
+  float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);  
+  if(pixel_scale_value < 0)
+    pixel_scale_value = 1.0F;
+  /* the radius of the cylinders is the vertex_scale * ray_pixel_scale */
+  /* this turns out to be exactly right, but changes if the scene or user 
+     moves */
+  if (SceneGetStereo(G) == cStereo_openvr) 
+    // note: that is reversion of magic dynamic line modifications in PYMOL
+    return pixel_scale_value * 0.07f * line_width_arg / 2.0f;
+  
+  return info->vertex_scale * pixel_scale_value * dynamic_line_width_arg / 2.f;
+}
+
 void SceneGLClear(PyMOLGlobals * G, GLbitfield mask){
   glClear(mask);
 }

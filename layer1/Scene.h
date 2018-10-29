@@ -226,6 +226,7 @@ int SceneGetTwoSidedLighting(PyMOLGlobals * G);
 int SceneGetTwoSidedLightingSettings(PyMOLGlobals * G, const CSetting *set1, const CSetting *set2);
 
 float SceneGetLineWidthForCylinders(PyMOLGlobals * G, RenderInfo * info, float line_width);
+float SceneGetLineWidthForCylindersStatic(PyMOLGlobals * G, RenderInfo * info, float dynamic_line_width_arg, float line_width);
 
 void SceneGLClear(PyMOLGlobals * G, GLbitfield mask);
 
