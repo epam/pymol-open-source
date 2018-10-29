@@ -1827,6 +1827,7 @@ CShaderPrg *CShaderPrg_Enable_CylinderShader(PyMOLGlobals * G){
       return NULL;
   CShaderPrg_Enable(shaderPrg);
   CShaderPrg_Set1f(shaderPrg, "uni_radius", 0.f);
+  CShaderPrg_Set1f(shaderPrg, "openvr_size_scale", 1.f);
   fog_enabled = get_fog_enabled(G) ? 1.0 : 0.0;
   bg_gradient = SettingGetGlobal_b(G, cSetting_bg_gradient);
   if (bg_gradient){
