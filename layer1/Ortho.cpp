@@ -1608,7 +1608,7 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
     if(text)
       overlay = 0;
 
-    if(overlay || (!text))
+    if(overlay || (!text) || render_mode < 0)
       if(!SceneRenderCached(G))
         render = true;
 
@@ -1616,6 +1616,8 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
       times = 2;
       double_pump = false;
       offscreen_vr = true;
+      OrthoDrawBuffer(G, GL_BACK);
+      SceneGLClear(G, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     } else if(render_mode < 2) {
       if(SceneMustDrawBoth(G)) {
         OrthoDrawBuffer(G, GL_BACK_LEFT);

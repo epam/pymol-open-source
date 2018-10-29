@@ -11940,7 +11940,7 @@ void ExecutiveDrawNow(PyMOLGlobals * G)
           SceneGetModel2WorldMatrix(G, matrix);
           OpenVRHandleInput(G, scene_block->rect.left, scene_block->rect.bottom, scene_width, scene_height, matrix);
           OrthoDoDraw(G, -1);
-          OpenVRFrameFinish(G, scene_block->rect.left, scene_block->rect.bottom, scene_width, scene_height);
+          OpenVRFrameFinish(G);
           PyMOL_NeedRedisplay(G->PyMOL);
         }
         break;

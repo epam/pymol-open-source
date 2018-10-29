@@ -397,17 +397,13 @@ void OpenVREyeFinish(PyMOLGlobals * G)
   I->Eye = NULL;
 }
 
-void OpenVRFrameFinish(PyMOLGlobals * G, unsigned sceneX, unsigned sceneY, unsigned sceneWidth, unsigned sceneHeight)
+void OpenVRSceneFinish(PyMOLGlobals * G, unsigned sceneX, unsigned sceneY, unsigned sceneWidth, unsigned sceneHeight)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
     return;
 
   GL_DEBUG_FUN();
-
-  // send rendered pictures into the headset
-  I->Compositor->Submit(vr::Eye_Left, &I->Left.Texture);
-  I->Compositor->Submit(vr::Eye_Right, &I->Right.Texture);
 
   // find a proper rectangle with the scene aspect ratio
   unsigned width = I->Height * sceneWidth / sceneHeight;
@@ -426,6 +422,19 @@ void OpenVRFrameFinish(PyMOLGlobals * G, unsigned sceneX, unsigned sceneY, unsig
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, I->Left.ResolveBufferID);
   glBlitFramebufferEXT(dx, dy, dx + width, dy + height, sceneX, sceneY, sceneX + sceneWidth, sceneY + sceneHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
   glBindFramebufferEXT(GL_READ_FRAMEBUFFER, 0);
+}
+
+void OpenVRFrameFinish(PyMOLGlobals * G)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  GL_DEBUG_FUN();
+
+  // send rendered pictures into the headset
+  I->Compositor->Submit(vr::Eye_Left, &I->Left.Texture);
+  I->Compositor->Submit(vr::Eye_Right, &I->Right.Texture);
 }
 
 void OpenVRGetWidthHeight(PyMOLGlobals * G, int* width, int* height)

@@ -9981,6 +9981,13 @@ void SceneRender(PyMOLGlobals * G, Picking * pick, int x, int y,
     }
   }
 
+  if(stereo_mode == cStereo_openvr && !SettingGetGlobal_b(G, cSetting_text)) {
+    Block* scene_block = I->Block;
+    int scene_width = scene_block->rect.right - scene_block->rect.left;
+    int scene_height = scene_block->rect.top - scene_block->rect.bottom;
+    OpenVRSceneFinish(G, scene_block->rect.left, scene_block->rect.bottom, scene_width, scene_height);
+  }
+
   PRINTFD(G, FB_Scene)
     " SceneRender: leaving...\n" ENDFD;
 }
