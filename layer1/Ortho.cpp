@@ -1604,6 +1604,7 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
       break;
     }
 
+    int openvr_text = SettingGetGlobal_i(G, cSetting_openvr_gui_text);
     text = SettingGetGlobal_b(G, cSetting_text);
     if(text)
       overlay = 0;
@@ -1653,16 +1654,21 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 
     origtimes = times;
     while(times--) {
+      bool draw_text = text;
 
       switch (times) {
       case 1:
         if(offscreen_vr) {
+          draw_text = text || (openvr_text == 1);
           OrthoDrawBuffer(G, GL_NONE);
           OpenVRMenuBufferStart(G, I->Width, I->Height, true);
         } else
           OrthoDrawBuffer(G, GL_BACK_LEFT);
         break;
       case 0:
+        if(offscreen_vr) {
+          draw_text = text && (openvr_text != 2);
+        }
         if(double_pump) {
           OrthoDrawBuffer(G, GL_BACK_RIGHT);
         } else
@@ -1798,7 +1804,7 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
           y += (7 * cOrthoLineHeight) / 10;
         }
 #endif
-        if(SettingGetGlobal_b(G, cSetting_text) || I->SplashFlag)
+        if(draw_text || I->SplashFlag)
           showLines = I->ShowLines;
         else {
           showLines = internal_feedback + overlay;
@@ -1852,7 +1858,7 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
 
       OrthoDrawWizardPrompt(G ORTHOCGOARGVAR);
 
-      if(SettingGetGlobal_b(G, cSetting_text) || I->SplashFlag) {
+      if(draw_text || I->SplashFlag) {
         Block *block;
         int active_tmp;
         block = SeqGetBlock(G);

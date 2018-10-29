@@ -871,6 +871,7 @@ enum {
   REC_i( 763, chem_comp_cartn_use                     , global    , 0 ),
   REC_b( 764, colored_feedback                        , global    , 0 ),
   REC_f( 765, openvr_gui_scene_alpha                  , global    , 0.75f ),
+  REC_i( 766, openvr_gui_text                         , global    , 0 ), // 0: copy, 1: force, 2: only
 
 #ifdef SETTINGINFO_IMPLEMENTATION
 #undef SETTINGINFO_IMPLEMENTATION
