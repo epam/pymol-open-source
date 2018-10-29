@@ -202,12 +202,9 @@ static void RepRibbonRender(RepRibbon * I, RenderInfo * info)
 	} else if (ok) {
 	  CShaderPrg *shaderPrg;
 	  if (ribbon_as_cylinders){
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
 	    if(I->radius == 0.0F) {
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width/ 2.f);
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width, I->ribbon_width));
 	    } else {
 	      CShaderPrg_Set1f(shaderPrg, "uni_radius", I->radius);
 	    }
@@ -380,12 +377,9 @@ static void RepRibbonRender(RepRibbon * I, RenderInfo * info)
 	if (ok){
 	  CShaderPrg *shaderPrg;
 	  if (ribbon_as_cylinders){
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
 	    if(I->radius == 0.0F) {
-	      CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * line_width/ 2.f);
+        CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, line_width, I->ribbon_width));
 	    } else {
 	      CShaderPrg_Set1f(shaderPrg, "uni_radius", I->radius);
 	    }

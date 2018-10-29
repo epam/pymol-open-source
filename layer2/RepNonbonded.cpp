@@ -229,13 +229,9 @@ static void RepNonbondedRender(RepNonbonded * I, RenderInfo * info)
 	} else {
 	  CShaderPrg *shaderPrg;
 	  if (nonbonded_as_cylinders){
-	    // vertex scale is bound so that cylinders cannot disappear when it gets too low
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
         if (!shaderPrg) return;
-	    CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * I->Width/ 2.f);
+	    CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, I->Width, I->Width));
 	  } else {
 	    shaderPrg = CShaderPrg_Enable_DefaultShader(G);
         if (!shaderPrg) return;
@@ -413,13 +409,9 @@ static void RepNonbondedRender(RepNonbonded * I, RenderInfo * info)
 	if (ok){
 	  CShaderPrg *shaderPrg;
 	  if (nonbonded_as_cylinders){
-	    // vertex scale is bound so that cylinders cannot disappear when it gets too low
-	    float pixel_scale_value = SettingGetGlobal_f(G, cSetting_ray_pixel_scale);
-	    if(pixel_scale_value < 0)
-	      pixel_scale_value = 1.0F;
 	    shaderPrg = CShaderPrg_Enable_CylinderShader(G);
 	    if (!shaderPrg) return;
-	    CShaderPrg_Set1f(shaderPrg, "uni_radius", info->vertex_scale * pixel_scale_value * I->Width/ 2.f);
+      CShaderPrg_Set1f(shaderPrg, "uni_radius", SceneGetLineWidthForCylindersStatic(G, info, I->Width, I->Width));
 	  } else {
 	    shaderPrg = CShaderPrg_Enable_DefaultShader(G);
 	    if (!shaderPrg) return;
