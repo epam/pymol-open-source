@@ -132,8 +132,9 @@ void OpenVRMenu::InitBuffers(unsigned width, unsigned height)
   if (m_frameBufferID)
     FreeBuffers();
 
-  m_width = width;
-  m_height = height;
+  m_visibleX = m_visibleY = 0;
+  m_width = m_visibleWidth = width;
+  m_height = m_visibleHeight = height;
 
   // framebuffer
   glGenFramebuffersEXT(1, &m_frameBufferID);
@@ -173,7 +174,7 @@ void OpenVRMenu::Crop(unsigned x, unsigned y, unsigned width, unsigned height)
 
 void OpenVRMenu::Start(unsigned width, unsigned height, bool clear)
 {
-  if (m_width != width || m_height != height)
+  if (m_width != width || m_height != height || !m_frameBufferID)
     InitBuffers(width, height);
 
   glBindFramebufferEXT(GL_FRAMEBUFFER, m_frameBufferID);
@@ -350,7 +351,6 @@ bool OpenVRMenu::LaserShoot(float const* origin, float const* dir, float const* 
 
 void OpenVRMenu::LaserClick(bool down)
 {
-  printf("x=%i y=%i\n", m_hotspot.x, m_hotspot.y);
   if (m_hotspot.x >= m_visibleX && m_hotspot.y >= m_visibleY && m_hotspot.x < m_visibleX + m_visibleWidth && m_hotspot.y < m_visibleY + m_visibleHeight) {
     m_inputHandlers->MouseFunc(P_GLUT_LEFT_BUTTON, down ? P_GLUT_DOWN : P_GLUT_UP, m_hotspot.x, m_hotspot.y, 0);
   }

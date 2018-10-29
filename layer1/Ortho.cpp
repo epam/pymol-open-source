@@ -1616,12 +1616,6 @@ void OrthoDoDraw(PyMOLGlobals * G, int render_mode)
       times = 2;
       double_pump = false;
       offscreen_vr = true;
-
-      if (SettingGetGlobal_b(G, cSetting_openvr_gui_crop)) {
-        OpenVRMenuCrop(G, I->Width - cOrthoRightSceneMargin, 0, cOrthoRightSceneMargin, I->Height);
-      } else {
-        OpenVRMenuCrop(G, 0, 0, I->Width, I->Height);
-      }
     } else if(render_mode < 2) {
       if(SceneMustDrawBoth(G)) {
         OrthoDrawBuffer(G, GL_BACK_LEFT);
