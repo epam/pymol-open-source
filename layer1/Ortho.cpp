@@ -1079,11 +1079,11 @@ void OrthoAction(PyMOLGlobals * G, int a)
 
   switch(a) {
   case cAction_scene_next:
-    OrthoCommandIn(G, "scene action=next");
+    PParse(G, "cmd.scene('','next')");
     break;
 
   case cAction_scene_prev:
-    OrthoCommandIn(G, "scene action=previous");
+    PParse(G, "cmd.scene('','previous')");
     break;
 
   case cAction_movie_toggle:
@@ -2482,6 +2482,35 @@ int OrthoButton(PyMOLGlobals * G, int button, int state, int x, int y, int mod)
   return (handled);
 }
 
+typedef struct {
+  CDeferred deferred;
+  int button;
+  int state;
+  int x;
+  int y;
+  int mod;
+} COrthoButtonDeferred;
+
+void OrthoButtonDeferred(COrthoButtonDeferred * d)
+{
+  OrthoButton(d->deferred.G, d->button, d->state, d->x, d->y, d->mod);
+}
+
+int OrthoButtonDefer(PyMOLGlobals * G, int button, int state, int x, int y, int mod)
+{
+  COrthoButtonDeferred *d = PyMolCalloc(COrthoButtonDeferred, 1);
+  if(d) {
+    DeferredInit(G, &d->deferred);
+    d->deferred.fn = (DeferredFn *)OrthoButtonDeferred;
+    d->button = button;
+    d->state = state;
+    d->x = x;
+    d->y = y;
+    d->mod = mod;
+  }
+  OrthoDefer(G, &d->deferred);
+  return 1;
+}
 
 /*========================================================================*/
 int OrthoDrag(PyMOLGlobals * G, int x, int y, int mod)
@@ -2685,7 +2714,7 @@ int OrthoInit(PyMOLGlobals * G, int showSplash)
         OrthoSpecial(G, k, x, y, mod);
       }
       virtual int MouseFunc(int button, int state, int x, int y, int mod) {
-         return OrthoButton(G, button, state, x, y, mod);
+         return OrthoButtonDefer(G, button, state, x, y, mod);
       }
       virtual int MotionFunc(int x, int y, int mod) {
         return OrthoDrag(G, x, y, mod);

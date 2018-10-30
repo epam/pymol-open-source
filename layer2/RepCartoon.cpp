@@ -215,7 +215,7 @@ static void RepCartoonRender(RepCartoon * I, RenderInfo * info)
 	}
     }
   }
-  if (!ok || !CGOHasOperationsOfType(I->ray, 0)){
+  if (!ok || !I->ray || !CGOHasOperationsOfType(I->ray, 0)){
     if (I->ray == I->preshader)
       I->preshader = NULL;
     CGOFree(I->ray);
