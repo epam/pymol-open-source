@@ -753,6 +753,8 @@ void AttachMoleculeToСenter(PyMOLGlobals * G) {
   I->controllersDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
 }
 
+void HandleLaser(COpenVR* I, int centerX, int centerY, CMouseEvent const& mouseEvent);
+
 void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth, int SceneHeight, float *model2World)
 {
   COpenVR *I = G->OpenVR;
@@ -877,6 +879,13 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
       }
     }
   }
+
+  HandleLaser(I, centerX, centerY, mouseEvent);
+}
+
+void HandleLaser(COpenVR* I, int centerX, int centerY, CMouseEvent const& mouseEvent)
+{
+  OpenVRActionList* Actions = I->Actions;
 
   // hide all lasers
   I->Menu.HideHotspot();
