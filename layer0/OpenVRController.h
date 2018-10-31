@@ -46,6 +46,9 @@ public:
   void SetLaserColor(float r, float g, float b, float a);
   void SetLaserColor(float const color[]);
 
+  bool isGripPressed() const { return m_gripIsPressed; }
+  void pressGrip(bool press) { m_gripIsPressed = press; }
+
 public:
 // FIXME make good initialization
   vr::TrackedDeviceIndex_t m_deviceIndex;
@@ -57,7 +60,9 @@ private:
   bool m_bShowController;
   GLfloat m_pose[16]; // model2world matrix 
   OpenVRLaser m_laser;
-  GLfloat m_worldToController[16];   
+  GLfloat m_worldToController[16];
+  
+  bool m_gripIsPressed;
 };
 
 #endif /* _H_OpenVRController */

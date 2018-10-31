@@ -642,8 +642,7 @@ void ProcessButtonDragAsMouse(PyMOLGlobals * G, OpenVRAction *action, int glutBu
 
 bool OpenVRIsMoleculeCaptured(PyMOLGlobals * G) {
   COpenVR *I = G->OpenVR;
-  OpenVRActionList* Actions = I->Actions;
-  return Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed();
+  return I->Hands[HLeft].isGripPressed() || I->Hands[HRight].isGripPressed();
 }
 
 void CalculateScalingPivotToWorldMatrix(PyMOLGlobals * G, float *pivotToWorldMatrix) {
@@ -766,7 +765,10 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, centerX, centerY);
     ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, centerX, centerY);
 
-    if (Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed()) {
+    I->Hands[HLeft].pressGrip(Actions->LGrip->IsPressed());
+    I->Hands[HRight].pressGrip(Actions->RGrip->IsPressed());
+
+    if (OpenVRIsMoleculeCaptured(G)/*Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed()*/) {
       memcpy(I->moleculeToWorldMatrix, model2World, sizeof(I->moleculeToWorldMatrix)); 
     }
     if (Actions->LGrip->WasPressed() && !Actions->RGrip->IsPressed()) {
