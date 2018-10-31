@@ -86,7 +86,7 @@ enum EUserAction
 };
 
 static EUserAction s_userActionMapping[UserActionSet_Count][3] = {
-  {UserAction_Mouse_LClick, UserAction_Mouse_MClick, UserAction_Mouse_RClick}, // UserActionSet_Mouse
+  {UserAction_Mouse_LClick, UserAction_None/*UserAction_Mouse_MClick*/, UserAction_Mouse_RClick}, // UserActionSet_Mouse
   {UserAction_Scene_Prev, UserAction_None, UserAction_Scene_Next}, // UserActionSet_Scene
   {UserAction_Movie_Prev, UserAction_Movie_Toggle, UserAction_Movie_Next}, // UserActionSet_Movie
 };
@@ -152,6 +152,15 @@ static char const* deviceClassNames[] = {
   "Accessory",
 };
 static const int deviceClassNamesCount = sizeof(deviceClassNames) / sizeof(*deviceClassNames);
+
+struct CMouseEvent {
+  unsigned deviceIndex;
+  int button;
+  int state;
+  CMouseEvent() : deviceIndex(0), button(0), state(0) {}
+  CMouseEvent(unsigned i, int b, int s) : deviceIndex(i), button(b), state(s) {}
+  CMouseEvent(unsigned i, int b, bool s) : deviceIndex(i), button(b), state(s ? P_GLUT_DOWN : P_GLUT_UP) {}
+};
 
 void UpdateDevicePoses(PyMOLGlobals * G);
 
@@ -826,9 +835,7 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
   }
 
   // process user actions
-  int mouseButton = 0;
-  int mouseState = 0;
-  int mouseDeviceIndex = 0;
+  CMouseEvent mouseEvent;
   OpenVRAction* userActions[] = {Actions->Action1, Actions->Action2, Actions->Action3};
   for (int i = 0, n = sizeof(userActions) / sizeof(*userActions); i < n; ++i) {
     OpenVRAction* action = userActions[i];
@@ -837,20 +844,15 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
       EUserActionSet userActionSet = I->UserActionSet[handIndex];
       EUserAction userAction = s_userActionMapping[userActionSet][i];
 
-      if (userActionSet == UserActionSet_Mouse) {
-        mouseDeviceIndex = action->DeviceIndex();
-        mouseState = action->IsPressed() ? P_GLUT_DOWN : P_GLUT_UP;
-      }
-
       switch (userAction) {
       case UserAction_Mouse_LClick:
-        mouseButton = P_GLUT_LEFT_BUTTON;
+        mouseEvent = CMouseEvent(action->DeviceIndex(), P_GLUT_LEFT_BUTTON, action->IsPressed());
         break;
       case UserAction_Mouse_MClick:
-        mouseButton = P_GLUT_MIDDLE_BUTTON;
+        mouseEvent = CMouseEvent(action->DeviceIndex(), P_GLUT_MIDDLE_BUTTON, action->IsPressed());
         break;
       case UserAction_Mouse_RClick:
-        mouseButton = P_GLUT_RIGHT_BUTTON;
+        mouseEvent = CMouseEvent(action->DeviceIndex(), P_GLUT_RIGHT_BUTTON, action->IsPressed());
         break;
       case UserAction_Scene_Prev:
         if (action->IsPressed())
@@ -921,8 +923,8 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
       laserSource->SetLaserColor(missedColor);
     }
 
-    if (mouseDeviceIndex == laserSource->GetLaserDeviceIndex()) {
-      laserTarget->LaserClick(mouseButton, mouseState);
+    if (mouseEvent.deviceIndex == laserSource->GetLaserDeviceIndex()) {
+      laserTarget->LaserClick(mouseEvent.button, mouseEvent.state);
     }
 
   } else {
