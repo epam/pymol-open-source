@@ -56,7 +56,7 @@ Z* -------------------------------------------------------------------
 #include "ShaderMgr.h"
 #include"OpenVRStereo.h"
 
-// #define _OPENVR_STEREO_DEBUG_VIEWS
+#define _OPENVR_STEREO_DEBUG_VIEWS
 
 #include <string>
 #include <vector>
@@ -1619,10 +1619,11 @@ static void SceneClipSetWithDirty(PyMOLGlobals * G, float front, float back, int
   CScene *I = G->Scene;
 
   // minimum slab
-  if(back - front < cSliceMin) {
+  float minSlab = cSliceMin * I->Scale;
+  if(back - front < minSlab) {
     float avg = (back + front) / 2.0;
-    back = avg + cSliceMin / 2.0;
-    front = avg - cSliceMin / 2.0;
+    back = avg + minSlab / 2.0;
+    front = avg - minSlab / 2.0;
   }
 
   I->Front = front;
