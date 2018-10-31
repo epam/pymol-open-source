@@ -56,7 +56,39 @@ enum EHand
 {
   HLeft = 0,
   HRight = 1,
-  COUNT,
+
+  Hand_Count
+};
+
+enum EUserActionSet
+{
+  UserActionSet_Mouse,
+  UserActionSet_Scene,
+  UserActionSet_Movie,
+
+  UserActionSet_Count
+};
+
+enum EUserAction
+{
+  UserAction_None,
+
+  UserAction_Mouse_LClick,
+  UserAction_Mouse_MClick,
+  UserAction_Mouse_RClick,
+
+  UserAction_Scene_Prev,
+  UserAction_Scene_Next,
+
+  UserAction_Movie_Prev,
+  UserAction_Movie_Toggle,
+  UserAction_Movie_Next,
+};
+
+static EUserAction s_userActionMapping[UserActionSet_Count][3] = {
+  {UserAction_Mouse_LClick, UserAction_Mouse_MClick, UserAction_Mouse_RClick}, // UserActionSet_Mouse
+  {UserAction_Scene_Prev, UserAction_None, UserAction_Scene_Next}, // UserActionSet_Scene
+  {UserAction_Movie_Prev, UserAction_Movie_Toggle, UserAction_Movie_Next}, // UserActionSet_Movie
 };
 
 struct COpenVR {
@@ -83,7 +115,7 @@ struct COpenVR {
   CEye Left;
   CEye Right;
 
-  OpenVRController Hands[COUNT];
+  OpenVRController Hands[Hand_Count];
   GLuint ControllerHintsTexture;
 
   bool ForcedFront;
@@ -95,6 +127,7 @@ struct COpenVR {
   OpenVRInputHandlers* Handlers;
 
   OpenVRActionList* Actions;
+  EUserActionSet UserActionSet[Hand_Count];
 
   // mouse cursor imitation information
   int startX, startY;
@@ -275,6 +308,7 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     OpenVRController &hand = I->Hands[i];
     if (!hand.IsInitialized()) {
       hand.Init();
+      hand.SetHintsTexture(I->ControllerHintsTexture, UserActionSet_Count);
     }
   }
 }
@@ -736,34 +770,15 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     OpenVRMenuToggle(G, Actions->ToggleMenu->DeviceIndex());
   }
 
-  // update picking state
-  if (Actions->LaserShoot->IsPressed()) {
-    I->Picker.Activate(Actions->LaserShoot->DeviceIndex(), centerX, centerY);
-  } else {
-    I->Picker.Deactivate();
-  }
-
   // update controllers visibility
   LeftHand.Show(Actions->LeftHand->PoseValid());
   RightHand.Show(Actions->RightHand->PoseValid());
 
   if (!I->Menu.IsVisible()) {
 
-    // process in-app actions
-    if (Actions->PadCenter->WasPressed())
-      I->Handlers->ActionFunc(cAction_movie_toggle);
-    if (Actions->PadEast->WasPressed())
-      I->Handlers->ActionFunc(cAction_movie_next);
-    if (Actions->PadWest->WasPressed())
-      I->Handlers->ActionFunc(cAction_movie_prev);
-    if (Actions->PadNorth->WasPressed())
-      I->Handlers->ActionFunc(cAction_scene_prev);
-    if (Actions->PadSouth->WasPressed())
-      I->Handlers->ActionFunc(cAction_scene_next);
-
-    ProcessButtonDragAsMouse(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, centerX, centerY);
-    ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, centerX, centerY);
-    ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, centerX, centerY);
+    // ProcessButtonDragAsMouse(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, centerX, centerY);
+    // ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, centerX, centerY);
+    // ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, centerX, centerY);
 
     I->Hands[HLeft].pressGrip(Actions->LGrip->IsPressed());
     I->Hands[HRight].pressGrip(Actions->RGrip->IsPressed());
@@ -799,8 +814,85 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
 
   }
 
-  // process laser
+  // switch user action sets
+  {
+    int increment = 0;
+    unsigned deviceIndex = 0;
 
+    if (Actions->ActionSetNext->WasPressed()) {
+      deviceIndex = Actions->ActionSetNext->DeviceIndex();
+      increment = +1;
+    } else if (Actions->ActionSetPrev->WasPressed()) {
+      deviceIndex = Actions->ActionSetPrev->DeviceIndex();
+      increment = -1;
+    }
+
+    if (increment) {
+      EHand handIndex = EHand(deviceIndex == RightHand.m_deviceIndex);
+      I->UserActionSet[handIndex] = EUserActionSet((I->UserActionSet[handIndex] + UserActionSet_Count + increment) % UserActionSet_Count);
+      I->Hands[handIndex].SetHintsIndex(I->UserActionSet[handIndex]);
+    }
+  }
+
+  // process user actions
+  int mouseButton = 0;
+  int mouseState = 0;
+  int mouseDeviceIndex = 0;
+  OpenVRAction* userActions[] = {Actions->Action1, Actions->Action2, Actions->Action3};
+  for (int i = 0, n = sizeof(userActions) / sizeof(*userActions); i < n; ++i) {
+    OpenVRAction* action = userActions[i];
+    if (action->WasPressedOrReleased()) {
+      EHand handIndex = EHand(action->DeviceIndex() == RightHand.m_deviceIndex);
+      EUserActionSet userActionSet = I->UserActionSet[handIndex];
+      EUserAction userAction = s_userActionMapping[userActionSet][i];
+
+      if (userActionSet == UserActionSet_Mouse) {
+        mouseDeviceIndex = action->DeviceIndex();
+        mouseState = action->IsPressed() ? P_GLUT_DOWN : P_GLUT_UP;
+      }
+
+      switch (userAction) {
+      case UserAction_Mouse_LClick:
+        mouseButton = P_GLUT_LEFT_BUTTON;
+        break;
+      case UserAction_Mouse_MClick:
+        mouseButton = P_GLUT_MIDDLE_BUTTON;
+        break;
+      case UserAction_Mouse_RClick:
+        mouseButton = P_GLUT_RIGHT_BUTTON;
+        break;
+      case UserAction_Scene_Prev:
+        if (action->IsPressed())
+          I->Handlers->ActionFunc(cAction_scene_prev);
+        break;
+      case UserAction_Scene_Next:
+        if (action->IsPressed())
+          I->Handlers->ActionFunc(cAction_scene_next);
+        break;
+      case UserAction_Movie_Prev:
+        if (action->IsPressed())
+          I->Handlers->ActionFunc(cAction_movie_prev);
+        break;
+      case UserAction_Movie_Toggle:
+        if (action->IsPressed())
+          I->Handlers->ActionFunc(cAction_movie_toggle);
+        break;
+      case UserAction_Movie_Next:
+        if (action->IsPressed())
+          I->Handlers->ActionFunc(cAction_movie_next);
+        break;
+      }
+    }
+  }
+
+  // update picking state
+  if (Actions->Laser->IsPressed()) {
+    I->Picker.Activate(Actions->Laser->DeviceIndex(), centerX, centerY);
+  } else {
+    I->Picker.Deactivate();
+  }
+
+  // process laser
   OpenVRLaserTarget* laserTarget = 0;
   float const (*laserColors)[4] = 0;
   if (I->Menu.IsVisible()) {
@@ -824,8 +916,8 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     laserSource->SetLaserLength(distance);
     laserSource->SetLaserColor(laserColors[int(hit)]);
 
-    if (Actions->LClick->WasPressedOrReleased() && Actions->LClick->DeviceIndex() == laserSource->GetLaserDeviceIndex()) {
-      laserTarget->LaserClick(Actions->LClick->IsPressed());
+    if (mouseDeviceIndex && mouseButton == P_GLUT_LEFT_BUTTON && mouseDeviceIndex == laserSource->GetLaserDeviceIndex()) {
+      laserTarget->LaserClick(mouseState == P_GLUT_DOWN);
     }
   }
 }
@@ -860,7 +952,6 @@ void UpdateDevicePoses(PyMOLGlobals * G) {
               std::string sRenderModelName = GetTrackedDeviceString(G, nDevice, vr::Prop_RenderModelName_String);
               if (sRenderModelName != hand->m_sRenderModelName) {
                 hand->m_pRenderModel = FindOrLoadRenderModel(G, sRenderModelName.c_str());
-                hand->m_pRenderModel->SetHintsTexture(I->ControllerHintsTexture, 2);
                 hand->m_sRenderModelName = sRenderModelName;
               }
             }

@@ -32,9 +32,6 @@ bool OpenVRControllerModel::Init(PyMOLGlobals *G, const vr::RenderModel_t &vrMod
   InitGeometry(vrModel);
   InitTexture(vrDiffuseTexture);
   InitShaders(G);
-  m_hintsQuad = new OpenVRQuad();
-  m_hintsQuad->SetSize(0.04f, 0.04f);
-  m_hintsQuad->SetAlpha(0.25f);
   return true;
 }
 
@@ -42,8 +39,6 @@ bool OpenVRControllerModel::Init(PyMOLGlobals *G, const vr::RenderModel_t &vrMod
 // Purpose: Frees the GL resources for a render model
 //-----------------------------------------------------------------------------
 void OpenVRControllerModel::Free() {
-  delete m_hintsQuad;
-  m_hintsQuad = 0;
   FreeShaders();
   FreeTexture();
   FreeGeometry();
@@ -153,12 +148,6 @@ void OpenVRControllerModel::FreeShaders() {
   }
 }
 
-void OpenVRControllerModel::SetHintsTexture(GLuint hintsTexture, unsigned spriteCount)
-{
-  m_hintsQuad->SetTexture(hintsTexture, spriteCount);
-  m_hintsQuad->SetMirror(true);
-}
-
 //-----------------------------------------------------------------------------
 // Purpose: Draws the render model
 //-----------------------------------------------------------------------------
@@ -174,12 +163,6 @@ void OpenVRControllerModel::Draw() {
 
   glBindVertexArray( 0 );
   CShaderPrg_Disable(m_pShader);  
-
-  glPushMatrix();
-  glTranslatef(0.0f, 0.005f, 0.049f);
-  glRotatef(96.8f, 1.0f, 0.0f, 0.0f);
-  m_hintsQuad->Draw();
-  glPopMatrix();
 }
 
 // Purpose:

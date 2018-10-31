@@ -32,8 +32,6 @@ public:
   bool Init(PyMOLGlobals * G, const vr::RenderModel_t & vrModel, const vr::RenderModel_TextureMap_t & vrDiffuseTexture);
   void Free();
 
-  void SetHintsTexture(GLuint hintsTexture, unsigned spriteCount);
-
   void Draw();
 
   const std::string & GetName() const { return m_sModelName; }
@@ -56,7 +54,6 @@ private:
   GLsizei m_unVertexCount;
   std::string m_sModelName;
   CShaderPrg *m_pShader;
-  OpenVRQuad* m_hintsQuad;
 };
 
 void ShutdownRenderModels();

@@ -14,6 +14,9 @@ OpenVRController::OpenVRController()
 
 void OpenVRController::Init()
 {
+  m_hintsQuad = new OpenVRQuad();
+  m_hintsQuad->SetSize(0.04f, 0.04f);
+  m_hintsQuad->SetAlpha(0.25f);
   m_laser.Init();
   m_init = true;
 }
@@ -21,11 +24,25 @@ void OpenVRController::Init()
 void OpenVRController::Free()
 {
   m_laser.Free();
+  delete m_hintsQuad;
+  m_hintsQuad = 0;
+  m_init = false;
 }
 
 bool OpenVRController::IsInitialized()
 {
   return m_init;
+}
+
+void OpenVRController::SetHintsTexture(GLuint hintsTexture, unsigned spriteCount)
+{
+  m_hintsQuad->SetTexture(hintsTexture, spriteCount);
+  m_hintsQuad->SetMirror(true);
+}
+
+void OpenVRController::SetHintsIndex(unsigned index)
+{
+  m_hintsQuad->SetSprite(index);
 }
 
 void OpenVRController::Show(bool isVisible)
@@ -60,6 +77,12 @@ void OpenVRController::Draw()
 
   if (m_pRenderModel) {
     m_pRenderModel->Draw();
+
+    glPushMatrix();
+    glTranslatef(0.0f, 0.005f, 0.049f);
+    glRotatef(96.8f, 1.0f, 0.0f, 0.0f);
+    m_hintsQuad->Draw();
+    glPopMatrix();
   }
 
   m_laser.Draw();

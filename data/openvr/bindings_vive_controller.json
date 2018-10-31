@@ -17,6 +17,22 @@
       }],
 
       "sources": [{
+        "path": "/user/hand/left/input/grip",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/LGrip"
+          }
+        }
+      }, {
+        "path": "/user/hand/right/input/grip",
+        "mode": "button",
+        "inputs": {
+          "click": {
+            "output": "/actions/pymol/in/RGrip"
+          }
+        }
+      }, {
         "path": "/user/hand/right/input/application_menu",
         "mode": "button",
         "inputs": {
@@ -33,27 +49,11 @@
           }
         }
       }, {
-        "path": "/user/hand/right/input/trigger",
-        "mode": "button",
-        "inputs": {
-          "click": {
-            "output": "/actions/pymol/in/LClick"
-          }
-        }
-      }, {
-        "path": "/user/hand/left/input/trigger",
-        "mode": "button",
-        "inputs": {
-          "click": {
-            "output": "/actions/pymol/in/LClick"
-          }
-        }
-      }, {
         "path": "/user/hand/right/input/trackpad",
         "mode": "trackpad",
         "inputs": {
           "touch": {
-            "output": "/actions/pymol/in/LaserShoot"
+            "output": "/actions/pymol/in/Laser"
           }
         }
       }, {
@@ -61,7 +61,7 @@
         "mode": "trackpad",
         "inputs": {
           "touch": {
-            "output": "/actions/pymol/in/LaserShoot"
+            "output": "/actions/pymol/in/Laser"
           }
         }
       }, {
@@ -72,20 +72,20 @@
           "overlap_pct": "0"
         },
         "inputs": {
+          "west": {
+            "output": "/actions/pymol/in/Action1"
+          },
           "center": {
-            "output": "/actions/pymol/in/PadCenter"
+            "output": "/actions/pymol/in/Action2"
           },
           "east": {
-            "output": "/actions/pymol/in/PadEast"
-          },
-          "west": {
-            "output": "/actions/pymol/in/PadWest"
+            "output": "/actions/pymol/in/Action3"
           },
           "north": {
-            "output": "/actions/pymol/in/PadNorth"
+            "output": "/actions/pymol/in/ActionSetPrev"
           },
           "south": {
-            "output": "/actions/pymol/in/PadSouth"
+            "output": "/actions/pymol/in/ActionSetNext"
           }
         }
       }, {
@@ -96,36 +96,20 @@
           "overlap_pct": "0"
         },
         "inputs": {
+          "west": {
+            "output": "/actions/pymol/in/Action1"
+          },
           "center": {
-            "output": "/actions/pymol/in/PadCenter"
+            "output": "/actions/pymol/in/Action2"
           },
           "east": {
-            "output": "/actions/pymol/in/PadEast"
-          },
-          "west": {
-            "output": "/actions/pymol/in/PadWest"
+            "output": "/actions/pymol/in/Action3"
           },
           "north": {
-            "output": "/actions/pymol/in/PadNorth"
+            "output": "/actions/pymol/in/ActionSetPrev"
           },
           "south": {
-            "output": "/actions/pymol/in/PadSouth"
-          }
-        }
-      }, {
-        "path": "/user/hand/left/input/grip",
-        "mode": "button",
-        "inputs": {
-          "click": {
-            "output": "/actions/pymol/in/LGrip"
-          }
-        }
-      }, {
-        "path": "/user/hand/right/input/grip",
-        "mode": "button",
-        "inputs": {
-          "click": {
-            "output": "/actions/pymol/in/RGrip"
+            "output": "/actions/pymol/in/ActionSetNext"
           }
         }
       }]

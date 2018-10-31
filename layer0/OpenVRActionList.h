@@ -12,19 +12,15 @@ struct OpenVRActionList {
 
   OpenVRAction* LeftHand;
   OpenVRAction* RightHand;
-  OpenVRAction* ToggleMenu;
-  OpenVRAction* LaserShoot;
-  OpenVRAction* LClick;
-  OpenVRAction* PadCenter;
-  OpenVRAction* PadEast;
-  OpenVRAction* PadWest;
-  OpenVRAction* PadNorth;
-  OpenVRAction* PadSouth;
-  OpenVRAction* LMouse;
-  OpenVRAction* MMouse;
-  OpenVRAction* RMouse;
   OpenVRAction* LGrip;
   OpenVRAction* RGrip;
+  OpenVRAction* ToggleMenu;
+  OpenVRAction* Laser;
+  OpenVRAction* ActionSetNext;
+  OpenVRAction* ActionSetPrev;
+  OpenVRAction* Action1;
+  OpenVRAction* Action2;
+  OpenVRAction* Action3;
 
   explicit OpenVRActionList(vr::IVRInput* Input) {
     Input->GetActionSetHandle("/actions/pymol", &DefaultSet);
@@ -32,19 +28,15 @@ struct OpenVRActionList {
 #define OPENVR_ADD_ACTION(set, Action, ...) all.push_back(Action = new OpenVRAction(Input, "/actions/" set "/in/" #Action, ##__VA_ARGS__));
     OPENVR_ADD_ACTION("pymol", LeftHand, OpenVRAction::TYPE_POSE);
     OPENVR_ADD_ACTION("pymol", RightHand, OpenVRAction::TYPE_POSE);
-    OPENVR_ADD_ACTION("pymol", ToggleMenu);
-    OPENVR_ADD_ACTION("pymol", LaserShoot);
-    OPENVR_ADD_ACTION("pymol", LClick);
-    OPENVR_ADD_ACTION("pymol", PadCenter);
-    OPENVR_ADD_ACTION("pymol", PadEast);
-    OPENVR_ADD_ACTION("pymol", PadWest);
-    OPENVR_ADD_ACTION("pymol", PadNorth);
-    OPENVR_ADD_ACTION("pymol", PadSouth);
-    OPENVR_ADD_ACTION("pymol", LMouse);
-    OPENVR_ADD_ACTION("pymol", MMouse);
-    OPENVR_ADD_ACTION("pymol", RMouse);
     OPENVR_ADD_ACTION("pymol", LGrip);
     OPENVR_ADD_ACTION("pymol", RGrip);
+    OPENVR_ADD_ACTION("pymol", ToggleMenu);
+    OPENVR_ADD_ACTION("pymol", Laser);
+    OPENVR_ADD_ACTION("pymol", ActionSetNext);
+    OPENVR_ADD_ACTION("pymol", ActionSetPrev);
+    OPENVR_ADD_ACTION("pymol", Action1);
+    OPENVR_ADD_ACTION("pymol", Action2);
+    OPENVR_ADD_ACTION("pymol", Action3);
 #undef OPENVR_ADD_ACTION
   }
 

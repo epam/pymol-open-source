@@ -30,6 +30,9 @@ public:
   void Free();
   bool IsInitialized();
 
+  void SetHintsTexture(GLuint hintsTexture, unsigned spriteCount);
+  void SetHintsIndex(unsigned index);
+
   void Draw();
 
   float *GetPose() {return m_pose;} // it's not safe =)
@@ -61,8 +64,8 @@ private:
   GLfloat m_pose[16]; // model2world matrix 
   OpenVRLaser m_laser;
   GLfloat m_worldToController[16];
-  
   bool m_gripIsPressed;
+  OpenVRQuad* m_hintsQuad;
 };
 
 #endif /* _H_OpenVRController */

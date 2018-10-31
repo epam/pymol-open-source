@@ -11,43 +11,31 @@
     "name": "/actions/pymol/in/LeftHand",
     "type": "pose"
   }, {
-    "name": "/actions/pymol/in/ToggleMenu",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/LaserShoot",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/LClick",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/PadCenter",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/PadEast",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/PadWest",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/PadNorth",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/PadSouth",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/LMouse",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/MMouse",
-    "type": "boolean"
-  }, {
-    "name": "/actions/pymol/in/RMouse",
-    "type": "boolean"
-  }, {
     "name": "/actions/pymol/in/LGrip",
     "type": "boolean"
   }, {
     "name": "/actions/pymol/in/RGrip",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/ToggleMenu",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/Laser",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/ActionSetNext",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/ActionSetPrev",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/Action1",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/Action2",
+    "type": "boolean"
+  }, {
+    "name": "/actions/pymol/in/Action3",
     "type": "boolean"
   }]
 }
