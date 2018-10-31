@@ -774,16 +774,12 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
   LeftHand.Show(Actions->LeftHand->PoseValid());
   RightHand.Show(Actions->RightHand->PoseValid());
 
-  if (!I->Menu.IsVisible()) {
-
-    // ProcessButtonDragAsMouse(G, Actions->LMouse, P_GLUT_LEFT_BUTTON, centerX, centerY);
-    // ProcessButtonDragAsMouse(G, Actions->MMouse, P_GLUT_MIDDLE_BUTTON, centerX, centerY);
-    // ProcessButtonDragAsMouse(G, Actions->RMouse, P_GLUT_RIGHT_BUTTON, centerX, centerY);
-
+  // process grips
+  {
     I->Hands[HLeft].pressGrip(Actions->LGrip->IsPressed());
     I->Hands[HRight].pressGrip(Actions->RGrip->IsPressed());
 
-    if (OpenVRIsMoleculeCaptured(G)/*Actions->LGrip->IsPressed() || Actions->RGrip->IsPressed()*/) {
+    if (OpenVRIsMoleculeCaptured(G)) {
       memcpy(I->moleculeToWorldMatrix, model2World, sizeof(I->moleculeToWorldMatrix)); 
     }
     if (Actions->LGrip->WasPressed() && !Actions->RGrip->IsPressed()) {
@@ -807,11 +803,6 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
         (Actions->RGrip->WasReleased() && !Actions->LGrip->IsPressed())) {
       I->capturingHandIdx = -1;
     }
-
-  } else {
-
-    // process GUI actions
-
   }
 
   // switch user action sets
