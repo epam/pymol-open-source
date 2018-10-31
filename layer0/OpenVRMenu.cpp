@@ -349,10 +349,10 @@ bool OpenVRMenu::LaserShoot(float const* origin, float const* dir, float const* 
   return hit;
 }
 
-void OpenVRMenu::LaserClick(bool down)
+void OpenVRMenu::LaserClick(int glutButton, int glutState)
 {
   if (m_hotspot.x >= m_visibleX && m_hotspot.y >= m_visibleY && m_hotspot.x < m_visibleX + m_visibleWidth && m_hotspot.y < m_visibleY + m_visibleHeight) {
-    m_inputHandlers->MouseFunc(P_GLUT_LEFT_BUTTON, down ? P_GLUT_DOWN : P_GLUT_UP, m_hotspot.x, m_hotspot.y, 0);
+    m_inputHandlers->MouseFunc(glutButton, glutState, m_hotspot.x, m_hotspot.y, 0);
   }
 }
 

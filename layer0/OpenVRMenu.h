@@ -60,7 +60,7 @@ public:
   void Draw(GLuint sceneTextureID = 0);
 
   bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0);
-  void LaserClick(bool down);
+  void LaserClick(int glutButton, int glutState);
   bool IsLaserAllowed(unsigned deviceIndex) const;
 
   static float const (*GetLaserColors())[4];

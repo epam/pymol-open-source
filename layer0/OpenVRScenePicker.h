@@ -38,7 +38,7 @@ public:
   bool IsActive() const;
 
   bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0);
-  void LaserClick(bool down);
+  void LaserClick(int glutButton, int glutState);
   bool IsLaserAllowed(unsigned deviceIndex) const;
 
   float const* GetMatrix() const;

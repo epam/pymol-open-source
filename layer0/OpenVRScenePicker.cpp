@@ -86,9 +86,9 @@ bool OpenVRScenePicker::LaserShoot(float const* origin, float const* dir, float 
   return false;
 }
 
-void OpenVRScenePicker::LaserClick(bool down)
+void OpenVRScenePicker::LaserClick(int glutButton, int glutState)
 {
-  m_inputHandlers->MouseFunc(P_GLUT_LEFT_BUTTON, down ? P_GLUT_DOWN : P_GLUT_UP, m_clickX, m_clickY, 0);
+  m_inputHandlers->MouseFunc(glutButton, glutState, m_clickX, m_clickY, 0);
 }
 
 bool OpenVRScenePicker::IsLaserAllowed(unsigned deviceIndex) const

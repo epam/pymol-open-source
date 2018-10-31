@@ -916,8 +916,8 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     laserSource->SetLaserLength(distance);
     laserSource->SetLaserColor(laserColors[int(hit)]);
 
-    if (mouseDeviceIndex && mouseButton == P_GLUT_LEFT_BUTTON && mouseDeviceIndex == laserSource->GetLaserDeviceIndex()) {
-      laserTarget->LaserClick(mouseState == P_GLUT_DOWN);
+    if (mouseDeviceIndex == laserSource->GetLaserDeviceIndex()) {
+      laserTarget->LaserClick(mouseButton, mouseState);
     }
   }
 }

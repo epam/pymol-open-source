@@ -19,7 +19,7 @@ Z* -------------------------------------------------------------------
 class OpenVRLaserTarget {
 public:
   virtual bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0) = 0;
-  virtual void LaserClick(bool down) = 0;
+  virtual void LaserClick(int glutButton, int glutState) = 0;
   virtual bool IsLaserAllowed(unsigned deviceIndex) const = 0;
 };
 
