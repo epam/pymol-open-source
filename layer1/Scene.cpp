@@ -56,7 +56,7 @@ Z* -------------------------------------------------------------------
 #include "ShaderMgr.h"
 #include"OpenVRStereo.h"
 
-#define _OPENVR_STEREO_DEBUG_VIEWS
+//#define _OPENVR_STEREO_DEBUG_VIEWS
 
 #include <string>
 #include <vector>
