@@ -93,7 +93,7 @@ void OpenVRScenePicker::LaserClick(int glutButton, int glutState)
 
 bool OpenVRScenePicker::IsLaserAllowed(unsigned deviceIndex) const
 {
-  return m_ownerID == deviceIndex || m_ownerID == ~0u;
+  return m_active && (m_ownerID == deviceIndex || m_ownerID == ~0u);
 }
 
 float const* OpenVRScenePicker::GetMatrix() const
@@ -101,11 +101,8 @@ float const* OpenVRScenePicker::GetMatrix() const
   return m_matrix;
 }
 
-float const (*OpenVRScenePicker::GetLaserColors())[4]
+float const* OpenVRScenePicker::GetLaserColor() const
 {
-  static const float colors[2][4] = {
-    {1.0f, 1.0f, 0.0f, 0.5f},
-    {0.0f, 1.0f, 0.0f, 1.0f},
-  };
-  return colors;
+  static const float color[4] = {1.0f, 1.0f, 0.0f, 0.5f};
+  return color;
 }

@@ -767,7 +767,7 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
 
   // update VR GUI state
   if (Actions->ToggleMenu->WasPressed()) {
-    OpenVRMenuToggle(G, Actions->ToggleMenu->DeviceIndex());
+    OpenVRMenuToggle(G);
   }
 
   // update controllers visibility
@@ -885,41 +885,59 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     }
   }
 
-  // update picking state
-  if (Actions->Laser->IsPressed()) {
-    I->Picker.Activate(Actions->Laser->DeviceIndex(), centerX, centerY);
-  } else {
-    I->Picker.Deactivate();
-  }
-
-  // process laser
-  OpenVRLaserTarget* laserTarget = 0;
-  float const (*laserColors)[4] = 0;
-  if (I->Menu.IsVisible()) {
-    laserTarget = &I->Menu;
-    laserColors = OpenVRMenu::GetLaserColors();
-  } else if (I->Picker.IsActive()) {
-    laserTarget = &I->Picker;
-    laserColors = OpenVRScenePicker::GetLaserColors();
-  }
-
+  // hide all lasers
+  I->Menu.HideHotspot();
   for (size_t laserIndex = 0; laserIndex < sizeof(I->Hands) / sizeof(I->Hands[0]); ++laserIndex) {
-    OpenVRLaserSource* laserSource = &I->Hands[laserIndex];
-    laserSource->LaserShow(laserTarget && laserTarget->IsLaserAllowed(laserSource->GetLaserDeviceIndex()));
+    I->Hands[laserIndex].LaserShow(false);
+  }
+
+  // detect a laser source
+  OpenVRLaserSource* laserSource = 0;
+  if (Actions->Laser->IsPressed()) {
+    for (size_t laserIndex = 0; laserIndex < sizeof(I->Hands) / sizeof(I->Hands[0]); ++laserIndex) {
+      if (Actions->Laser->DeviceIndex() == I->Hands[laserIndex].GetLaserDeviceIndex() && I->UserActionSet[laserIndex] == UserActionSet_Mouse) {
+        laserSource = &I->Hands[laserIndex];
+        break;
+      }
+    }
+  }
+
+  if (laserSource) {
+    I->Picker.Activate(laserSource->GetLaserDeviceIndex(), centerX, centerY);
 
     float origin[3], dir[3];
-    if (!laserSource->GetLaserRay(origin, dir))
-      continue;
+    laserSource->LaserShow(true);
+    laserSource->GetLaserRay(origin, dir);
 
-    float distance = 0.0f;
-    bool hit = laserTarget->LaserShoot(origin, dir, laserColors[1], &distance);
-    laserSource->SetLaserLength(distance);
-    laserSource->SetLaserColor(laserColors[int(hit)]);
+    // shoot the laser
+    OpenVRLaserTarget* laserTarget = 0;
+    OpenVRLaserTarget* targets[] = {&I->Menu, &I->Picker};
+    for (int i = 0, n = sizeof(targets) / sizeof(targets[0]); i < n && !laserTarget; ++i) {
+      float distance = 0.0f;
+      if (targets[i]->IsLaserAllowed(laserSource->GetLaserDeviceIndex()) && 
+          targets[i]->LaserShoot(origin, dir, targets[i]->GetLaserColor(), &distance)) {
+        laserTarget = targets[i];
+        laserSource->SetLaserLength(distance);
+        laserSource->SetLaserColor(laserTarget->GetLaserColor());
+      }
+    }
+
+    // laser missed
+    float missedColor[4] = {1.0f, 1.0f, 0.0f, 0.5f};
+    if (!laserTarget) {
+      laserTarget = &I->Picker;
+      laserSource->SetLaserLength(0.0f);
+      laserSource->SetLaserColor(missedColor);
+    }
 
     if (mouseDeviceIndex == laserSource->GetLaserDeviceIndex()) {
       laserTarget->LaserClick(mouseButton, mouseState);
     }
+
+  } else {
+    I->Picker.Deactivate();
   }
+
 }
 
 void UpdateDevicePoses(PyMOLGlobals * G) {

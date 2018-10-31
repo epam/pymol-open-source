@@ -62,8 +62,7 @@ public:
   bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0);
   void LaserClick(int glutButton, int glutState);
   bool IsLaserAllowed(unsigned deviceIndex) const;
-
-  static float const (*GetLaserColors())[4];
+  float const* GetLaserColor() const;
 
 private:
   void InitGeometry();

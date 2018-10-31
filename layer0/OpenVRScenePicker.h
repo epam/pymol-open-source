@@ -40,10 +40,9 @@ public:
   bool LaserShoot(float const* origin, float const* dir, float const* color, float* distance = 0);
   void LaserClick(int glutButton, int glutState);
   bool IsLaserAllowed(unsigned deviceIndex) const;
+  float const* GetLaserColor() const;
 
   float const* GetMatrix() const;
-
-  static float const (*GetLaserColors())[4];
 };
 
 #endif // _H_OpenVRScenePicker

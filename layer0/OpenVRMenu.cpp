@@ -358,14 +358,11 @@ void OpenVRMenu::LaserClick(int glutButton, int glutState)
 
 bool OpenVRMenu::IsLaserAllowed(unsigned deviceIndex) const
 {
-  return m_ownerID == deviceIndex || m_ownerID == ~0u;
+  return m_visible && (m_ownerID == deviceIndex || m_ownerID == ~0u);
 }
 
-float const (*OpenVRMenu::GetLaserColors())[4]
+float const* OpenVRMenu::GetLaserColor() const
 {
-  static const float colors[2][4] = {
-    {0.0f, 1.0f, 1.0f, 0.25f},
-    {0.0f, 1.0f, 1.0f, 1.0f},
-  };
-  return colors;
+  static const float color[4] = {0.0f, 1.0f, 1.0f, 1.0f};
+  return color;
 }
