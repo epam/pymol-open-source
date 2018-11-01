@@ -870,8 +870,17 @@ enum {
   REC_b( 762, surface_smooth_edges                    , ostate    , 1 ),
   REC_i( 763, chem_comp_cartn_use                     , global    , 0 ),
   REC_b( 764, colored_feedback                        , global    , 0 ),
-  REC_f( 765, openvr_gui_scene_alpha                  , global    , 0.75f ),
-  REC_i( 766, openvr_gui_text                         , global    , 0 ), // 0: copy, 1: force, 2: only
+  REC_f( 765, openvr_gui_distance                     , global    , 1.5f ),
+  REC_f( 766, openvr_gui_fov                          , global    , 35.0f, 0.0f, 89.0f ),
+  REC_f( 767, openvr_gui_alpha                        , global    , 1.0f, 0.0f, 1.0f ),
+  REC_i( 768, openvr_gui_use_alpha                    , global    , 0, 0, 2 ), // 0: off, 1: on, 2: depends (if not hit by laser)
+  REC_f( 769, openvr_gui_scene_color                  , global    , 0.2f ),
+  REC_f( 770, openvr_gui_scene_alpha                  , global    , 0.75f ),
+  REC_f( 771, openvr_gui_back_color                   , global    , 0.2f ),
+  REC_f( 772, openvr_gui_back_alpha                   , global    , 0.75f ),
+  REC_i( 773, openvr_gui_use_backdrop                 , global    , 0, 0, 2 ), // 0: off, 1: on, 2: depends (if hit by laser)
+  REC_i( 774, openvr_gui_overlay                      , global    , 0, 0, 2 ), // 0: off, 1: on, 2: depends (if hit by laser)
+  REC_i( 775, openvr_gui_text                         , global    , 0 ), // DOESN'T WORK YET ! 0: copy, 1: force, 2: only
 
 #ifdef SETTINGINFO_IMPLEMENTATION
 #undef SETTINGINFO_IMPLEMENTATION

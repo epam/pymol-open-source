@@ -42,6 +42,7 @@ Z* -------------------------------------------------------------------
 #include"Sphere.h"
 #include"Selector.h"
 #include"Parse.h"
+#include"OpenVRStereo.h"
 
 /*
  * Setting level info table
@@ -2839,6 +2840,19 @@ void SettingGenerateSideEffects(PyMOLGlobals * G, int index, const char *sele, i
         ENDFB(G);
     }
   }
+  case cSetting_openvr_gui_distance:
+  case cSetting_openvr_gui_fov:
+  // case cSetting_openvr_gui_alpha:
+  // case cSetting_openvr_gui_use_alpha:
+  case cSetting_openvr_gui_scene_color:
+  case cSetting_openvr_gui_scene_alpha:
+  case cSetting_openvr_gui_back_color:
+  case cSetting_openvr_gui_back_alpha:
+  // case cSetting_openvr_gui_use_backdrop:
+  // case cSetting_openvr_gui_overlay:
+  // case cSetting_openvr_gui_text:
+    OpenVRMenuSettingsChanged(G);
+    break;
   default:
     break;
   }

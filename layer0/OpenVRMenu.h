@@ -43,7 +43,12 @@ public:
   void Init(OpenVRInputHandlers* inputHandlers);
   void Free();
 
-  void SetSceneAlpha(float alpha);
+  void SetSize(float distance, float fovTangent);
+  void SetAlpha(float alpha);
+  void SetSceneColor(float grayLevel, float alpha);
+  void SetBackdropColor(float grayLevel, float alpha);
+  void SetBackdrop(bool enable);
+  void SetOverlay(bool enable);
 
   void Crop(unsigned x, unsigned y, unsigned width, unsigned height);
   void Start(unsigned width, unsigned height, bool clear);
@@ -74,6 +79,8 @@ private:
   void InitBuffers(unsigned width, unsigned height);
   void FreeBuffers();
 
+  void DrawBackdrop();
+
   bool IntersectRay(GLfloat const* origin, GLfloat const* dir, int* x, int* y, float* distance = 0);
 
 private:
@@ -84,12 +91,17 @@ private:
   unsigned m_visibleY;
   unsigned m_visibleWidth;
   unsigned m_visibleHeight;
+  float m_alpha;
   float m_sceneColor;
   float m_sceneAlpha;
+  float m_backdropColor;
+  float m_backdropAlpha;
   float m_distance;
   float m_fovTangent;
   bool m_valid;
   bool m_visible;
+  bool m_backdrop;
+  bool m_overlay;
   unsigned m_ownerID;
 
   GLfloat m_matrix[16];
@@ -107,13 +119,18 @@ private:
   GLuint m_vertexBufferID;
   GLuint m_vertexCount;
 
-  // shader
+  // main shader
   GLuint m_programID;
   GLint m_guiTransformUniform;
   GLint m_hotspotTransformUniform;
   GLint m_hotspotColorUniform;
+  GLint m_alphaUniform;
   GLint m_guiTextureUniform;
   GLint m_sceneTextureUniform;
+
+  // backdrop shader
+  GLuint m_backdropProgramID;
+  GLint m_backdropColorUniform;
 };
 
 inline bool OpenVRMenu::IsVisible() const {
@@ -122,6 +139,33 @@ inline bool OpenVRMenu::IsVisible() const {
 
 inline unsigned OpenVRMenu::GetOwnerID() const {
   return m_ownerID;
+}
+
+inline void OpenVRMenu::SetSize(float distance, float fovTangent) {
+  m_distance = distance;
+  m_fovTangent = fovTangent;
+}
+
+inline void OpenVRMenu::SetAlpha(float alpha) {
+  m_alpha = alpha;
+}
+
+inline void OpenVRMenu::SetSceneColor(float grayLevel, float alpha) {
+  m_sceneColor = grayLevel;
+  m_sceneAlpha = alpha;
+}
+
+inline void OpenVRMenu::SetBackdropColor(float grayLevel, float alpha) {
+  m_backdropColor = grayLevel;
+  m_backdropAlpha = alpha;
+}
+
+inline void OpenVRMenu::SetBackdrop(bool enable) {
+  m_backdrop = enable;
+}
+
+inline void OpenVRMenu::SetOverlay(bool enable) {
+  m_overlay = enable;
 }
 
 #endif /* _H_OpenVRMenu */

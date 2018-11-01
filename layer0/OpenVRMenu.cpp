@@ -8,12 +8,17 @@ OpenVRMenu::OpenVRMenu()
   , m_visibleY(0)
   , m_visibleWidth(640)
   , m_visibleHeight(480)
+  , m_alpha(1.0f)
   , m_sceneColor(0.2f)
   , m_sceneAlpha(0.75f)
+  , m_backdropColor(0.2f)
+  , m_backdropAlpha(0.75f)
   , m_distance(3.0f)
   , m_fovTangent(0.75f)
   , m_valid(false)
   , m_visible(false)
+  , m_backdrop(false)
+  , m_overlay(false)
   , m_worldHalfWidth(2.0f)
   , m_worldHalfHeight(1.5f)
   , m_frameBufferID(0)
@@ -22,6 +27,14 @@ OpenVRMenu::OpenVRMenu()
   , m_vertexBufferID(0)
   , m_vertexCount(0)
   , m_programID(0)
+  , m_guiTransformUniform(-1)
+  , m_hotspotTransformUniform(-1)
+  , m_hotspotColorUniform(-1)
+  , m_alphaUniform(-1)
+  , m_guiTextureUniform(-1)
+  , m_sceneTextureUniform(-1)
+  , m_backdropProgramID(0)
+  , m_backdropColorUniform(-1)
 {
   memset(m_matrix, 0, sizeof(m_matrix));
   m_matrix[0] = m_matrix[5] = m_matrix[10] = m_matrix[15] = 1.0f;
@@ -102,6 +115,7 @@ bool OpenVRMenu::InitShaders()
     "uniform sampler2D sceneTexture;\n"
     "uniform vec4 hotspotTransform;\n"
     "uniform vec4 hotspotColor;\n"
+    "uniform float alpha;\n"
     "varying vec2 texcoords;\n"
     "void main() {\n"
       "vec2 delta = hotspotTransform.xy * texcoords + hotspotTransform.zw;\n"
@@ -109,21 +123,32 @@ bool OpenVRMenu::InitShaders()
       "vec2 guiTexcoords = guiTransform.xy * texcoords + guiTransform.zw;\n"
       "vec4 guiColor = texture2D(guiTexture, guiTexcoords);\n"
       "vec4 sceneColor = texture2D(sceneTexture, guiTexcoords);\n"
-      "vec4 color = vec4(mix(sceneColor.rgb, guiColor.rgb, guiColor.a), guiColor.a);\n"
-      "gl_FragColor = color + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, 1);\n"
+      "vec4 color = vec4(mix(sceneColor.rgb, guiColor.rgb, guiColor.a), guiColor.a * alpha);\n"
+      "gl_FragColor = color + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, alpha);\n"
+    "}\n";
+  const char* fsBackdrop =
+    "uniform vec4 backdropColor;\n"
+    "void main() {\n"
+      "gl_FragColor = backdropColor;\n"
     "}\n";
 
   m_programID = OpenVRUtils::CompileProgram(vs, fs);
   m_guiTransformUniform = glGetUniformLocation(m_programID, "guiTransform");
   m_hotspotTransformUniform = glGetUniformLocation(m_programID, "hotspotTransform");
   m_hotspotColorUniform = glGetUniformLocation(m_programID, "hotspotColor");
+  m_alphaUniform = glGetUniformLocation(m_programID, "alpha");
   m_guiTextureUniform = glGetUniformLocation(m_programID, "guiTexture");
   m_sceneTextureUniform = glGetUniformLocation(m_programID, "sceneTexture");
+
+  m_backdropProgramID = OpenVRUtils::CompileProgram(vs, fsBackdrop);
+  m_backdropColorUniform = glGetUniformLocation(m_backdropProgramID, "backdropColor");
+
   return m_programID && m_hotspotTransformUniform != -1 && m_hotspotColorUniform != -1;
 }
 
 void OpenVRMenu::FreeShaders()
 {
+  glDeleteProgram(m_backdropProgramID);
   glDeleteProgram(m_programID);
 }
 
@@ -157,11 +182,6 @@ void OpenVRMenu::FreeBuffers()
 {
   glDeleteTextures(1, &m_guiTextureID);
   glDeleteFramebuffers(1, &m_frameBufferID);
-}
-
-void OpenVRMenu::SetSceneAlpha(float alpha)
-{
-  m_sceneAlpha = alpha;
 }
 
 void OpenVRMenu::Crop(unsigned x, unsigned y, unsigned width, unsigned height)
@@ -237,10 +257,48 @@ void OpenVRMenu::HideHotspot()
   m_hotspot.y = -2 * m_hotspot.radius;
 }
 
+void OpenVRMenu::DrawBackdrop()
+{
+  if (!m_backdropProgramID)
+    return;
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+  glDepthFunc(GL_ALWAYS);
+  glDepthMask(GL_FALSE);
+  glUseProgram(m_backdropProgramID);
+  glBindVertexArray(m_vertexArrayID);
+
+  if (m_backdropColorUniform != -1) {
+    float backdropColor[4] = {m_backdropColor, m_backdropColor, m_backdropColor, m_backdropAlpha};
+    glUniform4fv(m_backdropColorUniform, 1, backdropColor);
+  }
+
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, m_vertexCount);
+
+  glBindVertexArray(0);
+  glUseProgram(0);
+  glDepthMask(GL_TRUE);
+  glDepthFunc(GL_LESS);
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+}
+
 void OpenVRMenu::Draw(GLuint sceneTextureID /* = 0 */)
 {
   if (!m_valid || !m_visible)
     return;
+
+  if (m_backdrop)
+    DrawBackdrop();
 
   // recalculate extents of the panel
   m_worldHalfWidth = m_distance * m_fovTangent;
@@ -257,7 +315,8 @@ void OpenVRMenu::Draw(GLuint sceneTextureID /* = 0 */)
   glTranslatef(0.0f, 0.0f, -m_distance);
   glScalef(m_worldHalfWidth, m_worldHalfHeight, 1.0f);
 
-  glDepthFunc(GL_ALWAYS);
+  if (m_overlay)
+    glDepthFunc(GL_ALWAYS);
   glUseProgram(m_programID);
   glBindVertexArray(m_vertexArrayID);
   glActiveTexture(GL_TEXTURE0);
@@ -279,6 +338,7 @@ void OpenVRMenu::Draw(GLuint sceneTextureID /* = 0 */)
   glUniform4fv(m_guiTransformUniform, 1, guiTransform);
   glUniform4fv(m_hotspotTransformUniform, 1, hotspotTransform);
   glUniform4fv(m_hotspotColorUniform, 1, m_hotspot.color);
+  glUniform1f(m_alphaUniform, m_alpha);
   glUniform1i(m_guiTextureUniform, 0);
   glUniform1i(m_sceneTextureUniform, 1);
 
@@ -290,7 +350,8 @@ void OpenVRMenu::Draw(GLuint sceneTextureID /* = 0 */)
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);
-  glDepthFunc(GL_LESS);
+  if (m_overlay)
+    glDepthFunc(GL_LESS);
 
   glPopMatrix();
 }

@@ -311,6 +311,8 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
 
     I->Menu.Init(I->Handlers);
     I->Picker.Init(I->Handlers);
+
+    OpenVRMenuSettingsChanged(G);
   }
 
   for (int i = HLeft; i <= HRight; ++i) {
@@ -495,7 +497,6 @@ void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bo
   if(!OpenVRReady(G))
     return;
 
-  I->Menu.SetSceneAlpha(SettingGetGlobal_f(G, cSetting_openvr_gui_scene_alpha));
   I->Menu.Start(width, height, clear);
 }
 
@@ -535,6 +536,24 @@ void OpenVRMenuCrop(PyMOLGlobals * G, unsigned x, unsigned y, unsigned width, un
   I->Menu.Crop(x, y, width, height);
 }
 
+void OpenVRMenuSettingsChanged(PyMOLGlobals * G)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  float distance = SettingGetGlobal_f(G, cSetting_openvr_gui_distance);
+  float fov = SettingGetGlobal_f(G, cSetting_openvr_gui_fov);
+  I->Menu.SetSize(distance, tanf(fov * PI / 180.0f));
+
+  float sceneColor = SettingGetGlobal_f(G, cSetting_openvr_gui_scene_color);
+  float sceneAlpha = SettingGetGlobal_f(G, cSetting_openvr_gui_scene_alpha);
+  I->Menu.SetSceneColor(sceneColor, sceneAlpha);
+
+  float backColor = SettingGetGlobal_f(G, cSetting_openvr_gui_back_color);
+  float backAlpha = SettingGetGlobal_f(G, cSetting_openvr_gui_back_alpha);
+  I->Menu.SetBackdropColor(backColor, backAlpha);
+}
 
 float* OpenVRGetHeadToEye(PyMOLGlobals * G)
 {
@@ -753,7 +772,7 @@ void AttachMoleculeToСenter(PyMOLGlobals * G) {
   I->controllersDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
 }
 
-void HandleLaser(COpenVR* I, int centerX, int centerY, CMouseEvent const& mouseEvent);
+void HandleLaser(PyMOLGlobals * G, int centerX, int centerY, CMouseEvent const& mouseEvent);
 
 void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth, int SceneHeight, float *model2World)
 {
@@ -880,11 +899,12 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
     }
   }
 
-  HandleLaser(I, centerX, centerY, mouseEvent);
+  HandleLaser(G, centerX, centerY, mouseEvent);
 }
 
-void HandleLaser(COpenVR* I, int centerX, int centerY, CMouseEvent const& mouseEvent)
+void HandleLaser(PyMOLGlobals * G, int centerX, int centerY, CMouseEvent const& mouseEvent)
 {
+  COpenVR* I = G->OpenVR;
   OpenVRActionList* Actions = I->Actions;
 
   // hide all lasers
@@ -904,6 +924,8 @@ void HandleLaser(COpenVR* I, int centerX, int centerY, CMouseEvent const& mouseE
     }
   }
 
+  bool menuHit = false;
+
   if (laserSource) {
     I->Picker.Activate(laserSource->GetLaserDeviceIndex(), centerX, centerY);
 
@@ -921,6 +943,8 @@ void HandleLaser(COpenVR* I, int centerX, int centerY, CMouseEvent const& mouseE
         laserTarget = targets[i];
         laserSource->SetLaserLength(distance);
         laserSource->SetLaserColor(laserTarget->GetLaserColor());
+        if (laserTarget == &I->Menu)
+          menuHit = true;
       }
     }
 
@@ -940,6 +964,15 @@ void HandleLaser(COpenVR* I, int centerX, int centerY, CMouseEvent const& mouseE
     I->Picker.Deactivate();
   }
 
+  float alpha = SettingGetGlobal_f(G, cSetting_openvr_gui_alpha);
+  int useAlpha = SettingGetGlobal_i(G, cSetting_openvr_gui_use_alpha);
+  I->Menu.SetAlpha(useAlpha == 0 || useAlpha == 2 && menuHit ? 1.0f : alpha);
+
+  int useBackdrop = SettingGetGlobal_i(G, cSetting_openvr_gui_use_backdrop);
+  I->Menu.SetBackdrop(useBackdrop == 1 || useBackdrop == 2 && menuHit ? true : false);
+
+  int overlay = SettingGetGlobal_i(G, cSetting_openvr_gui_overlay);
+  I->Menu.SetOverlay(overlay == 1 || overlay == 2 && menuHit ? true : false);
 }
 
 void UpdateDevicePoses(PyMOLGlobals * G) {
