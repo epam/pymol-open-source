@@ -9257,9 +9257,6 @@ void SceneGetModel2WorldMatrix(PyMOLGlobals * G, float *matrix) {
 
   identity44f(matrix);
   MatrixTranslateC44f(matrix, I->Pos[0], I->Pos[1], I->Pos[2]);
-  /*matrix[0] *= I->Scale;
-  matrix[5] *= I->Scale;
-  matrix[10] *= I->Scale;*/
   MatrixMultiplyC44f(I->RotMatrix, matrix);
   MatrixTranslateC44f(matrix, -I->Origin[0], -I->Origin[1], -I->Origin[2]);
 }
@@ -9277,9 +9274,6 @@ void SceneSetModel2WorldMatrix(PyMOLGlobals * G, float const *matrix) {
   float temp[16];
   memcpy(temp, matrix, sizeof(temp));  
   MatrixMultiplyC44f(invOriginTranslate, temp);
- /* temp[0] /= I->Scale;
-  temp[5] /= I->Scale;
-  temp[10] /= I->Scale;*/
   // decompose shiftRot
   memcpy(I->RotMatrix, temp, sizeof(I->RotMatrix));
   I->RotMatrix[12] = I->RotMatrix[13] = I->RotMatrix[14] = 0.0f;
@@ -10085,8 +10079,16 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
     if (OpenVRIsMoleculeCaptured(G)) {
       float scaler;
       float const *mol2world = OpenVRGetMolecule2WorldMatrix(G, &scaler);
+      // save old plane shifts
+      float dist = fabsf(I->Pos[2]);
+      float frontShift = fabsf(dist - I->Front);
+      float backShift = fabsf(dist - I->Back);
+      // apply new transform to molecule
       SceneSetModel2WorldMatrix(G, mol2world);
-      I->Scale *= scaler;
+      SceneScale(G, scaler);
+      // renew front and back planes
+      dist = fabsf(I->Pos[2]);
+      SceneClipSet(G, dist - frontShift * scaler, dist + backShift * scaler);
     }
   }
 
