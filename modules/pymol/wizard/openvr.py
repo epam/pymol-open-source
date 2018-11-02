@@ -21,33 +21,33 @@ class Openvr(Wizard):
             [2, 'VR GUI Presets', ''],
             [1, 'Old Defaults',
                 'set openvr_gui_use_alpha,0;' +
-                'set openvr_gui_scene_color,0.2;' +
+                'set openvr_gui_scene_color,0;' +
                 'set openvr_gui_scene_alpha,0.75;' +
                 'set openvr_gui_use_backdrop,0;' +
                 'set openvr_gui_overlay,0'],
             [1, 'Spatial Opaque',
                 'set openvr_gui_use_alpha,0;' +
-                'set openvr_gui_scene_color,0.2;' +
+                'set openvr_gui_scene_color,0;' +
                 'set openvr_gui_scene_alpha,1;' +
                 'set openvr_gui_use_backdrop,0;' +
                 'set openvr_gui_overlay,0'],
             [1, 'Spatial Semi-Transparent',
                 'set openvr_gui_use_alpha,1;' +
                 'set openvr_gui_alpha,0.85;' +
-                'set openvr_gui_scene_color,0.2;' +
+                'set openvr_gui_scene_color,0;' +
                 'set openvr_gui_scene_alpha,1;' +
                 'set openvr_gui_use_backdrop,0;' +
                 'set openvr_gui_overlay,0'],
             [1, 'Spatial Transparent',
                 'set openvr_gui_use_alpha,1;' +
                 'set openvr_gui_alpha,0.5;' +
-                'set openvr_gui_scene_color,0.2;' +
-                'set openvr_gui_scene_alpha,0.2;' +
+                'set openvr_gui_scene_color,0;' +
+                'set openvr_gui_scene_alpha,0;' +
                 'set openvr_gui_use_backdrop,0;' +
                 'set openvr_gui_overlay,0'],
             [1, 'Overlay',
                 'set openvr_gui_use_alpha,0;' +
-                'set openvr_gui_scene_color,0.2;' +
+                'set openvr_gui_scene_color,0;' +
                 'set openvr_gui_scene_alpha,1;' +
                 'set openvr_gui_back_color,0.5;' +
                 'set openvr_gui_back_alpha,0.85;' +
@@ -56,7 +56,7 @@ class Openvr(Wizard):
             [1, 'Responsive Overlay',
                 'set openvr_gui_use_alpha,2;' +
                 'set openvr_gui_alpha,0.5;' +
-                'set openvr_gui_scene_color,0.2;' +
+                'set openvr_gui_scene_color,0;' +
                 'set openvr_gui_scene_alpha,0.85;' +
                 'set openvr_gui_back_color,0.125;' +
                 'set openvr_gui_back_alpha,0.85;' +
@@ -65,7 +65,7 @@ class Openvr(Wizard):
             [1, 'Responsive Spatial',
                 'set openvr_gui_use_alpha,2;' +
                 'set openvr_gui_alpha,0.5;' +
-                'set openvr_gui_scene_color,0.2;' +
+                'set openvr_gui_scene_color,0;' +
                 'set openvr_gui_scene_alpha,0.85;' +
                 'set openvr_gui_back_color,0.125;' +
                 'set openvr_gui_back_alpha,0.85;' +

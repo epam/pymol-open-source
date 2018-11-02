@@ -122,10 +122,11 @@ struct COpenVR {
   bool ForcedBack;
  
   OpenVRMenu Menu;
+  GLuint MenuSplashTexture;
+
   OpenVRScenePicker Picker;
 
   OpenVRInputHandlers* Handlers;
-
   OpenVRActionList* Actions;
   EUserActionSet UserActionSet[Hand_Count];
 
@@ -308,6 +309,7 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     EyeInit(&I->Right, vr::Eye_Right, I->Width, I->Height);
 
     I->ControllerHintsTexture = OpenVRUtils::LoadTexture("hints_vive_controller.png");
+    I->MenuSplashTexture = OpenVRUtils::LoadTexture("menu_splash.png");
 
     I->Menu.Init(I->Handlers);
     I->Picker.Init(I->Handlers);
@@ -491,7 +493,7 @@ void OpenVRGetWidthHeight(PyMOLGlobals * G, int* width, int* height)
   }
 }
 
-void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear /* = false */)
+void OpenVRMenuBufferStart(PyMOLGlobals * G, unsigned width, unsigned height, bool clear /* = true */)
 {
   COpenVR *I = G->OpenVR;
   if(!OpenVRReady(G))
@@ -1029,7 +1031,7 @@ void OpenVRDraw(PyMOLGlobals * G)
   OpenVRLoadWorld2EyeMatrix(G);
 
   // render menu if present
-  I->Menu.Draw();
+  I->Menu.Draw(I->MenuSplashTexture);
 
   // render controllers
   for (int i = HLeft; i <= HRight; ++i) {

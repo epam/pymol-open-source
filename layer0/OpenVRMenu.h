@@ -124,7 +124,7 @@ private:
   GLint m_guiTransformUniform;
   GLint m_hotspotTransformUniform;
   GLint m_hotspotColorUniform;
-  GLint m_alphaUniform;
+  GLint m_factorsUniform;
   GLint m_guiTextureUniform;
   GLint m_sceneTextureUniform;
 

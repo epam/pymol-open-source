@@ -30,7 +30,7 @@ OpenVRMenu::OpenVRMenu()
   , m_guiTransformUniform(-1)
   , m_hotspotTransformUniform(-1)
   , m_hotspotColorUniform(-1)
-  , m_alphaUniform(-1)
+  , m_factorsUniform(-1)
   , m_guiTextureUniform(-1)
   , m_sceneTextureUniform(-1)
   , m_backdropProgramID(0)
@@ -115,7 +115,7 @@ bool OpenVRMenu::InitShaders()
     "uniform sampler2D sceneTexture;\n"
     "uniform vec4 hotspotTransform;\n"
     "uniform vec4 hotspotColor;\n"
-    "uniform float alpha;\n"
+    "uniform vec4 factors;\n"
     "varying vec2 texcoords;\n"
     "void main() {\n"
       "vec2 delta = hotspotTransform.xy * texcoords + hotspotTransform.zw;\n"
@@ -123,8 +123,9 @@ bool OpenVRMenu::InitShaders()
       "vec2 guiTexcoords = guiTransform.xy * texcoords + guiTransform.zw;\n"
       "vec4 guiColor = texture2D(guiTexture, guiTexcoords);\n"
       "vec4 sceneColor = texture2D(sceneTexture, guiTexcoords);\n"
-      "vec4 color = vec4(mix(sceneColor.rgb, guiColor.rgb, guiColor.a), guiColor.a * alpha);\n"
-      "gl_FragColor = color + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, alpha);\n"
+      "sceneColor = vec4(mix(sceneColor.rgb, vec3(1.0, 1.0, 1.0), factors.x), factors.y);\n"
+      "vec4 color = vec4(mix(sceneColor.rgb, guiColor.rgb, guiColor.a), mix(sceneColor.a, 1.0, guiColor.a) * factors.a);\n"
+      "gl_FragColor = color + spotFactor * hotspotColor.a * vec4(hotspotColor.rgb, factors.a);\n"
     "}\n";
   const char* fsBackdrop =
     "uniform vec4 backdropColor;\n"
@@ -136,7 +137,7 @@ bool OpenVRMenu::InitShaders()
   m_guiTransformUniform = glGetUniformLocation(m_programID, "guiTransform");
   m_hotspotTransformUniform = glGetUniformLocation(m_programID, "hotspotTransform");
   m_hotspotColorUniform = glGetUniformLocation(m_programID, "hotspotColor");
-  m_alphaUniform = glGetUniformLocation(m_programID, "alpha");
+  m_factorsUniform = glGetUniformLocation(m_programID, "factors");
   m_guiTextureUniform = glGetUniformLocation(m_programID, "guiTexture");
   m_sceneTextureUniform = glGetUniformLocation(m_programID, "sceneTexture");
 
@@ -200,7 +201,7 @@ void OpenVRMenu::Start(unsigned width, unsigned height, bool clear)
   glBindFramebufferEXT(GL_FRAMEBUFFER, m_frameBufferID);
 
   if (clear) {
-    glClearColor(m_sceneColor, m_sceneColor, m_sceneColor, m_sceneAlpha);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   }
@@ -334,11 +335,12 @@ void OpenVRMenu::Draw(GLuint sceneTextureID /* = 0 */)
     -(float)(m_hotspot.x - m_visibleX) / m_hotspot.radius,
     -(float)(m_hotspot.y - m_visibleY) / m_hotspot.radius,
   };
+  float factors[4] = {m_sceneColor, m_sceneAlpha, 0.0f, m_alpha};
 
   glUniform4fv(m_guiTransformUniform, 1, guiTransform);
   glUniform4fv(m_hotspotTransformUniform, 1, hotspotTransform);
   glUniform4fv(m_hotspotColorUniform, 1, m_hotspot.color);
-  glUniform1f(m_alphaUniform, m_alpha);
+  glUniform4fv(m_factorsUniform, 1, factors);
   glUniform1i(m_guiTextureUniform, 0);
   glUniform1i(m_sceneTextureUniform, 1);
 

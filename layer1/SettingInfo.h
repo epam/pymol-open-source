@@ -874,7 +874,7 @@ enum {
   REC_f( 766, openvr_gui_fov                          , global    , 35.0f, 0.0f, 89.0f ),
   REC_f( 767, openvr_gui_alpha                        , global    , 1.0f, 0.0f, 1.0f ),
   REC_i( 768, openvr_gui_use_alpha                    , global    , 0, 0, 2 ), // 0: off, 1: on, 2: depends (if not hit by laser)
-  REC_f( 769, openvr_gui_scene_color                  , global    , 0.2f ),
+  REC_f( 769, openvr_gui_scene_color                  , global    , 0.0f ),
   REC_f( 770, openvr_gui_scene_alpha                  , global    , 0.75f ),
   REC_f( 771, openvr_gui_back_color                   , global    , 0.2f ),
   REC_f( 772, openvr_gui_back_alpha                   , global    , 0.75f ),
