@@ -19,6 +19,7 @@ uniform float screenOriginVertexScale;
 
 varying float fog;
 uniform float fog_enabled; // actually bool
+uniform bool openvr_enabled;
 
 void main()
 {
@@ -30,7 +31,14 @@ void main()
   // rounding to nearest pixel
   pos.xy = (pixelSize * floor((pos.xy + 1.) / pixelSize)) - 1.;
 
-  vec3 viewVector = vec3(gl_ModelViewMatrixTranspose * vec4(0.,0., -1.,0.));
+  vec3 viewVector;
+  if (openvr_enabled) {
+    // calc real view vector for label (not nezative z-axis in camera space)
+    vec3 camPos = vec4(gl_ModelViewMatrixInverse * vec4(0.,0.,0.,1.)).xyz;
+    viewVector = normalize(attr_worldpos.xyz - camPos);
+  } else {
+    viewVector = vec3(gl_ModelViewMatrixTranspose * vec4(0.,0., -1.,0.));
+  }
   vec4 a_center = (attr_worldpos + attr_screenworldoffset.z * vec4(viewVector, 0.));
   vec4 transformedPositionZ = gl_ModelViewProjectionMatrix * a_center;
   pos.z = transformedPositionZ.z / transformedPositionZ.w;

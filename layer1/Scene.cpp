@@ -1443,7 +1443,7 @@ void SceneSetStereo(PyMOLGlobals * G, int flag)
   SceneInvalidateStencil(G);
   SceneInvalidate(G);
 
-  CShaderMgr_Set_Reload_Bits(G, RELOAD_ALL_SHADERS);
+  CShaderMgr_Set_Reload_Bits(G, RELOAD_ALL_SHADERS | RELOAD_SHADERS_UPDATE_FOR_BACKGROUND);
 }
 
 

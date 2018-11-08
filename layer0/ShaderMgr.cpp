@@ -2086,9 +2086,14 @@ CShaderPrg *CShaderPrg_Enable_LabelShaderImpl(PyMOLGlobals * G, CShaderPrg *shad
     float fog[4];
     SceneSetFog(G, fog);
   }
-  {
+  if (SceneGetStereo(G) == cStereo_openvr) {
+    // don't use vertexscale for openvr, because the scale is calced from Pos.z as a distance 
+    CShaderPrg_Set1f(shaderPrg, "screenOriginVertexScale", 1.f / 2.f); 
+    CShaderPrg_Set1f(shaderPrg, "openvr_enabled", true);
+  } else {
     float v_scale = SceneGetScreenVertexScale(G, NULL);
     CShaderPrg_Set1f(shaderPrg, "screenOriginVertexScale", v_scale/2.f);
+    CShaderPrg_Set1f(shaderPrg, "openvr_enabled", false);
   }
   return shaderPrg;
 }
@@ -2167,16 +2172,17 @@ void CShaderMgr_Check_Reload(PyMOLGlobals *G){
       CShaderPrg_Reload_All_Shaders(G);
     } else {
       if (I->reload_bits & RELOAD_SHADERS_FOR_LIGHTING){
-	CShaderPrg_Reload_All_Shaders_For_CallComputeColorForLight(G);
-      }
-      if (I->reload_bits & RELOAD_SHADERS_UPDATE_FOR_BACKGROUND){
-	CShaderPrg_Update_Shaders_For_Background(G);
+        CShaderPrg_Reload_All_Shaders_For_CallComputeColorForLight(G);
       }
       if (I->reload_bits & RELOAD_SHADERS_CYLINDER){
-	CShaderMgr_Reload_Shader_Variables(G);
-	CShaderMgr_Reload_Cylinder_Shader(G);
+        CShaderMgr_Reload_Shader_Variables(G);
+        CShaderMgr_Reload_Cylinder_Shader(G);
       }
     }
+    if (I->reload_bits & RELOAD_SHADERS_UPDATE_FOR_BACKGROUND){
+      CShaderPrg_Update_Shaders_For_Background(G);
+    }
+     
     I->reload_bits = 0;
   }
 }
