@@ -433,7 +433,9 @@ if sys.platform=='win32':
     inc_dirs += [
         "win32/include",
         "win32/include/freetype",
+        "contrib/vr",
     ]
+    pymol_src_dirs += ["contrib/vr"]
     libs=["opengl32","glu32","freeglut","glew32","libpng16","zlib","freetype","Advapi32","Ws2_32","openvr_api"]
     pyogl_libs = ["opengl32","glu32","glut32"]
     lib_dirs=["win32/lib"]

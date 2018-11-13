@@ -51,7 +51,7 @@
 #include "Control.h"
 #include "Movie.h"
 #include "Executive.h"
-#include "OpenVRStereo.h"
+#include "OpenVRMode.h"
 
 int _gScaleFactor = 1;
 

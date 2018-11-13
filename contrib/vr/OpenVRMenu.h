@@ -21,7 +21,7 @@ Z* -------------------------------------------------------------------
 #include "os_gl.h"
 #include "PyMOLGlobals.h"
 #include "ShaderMgr.h"
-#include "OpenVRStereo.h"
+#include "OpenVRMode.h"
 #include "OpenVRLaserTarget.h"
 
 class OpenVRMenu : public OpenVRLaserTarget {

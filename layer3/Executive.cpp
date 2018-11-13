@@ -85,7 +85,7 @@
 #include "MovieScene.h"
 #include "Texture.h"
 
-#include "OpenVRStereo.h"
+#include "OpenVRMode.h"
 
 #ifndef _PYMOL_NOPY
 #include "ce_types.h"

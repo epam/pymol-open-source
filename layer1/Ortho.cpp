@@ -48,7 +48,7 @@ Z* -------------------------------------------------------------------
 #include "CGO.h"
 #include "MyPNG.h"
 #include "MacPyMOL.h"
-#include "OpenVRStereo.h"
+#include "OpenVRMode.h"
 
 #ifndef true
 #define true 1

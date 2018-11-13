@@ -42,7 +42,7 @@ Z* -------------------------------------------------------------------
 #include"Sphere.h"
 #include"Selector.h"
 #include"Parse.h"
-#include"OpenVRStereo.h"
+#include"OpenVRMode.h"
 
 /*
  * Setting level info table

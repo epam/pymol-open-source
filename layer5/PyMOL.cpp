@@ -63,7 +63,7 @@
 #include "PlugIOManager.h"
 #include "MovieScene.h"
 #include "Lex.h"
-#include "OpenVRStereo.h"
+#include "OpenVRMode.h"
 
 #include "PyMOL.h"
 #include "PyMOLGlobals.h"

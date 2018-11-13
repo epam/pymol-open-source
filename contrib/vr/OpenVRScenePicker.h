@@ -17,7 +17,7 @@ Z* -------------------------------------------------------------------
 #define _H_OpenVRScenePicker
 
 #include "OpenVRLaserTarget.h"
-#include "OpenVRStereo.h"
+#include "OpenVRMode.h"
 
 class OpenVRScenePicker : public OpenVRLaserTarget {
   OpenVRInputHandlers* m_inputHandlers;

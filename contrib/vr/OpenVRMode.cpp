@@ -23,7 +23,7 @@ Z* -------------------------------------------------------------------
 
 #include "openvr.h"
 
-#include "OpenVRStereo.h"
+#include "OpenVRMode.h"
 #include "OpenVRUtils.h"
 #include "OpenVRStub.h"
 #include "OpenVRController.h"

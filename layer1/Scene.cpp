@@ -54,7 +54,7 @@ Z* -------------------------------------------------------------------
 #include"PConv.h"
 #include"ScrollBar.h"
 #include "ShaderMgr.h"
-#include"OpenVRStereo.h"
+#include"OpenVRMode.h"
 
 //#define _OPENVR_STEREO_DEBUG_VIEWS
 
