@@ -2865,7 +2865,7 @@ void SceneRelocate(PyMOLGlobals * G, float *location)
   dist = I->Pos[2];
 
   // stay in front of camera, empirical value to show at least 1 bond
-  if (dist > -5.f)
+  if (dist > -5.f && I->StereoMode != cStereo_openvr)
     dist = -5.f;
 
   /* find where this point is in relationship to the origin */
@@ -2876,6 +2876,9 @@ void SceneRelocate(PyMOLGlobals * G, float *location)
   MatrixTransformC44fAs33f3f(I->RotMatrix, v0, I->Pos); /* convert to view-space */
 
   I->Pos[2] = dist;
+  if (I->StereoMode == cStereo_openvr) {
+    I->Pos[1] += 1.0f;
+  }
   I->Front = (-I->Pos[2] - (slab_width * 0.50F));
   I->Back = (-I->Pos[2] + (slab_width * 0.50F));
   UpdateFrontBackSafe(I);
