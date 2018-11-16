@@ -141,9 +141,6 @@ struct COpenVR {
   float controllersDistance;
 };
 
-static const float OPEN_VR_FRONT = 0.1f;
-static const float OPEN_VR_BACK = 10.0f;
-
 static char const* deviceClassNames[] = {
   "Invalid",
   "Head-Mounted Display",
@@ -594,15 +591,13 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
 
   CEye *E = I->Eye;
 
-  if (I->ForcedFront) {
-    near_plane = OPEN_VR_FRONT;
+  if (I->ForcedFront || SettingGetGlobal_b(G, cSetting_openvr_disable_clipping)) {
+    near_plane = SettingGetGlobal_f(G, cSetting_openvr_near_plane);
   }
-  if (I->ForcedBack) {
-    far_plane = OPEN_VR_BACK;
+  if (I->ForcedBack || SettingGetGlobal_b(G, cSetting_openvr_disable_clipping)) {
+    far_plane = SettingGetGlobal_f(G, cSetting_openvr_far_plane);
   }
  
-  far_plane = 100.0f;
-
   float left, right, top, bottom;
   I->System->GetProjectionRaw(E->Eye, &left, &right, &top, &bottom);
   
@@ -1039,4 +1034,15 @@ void OpenVRDraw(PyMOLGlobals * G)
   }
 
   glPopMatrix();
+}
+
+void OpenVRClippingChanged(PyMOLGlobals * G) {
+  static bool s_oldDepthCue = true;
+  bool clipping = SettingGetGlobal_b(G, cSetting_openvr_disable_clipping);
+  if (clipping) {
+    s_oldDepthCue = SettingGetGlobal_b(G, cSetting_depth_cue);
+    SettingSetGlobal_b(G, cSetting_depth_cue, false);
+  } else {
+    SettingSetGlobal_b(G, cSetting_depth_cue, s_oldDepthCue);
+  }
 }

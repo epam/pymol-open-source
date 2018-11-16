@@ -881,6 +881,9 @@ enum {
   REC_i( 773, openvr_gui_use_backdrop                 , global    , 0, 0, 2 ), // 0: off, 1: on, 2: depends (if hit by laser)
   REC_i( 774, openvr_gui_overlay                      , global    , 0, 0, 2 ), // 0: off, 1: on, 2: depends (if hit by laser)
   REC_i( 775, openvr_gui_text                         , global    , 0 ), // DOESN'T WORK YET ! 0: copy, 1: force, 2: only
+  REC_b( 776, openvr_disable_clipping                 , global    , false ), // turn on to disable clipping
+  REC_f( 777, openvr_near_plane                       , global    , 0.1f ), // turn on to disable clipping
+  REC_f( 778, openvr_far_plane                        , global    , 100.f ), // turn on to disable clipping
 
 #ifdef SETTINGINFO_IMPLEMENTATION
 #undef SETTINGINFO_IMPLEMENTATION

@@ -2853,6 +2853,9 @@ void SettingGenerateSideEffects(PyMOLGlobals * G, int index, const char *sele, i
   // case cSetting_openvr_gui_text:
     OpenVRMenuSettingsChanged(G);
     break;
+  case cSetting_openvr_disable_clipping:
+    OpenVRClippingChanged(G);
+    break;
   default:
     break;
   }

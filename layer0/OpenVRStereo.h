@@ -77,4 +77,6 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
 
 void OpenVRDraw(PyMOLGlobals * G);
 
+void OpenVRClippingChanged(PyMOLGlobals * G);
+
 #endif /* _H_OpenVRStereo */
