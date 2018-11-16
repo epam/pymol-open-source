@@ -1,4 +1,7 @@
+// this header
 #include "OpenVRQuad.h"
+
+// local headers
 #include "OpenVRUtils.h"
 
 OpenVRQuad::OpenVRQuad()

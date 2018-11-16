@@ -1,8 +1,12 @@
+// this headers
 #include "OpenVRScenePicker.h"
-#include "OpenVRUtils.h"
 
+// system headers
 #include "os_gl.h"
-#include "Scene.h"
+#include <math.h>
+
+// local headers
+#include "OpenVRUtils.h"
 
 OpenVRScenePicker::OpenVRScenePicker()
 : m_inputHandlers(0)

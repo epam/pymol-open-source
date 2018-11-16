@@ -1,8 +1,8 @@
 #ifndef _H_OpenVRStub
 #define _H_OpenVRStub
 
+// system headers
 #include "openvr.h"
-
 
 namespace vr {
 namespace stub {

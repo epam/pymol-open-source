@@ -1,7 +1,7 @@
 // this header
 #include "OpenVRController.h"
 
-// other headers
+// system headers
 #include "os_gl.h"
 
 OpenVRController::OpenVRController()

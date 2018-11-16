@@ -1,9 +1,12 @@
+// this header
 #include "OpenVRUtils.h"
 
+// system headers
 #include <stdio.h>
 #include <math.h>
 #include <string>
 
+// pymol headers
 #include "MyPNG.h"
 
 namespace OpenVRUtils {

@@ -1,6 +1,7 @@
-#include <iostream>
-
+// this headers
 #include "OpenVRStub.h"
+
+// local headers
 #include "OpenVRStubDevice.h"
 
 static bool _stubEnabled = false;

@@ -1,4 +1,7 @@
+// this header
 #include "OpenVRMenu.h"
+
+// local headers
 #include "OpenVRUtils.h"
 
 OpenVRMenu::OpenVRMenu()

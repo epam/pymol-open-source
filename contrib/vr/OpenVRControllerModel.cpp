@@ -1,11 +1,16 @@
-#include <vector>
+// this header
+#include "OpenVRControllerModel.h"
 
+// system headers
+#include <vector>
 #include "os_std.h"
 #include "os_gl.h"
 
+// pymol headers
 #include "Feedback.h"
 #include "Matrix.h"
 
+// local headers
 #include "OpenVRController.h"
 
 static std::vector<OpenVRControllerModel *> s_vecRenderModels;

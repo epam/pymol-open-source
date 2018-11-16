@@ -1,7 +1,10 @@
 #ifndef _H_OpenVRActionList
 #define _H_OpenVRActionList
 
+// system headers
 #include <vector>
+
+// local headers
 #include "OpenVRAction.h"
 
 struct OpenVRActionList {

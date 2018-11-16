@@ -1,4 +1,7 @@
+// this header
 #include "OpenVRLaser.h"
+
+// local headers
 #include "OpenVRUtils.h"
 
 double OpenVRLaser::MAX_LENGTH = 100.0f;

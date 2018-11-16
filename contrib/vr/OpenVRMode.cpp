@@ -1,29 +1,21 @@
-/* 
-A* -------------------------------------------------------------------
-B* This file contains source code for the PyMOL computer program
-C* Copyright (c) EPAM Systems, Inc.
-D* -------------------------------------------------------------------
-E* It is unlawful to modify or remove this copyright notice.
-F* -------------------------------------------------------------------
-G* Please see the accompanying LICENSE file for further information. 
-H* -------------------------------------------------------------------
-I* Additional authors of this source file include:
--* 
--* 
--*
-Z* -------------------------------------------------------------------
-*/
+// this header
+#include "OpenVRMode.h"
 
+// system headers
 #include "os_std.h"
 #include "os_gl.h"
 #include "os_python.h"
-
 #include <string>
 #include <vector>
-
 #include "openvr.h"
 
-#include "OpenVRMode.h"
+// pymol headers
+#include "PyMOLOptions.h"
+#include "Setting.h"
+#include "Feedback.h"
+#include "Matrix.h"
+
+// local headers
 #include "OpenVRUtils.h"
 #include "OpenVRStub.h"
 #include "OpenVRController.h"
@@ -31,10 +23,6 @@ Z* -------------------------------------------------------------------
 #include "OpenVRActionList.h"
 #include "OpenVRScenePicker.h"
 #include "OpenVRLaserTarget.h"
-#include "PyMOLOptions.h"
-#include "Setting.h"
-#include "Feedback.h"
-#include "Matrix.h"
 
 struct CEye {
   vr::EVREye Eye;
