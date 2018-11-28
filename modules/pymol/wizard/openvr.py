@@ -10,6 +10,23 @@ class Openvr(Wizard):
             [2, 'Scene Menu', ''],
             [1, 'Next', 'scene action=next'],
             [1, 'Previous', 'scene action=previous'],
+            [0, '', ''],
+            [1, 'Append', 'scene new, store'],
+            [1, 'Store...', [
+                [2, 'Store As', ''],
+                [1, 'F1', 'scene F1, store'],
+                [1, 'F2', 'scene F2, store'],
+                [1, 'F3', 'scene F3, store'],
+                [1, 'F4', 'scene F4, store'],
+                [1, 'F5', 'scene F5, store'],
+                [1, 'F6', 'scene F6, store'],
+                [1, 'F7', 'scene F7, store'],
+                [1, 'F8', 'scene F8, store'],
+                [1, 'F9', 'scene F9, store'],
+                [1, 'F10', 'scene F10, store'],
+                [1, 'F11', 'scene F11, store'],
+                [1, 'F12', 'scene F12, store'],
+            ]],
         ]
         self.menu['wizard'] = [
             [2, 'Wizard Menu', ''],
