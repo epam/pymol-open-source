@@ -252,4 +252,5 @@ void SceneGetModel2WorldMatrix(PyMOLGlobals * G, float *matrix);
 void SceneSetModel2WorldMatrix(PyMOLGlobals * G, float const *matrix);
 float SceneGetScale(PyMOLGlobals * G);
 
+void ScenePickAtomInWorld(PyMOLGlobals * G, int x, int y, float *atomWorldPos);
 #endif

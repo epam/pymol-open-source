@@ -126,12 +126,16 @@ void OpenVRController::Draw()
 bool OpenVRController::GetLaserRay(float* origin, float* dir) const
 {
   if (IsLaserVisible()) {
-    origin[0] = m_pose[12];
-    origin[1] = m_pose[13];
-    origin[2] = m_pose[14];
-    dir[0] = -m_pose[8];
-    dir[1] = -m_pose[9];
-    dir[2] = -m_pose[10];
+    if (origin) {
+      origin[0] = m_pose[12];
+      origin[1] = m_pose[13];
+      origin[2] = m_pose[14];
+    }
+    if (dir) {
+      dir[0] = -m_pose[8];
+      dir[1] = -m_pose[9];
+      dir[2] = -m_pose[10];
+    }
     return true;
   }
   return false;

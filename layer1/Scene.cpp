@@ -10100,7 +10100,7 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
   /* move the camera to the location we are looking at */
   glTranslatef(I->Pos[0], I->Pos[1], I->Pos[2]);
 
-  /* move the camera to the location we are looking at */
+  /* scale molecule */
   glScalef(I->Scale, I->Scale, I->Scale);
 
   /* rotate about the origin (the the center of rotation) */
@@ -10266,4 +10266,16 @@ int SceneGetCopyType(PyMOLGlobals * G) {
 
 float SceneGetScale(PyMOLGlobals * G) {
   return G->Scene->Scale;
+}
+
+void ScenePickAtomInWorld(PyMOLGlobals * G, int x, int y, float *atomWorldPos) {
+  CScene *I = G->Scene;
+  if (SceneDoXYPick(G, x, y, 0)) {
+    CObject *obj = (CObject *) I->LastPicked.context.object;
+    // get atom pos in Local CS
+    float atomPos[3];
+    ObjectMoleculeGetAtomTxfVertex((ObjectMolecule *)I->LastPicked.context.object, 0, I->LastPicked.src.index, atomPos);
+    // muptiply by molecule world matrix
+    MatrixTransformC44f3f(I->ModMatrix, atomPos, atomWorldPos);
+  }
 }

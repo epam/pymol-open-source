@@ -751,7 +751,7 @@ float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G, float *scaler) {
     memcpy(temp, pivotToWorldMatrix, sizeof(temp));
     // scale due to changing distance between controllers
     if (scaler) {
-      float newDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
+      float newDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12])); // FIXME use diff3f instead of inline_diff3f
       *scaler = newDistance / I->controllersDistance;
       I->controllersDistance = newDistance;
     }
@@ -970,7 +970,9 @@ void HandleLaser(PyMOLGlobals * G, int centerX, int centerY, CMouseEvent const& 
     float missedColor[4] = {1.0f, 1.0f, 0.0f, 0.5f};
     if (!laserTarget) {
       laserTarget = &I->Picker;
-      laserSource->SetLaserLength(0.0f);
+      if (!SettingGetGlobal_b(G, cSetting_openvr_cut_laser)) {
+        laserSource->SetLaserLength(0.0f);
+      }
       laserSource->SetLaserColor(missedColor);
     }
 
@@ -1066,4 +1068,31 @@ void OpenVRClippingChanged(PyMOLGlobals * G) {
   } else {
     SettingSetGlobal_b(G, cSetting_depth_cue, s_oldDepthCue);
   }
+}
+
+void OpenVRUpdateScenePickerLength(PyMOLGlobals * G, float *PickWorldPoint)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+  
+  // get active ray
+  for (int i = HLeft; i <= HRight; ++i) {
+    OpenVRController &hand = I->Hands[i];
+    if (hand.IsLaserVisible()) {
+      // get ray start point in world
+      float laserStartPointWorld[3];
+      if (hand.GetLaserRay(laserStartPointWorld, NULL)) {
+        // calc distance to pointed atom in world CS
+        float dist = diff3f(laserStartPointWorld, PickWorldPoint);
+        // set new ray length
+        hand.SetLaserLength(dist);
+      }
+    }
+  }
+}
+
+bool OpenVRIsScenePickerActive(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+  return (I && I->Picker.IsActive());
 }

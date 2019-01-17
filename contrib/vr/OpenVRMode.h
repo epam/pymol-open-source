@@ -98,4 +98,7 @@ void OpenVRDraw(PyMOLGlobals * G);
 
 void OpenVRClippingChanged(PyMOLGlobals * G);
 
+void OpenVRUpdateScenePickerLength(PyMOLGlobals * G, float *PickWorldPoint);
+bool OpenVRIsScenePickerActive(PyMOLGlobals * G);
+
 #endif /* _H_OpenVRStereo */
