@@ -1070,6 +1070,15 @@ void OpenVRClippingChanged(PyMOLGlobals * G) {
   }
 }
 
+void OpenVRLaserWidthChanged(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+  float width = SettingGetGlobal_f(G, cSetting_openvr_laser_width);
+  for (int i = HLeft; i <= HRight; ++i) {
+    OpenVRController &hand = I->Hands[i];
+    hand.SetLaserWidth(width);
+  }
+}
+
 void OpenVRUpdateScenePickerLength(PyMOLGlobals * G, float *PickWorldPoint)
 {
   COpenVR *I = G->OpenVR;

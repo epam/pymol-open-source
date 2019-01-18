@@ -97,6 +97,7 @@ void OpenVRHandleInput(PyMOLGlobals * G, int SceneX, int SceneY, int SceneWidth,
 void OpenVRDraw(PyMOLGlobals * G);
 
 void OpenVRClippingChanged(PyMOLGlobals * G);
+void OpenVRLaserWidthChanged(PyMOLGlobals * G);
 
 void OpenVRUpdateScenePickerLength(PyMOLGlobals * G, float *PickWorldPoint);
 bool OpenVRIsScenePickerActive(PyMOLGlobals * G);

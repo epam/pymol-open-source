@@ -45,6 +45,7 @@ public:
   virtual void SetLaserLength(float length) = 0;
   virtual void SetLaserColor(float r, float g, float b, float a) = 0;
   virtual void SetLaserColor(float const color[]) = 0;
+  virtual void SetLaserWidth(float width) = 0;
 };
 
 #endif // _H_OpenVRLaserSource

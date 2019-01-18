@@ -40,6 +40,7 @@ SOFTWARE.
 class OpenVRLaser {
 public:
   static double MAX_LENGTH;
+  static double MIN_WIDTH;
 
 public:
   OpenVRLaser();
@@ -55,6 +56,7 @@ public:
   void GetColor(float* color) const;
 
   void SetLength(float length);
+  void SetWidth(float width);
 
   void Draw();
 
@@ -69,6 +71,7 @@ private:
   bool m_valid;
   bool m_visible;
   float m_length;
+  float m_width;
   float m_color[4];
 
   // geometry

@@ -66,6 +66,7 @@ public:
   bool GetLaserRay(float* origin, float* dir) const;
   unsigned GetLaserDeviceIndex() const;
   void SetLaserLength(float length);
+  void SetLaserWidth(float width);
   void SetLaserColor(float r, float g, float b, float a);
   void SetLaserColor(float const color[]);
 

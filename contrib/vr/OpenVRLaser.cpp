@@ -34,15 +34,20 @@ SOFTWARE.
 // this header
 #include "OpenVRLaser.h"
 
+// pymol header
+#include "Setting.h"
+
 // local headers
 #include "OpenVRUtils.h"
 
 double OpenVRLaser::MAX_LENGTH = 100.0f;
+double OpenVRLaser::MIN_WIDTH = 1.0f;
 
 OpenVRLaser::OpenVRLaser()
   : m_valid(false)
   , m_visible(false)
   , m_length(OpenVRLaser::MAX_LENGTH)
+  , m_width(OpenVRLaser::MIN_WIDTH)
   , m_vertexArrayID(0)
   , m_vertexBufferID(0)
   , m_vertexCount(0)
@@ -150,6 +155,11 @@ void OpenVRLaser::SetLength(float length)
   m_length = length > 0.0f ? length : OpenVRLaser::MAX_LENGTH;
 }
 
+void OpenVRLaser::SetWidth(float width)
+{
+  m_width = width > 1.0f ? width : OpenVRLaser::MIN_WIDTH;
+}
+
 void OpenVRLaser::Draw()
 {
   if (!m_valid || !m_visible)
@@ -163,7 +173,7 @@ void OpenVRLaser::Draw()
   glUniform4fv(m_scaleUniform, 1, scale);
   glUniform4fv(m_colorUniform, 1, m_color);
 
-  glLineWidth(1.0f); // set here to avoid the influence of previous rendering steps
+  glLineWidth(m_width); // set here to avoid the influence of previous rendering steps
   glDrawArrays(GL_LINES, 0, m_vertexCount);
 
   glBindVertexArray(0);

@@ -151,6 +151,11 @@ void OpenVRController::SetLaserLength(float length)
   m_laser.SetLength(length);
 }
 
+void OpenVRController::SetLaserWidth(float width)
+{
+  m_laser.SetWidth(width);
+}
+
 void OpenVRController::SetLaserColor(float r, float g, float b, float a)
 {
   m_laser.SetColor(r, g, b, a);
