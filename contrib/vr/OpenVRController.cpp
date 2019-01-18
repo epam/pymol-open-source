@@ -42,6 +42,7 @@ OpenVRController::OpenVRController()
   , m_deviceIndex(~0U)
   , m_bShowController(true)
   , m_gripIsPressed(false)
+  , m_pRenderModel(NULL)
 {
 }
 

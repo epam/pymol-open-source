@@ -74,7 +74,6 @@ public:
   void pressGrip(bool press) { m_gripIsPressed = press; }
 
 public:
-// FIXME make good initialization
   vr::TrackedDeviceIndex_t m_deviceIndex;
   OpenVRControllerModel *m_pRenderModel;
   std::string m_sRenderModelName;

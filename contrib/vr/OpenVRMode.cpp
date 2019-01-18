@@ -751,7 +751,7 @@ float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G, float *scaler) {
     memcpy(temp, pivotToWorldMatrix, sizeof(temp));
     // scale due to changing distance between controllers
     if (scaler) {
-      float newDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12])); // FIXME use diff3f instead of inline_diff3f
+      float newDistance = diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
       *scaler = newDistance / I->controllersDistance;
       I->controllersDistance = newDistance;
     }
@@ -772,7 +772,6 @@ void AttachMoleculeToController(PyMOLGlobals * G, int handIdx) {
   MatrixMultiplyC44f(I->moleculeToWorldMatrix, I->moleculeToCapturingController);
 }
 
-// FIXME generalize attach functions
 void AttachMoleculeToСenter(PyMOLGlobals * G) {
   COpenVR *I = G->OpenVR;
 
@@ -787,7 +786,7 @@ void AttachMoleculeToСenter(PyMOLGlobals * G) {
   memcpy(I->moleculeToCapturingController, worldToPivotMatrix, sizeof(I->moleculeToCapturingController));
   MatrixMultiplyC44f(I->moleculeToWorldMatrix, I->moleculeToCapturingController);
   // save distance between controllers
-  I->controllersDistance = inline_diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
+  I->controllersDistance = diff3f(&(I->Hands[HLeft].GetPose()[12]), &(I->Hands[HRight].GetPose()[12]));
 }
 
 void HandleLaser(PyMOLGlobals * G, int centerX, int centerY, CMouseEvent const& mouseEvent);
