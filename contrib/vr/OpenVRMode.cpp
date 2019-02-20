@@ -1009,13 +1009,16 @@ void HandleLaser(PyMOLGlobals * G, int centerX, int centerY, CMouseEvent const& 
     float missedColor[4] = {1.0f, 1.0f, 0.0f, 0.5f};
     if (!laserTarget) {
       laserTarget = &I->Picker;
-      if (!SettingGetGlobal_b(G, cSetting_openvr_cut_laser)) {
-        laserSource->SetLaserLength(0.0f);
-      }
+      // if (!SettingGetGlobal_b(G, cSetting_openvr_cut_laser)) {
+      //   laserSource->SetLaserLength(0.0f);
+      // }
       laserSource->SetLaserColor(missedColor);
     }
 
     if (mouseEvent.deviceIndex == laserSource->GetLaserDeviceIndex()) {
+      // stop test cut when right button (on controller) has been released
+      if (mouseEvent.button == P_GLUT_RIGHT_BUTTON && mouseEvent.state == P_GLUT_UP) 
+        laserSource->SetLaserLength(0.0f);
       laserTarget->LaserClick(mouseEvent.button, mouseEvent.state);
     }
 
@@ -1143,4 +1146,9 @@ void OpenVRUpdateScenePickerLength(PyMOLGlobals * G, float *PickWorldPoint)
 bool OpenVRIsScenePickerActive(PyMOLGlobals * G) {
   COpenVR *I = G->OpenVR;
   return (I && I->Picker.IsActive());
+}
+
+bool OpenVRLaserNeedsTestCut(PyMOLGlobals * G) {
+  COpenVR *I = G->OpenVR;
+  return (I && I->Picker.NeedsTestCut());
 }

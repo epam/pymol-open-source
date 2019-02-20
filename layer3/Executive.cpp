@@ -11940,7 +11940,7 @@ void ExecutiveDrawNow(PyMOLGlobals * G)
           SceneGetModel2WorldMatrix(G, matrix);
           OpenVRHandleInput(G, scene_block->rect.left, scene_block->rect.bottom, scene_width, scene_height, matrix);
           OrthoDoDraw(G, -1);
-          if (SettingGetGlobal_b(G, cSetting_openvr_cut_laser) && OpenVRIsScenePickerActive(G)) {
+          if ((SettingGetGlobal_b(G, cSetting_openvr_cut_laser) && OpenVRIsScenePickerActive(G)) || OpenVRLaserNeedsTestCut(G)) {
             int x = scene_block->rect.left + scene_width / 2;
             int y = scene_block->rect.bottom + scene_height / 2;
             float atomWorldPos[3];

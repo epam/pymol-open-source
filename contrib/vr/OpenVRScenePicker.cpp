@@ -47,6 +47,7 @@ OpenVRScenePicker::OpenVRScenePicker()
 , m_clickX(0)
 , m_clickY(0)
 , m_active(false)
+, m_needsTestCut(false)
 {
   memset(m_matrix, 0, sizeof(m_matrix));
   m_matrix[0] = m_matrix[5] = m_matrix[10] = m_matrix[15] = 1.0f;
@@ -125,6 +126,9 @@ bool OpenVRScenePicker::LaserShoot(float const* origin, float const* dir, float 
 
 void OpenVRScenePicker::LaserClick(int glutButton, int glutState)
 {
+  if (glutButton == P_GLUT_RIGHT_BUTTON && glutState == P_GLUT_DOWN) {
+    m_needsTestCut = true;
+  } 
   m_inputHandlers->MouseFunc(glutButton, glutState, m_clickX, m_clickY, 0);
 }
 
@@ -142,4 +146,13 @@ float const* OpenVRScenePicker::GetLaserColor() const
 {
   static const float color[4] = {1.0f, 1.0f, 0.0f, 0.5f};
   return color;
+}
+
+bool OpenVRScenePicker::NeedsTestCut()
+{ 
+  if (m_needsTestCut) {
+    m_needsTestCut = false;
+    return true;
+  }
+  return false;
 }

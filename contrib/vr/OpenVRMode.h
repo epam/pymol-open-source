@@ -103,5 +103,6 @@ void OpenVRLaserWidthChanged(PyMOLGlobals * G);
 
 void OpenVRUpdateScenePickerLength(PyMOLGlobals * G, float *PickWorldPoint);
 bool OpenVRIsScenePickerActive(PyMOLGlobals * G);
+bool OpenVRLaserNeedsTestCut(PyMOLGlobals * G);
 
 #endif /* _H_OpenVRStereo */

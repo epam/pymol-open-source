@@ -45,6 +45,7 @@ class OpenVRScenePicker : public OpenVRLaserTarget {
   int m_clickY;
   bool m_active;
   float m_matrix[16];
+  bool m_needsTestCut;
 
 public:
   OpenVRScenePicker();
@@ -62,6 +63,8 @@ public:
   float const* GetLaserColor() const;
 
   float const* GetMatrix() const;
+
+  bool NeedsTestCut();
 };
 
 #endif // _H_OpenVRScenePicker
