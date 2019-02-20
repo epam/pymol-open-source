@@ -10038,8 +10038,12 @@ void ScenePrepareMatrix(PyMOLGlobals * G, int mode, int stereo_mode /* = 0 */)
     /* stereo OpenVR */
 
     if (!mode) {
+      // everage projection matrxi for picking
+      glMatrixMode(GL_PROJECTION);
+      OpenVRLoadPickingProjectionMatrix(G, I->FrontSafe, I->BackSafe);
 
       // mono matrix for picking
+      glMatrixMode(GL_MODELVIEW);
       glLoadMatrixf(OpenVRGetPickingMatrix(G));
 
     } else {

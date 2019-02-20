@@ -71,6 +71,8 @@ struct CEye {
   GLuint ResolveTextureID;
 
   vr::Texture_t Texture;
+
+  float Left, Right, Top, Bottom; // projection params
 };
 
 enum EHand
@@ -604,27 +606,14 @@ float* OpenVRGetControllerPose(PyMOLGlobals * G, EHand handIdx) {
   return I->Hands[handIdx].GetPose();
 }
 
-float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
+void OpenVRGetProjection(float left, float right, float top, float bottom, float near_plane, float far_plane, float *matrix)
 {
-  COpenVR *I = G->OpenVR;
-  if(!OpenVRReady(G) || !I->Eye)
-    return NULL;
+  if (!matrix)
+    return;
 
-  CEye *E = I->Eye;
-
-  if (I->ForcedFront || SettingGetGlobal_b(G, cSetting_openvr_disable_clipping)) {
-    near_plane = SettingGetGlobal_f(G, cSetting_openvr_near_plane);
-  }
-  if (I->ForcedBack || SettingGetGlobal_b(G, cSetting_openvr_disable_clipping)) {
-    far_plane = SettingGetGlobal_f(G, cSetting_openvr_far_plane);
-  }
- 
-  float left, right, top, bottom;
-  I->System->GetProjectionRaw(E->Eye, &left, &right, &top, &bottom);
-  
   // fast affine inverse matrix, row major to column major, whew...
   {
-    float (*dst)[4] = (float(*)[4])E->ProjectionMatrix;
+    float (*dst)[4] = (float(*)[4])matrix;
     float dx = (right - left);
     float dy = (bottom - top);
     float dz = far_plane - near_plane;
@@ -651,7 +640,51 @@ float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane)
     dst[3][3] = 0.0f;
   }
 
+  return;
+}
+
+void CheckNearFarPlaneSettings(PyMOLGlobals * G, float &near_plane, float &far_plane) {
+  COpenVR *I = G->OpenVR;
+
+  if (I->ForcedFront || SettingGetGlobal_b(G, cSetting_openvr_disable_clipping)) {
+    near_plane = SettingGetGlobal_f(G, cSetting_openvr_near_plane);
+  }
+  if (I->ForcedBack || SettingGetGlobal_b(G, cSetting_openvr_disable_clipping)) {
+    far_plane = SettingGetGlobal_f(G, cSetting_openvr_far_plane);
+  }
+}
+
+float* OpenVRGetEyeProjection(PyMOLGlobals * G, float near_plane, float far_plane)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G) || !I->Eye)
+    return NULL;
+
+  CheckNearFarPlaneSettings(G, near_plane, far_plane);
+ 
+  CEye *E = I->Eye;
+  I->System->GetProjectionRaw(E->Eye, &(E->Left), &(E->Right), &(E->Top), &(E->Bottom));
+  OpenVRGetProjection(E->Left, E->Right, E->Top, E->Bottom, near_plane, far_plane, E->ProjectionMatrix);
   return E->ProjectionMatrix;
+}
+
+void  OpenVRGetPickingProjection(PyMOLGlobals * G, float near_plane, float far_plane, float *matrix)
+{
+  COpenVR *I = G->OpenVR;
+  if(!OpenVRReady(G))
+    return;
+
+  CheckNearFarPlaneSettings(G, near_plane, far_plane);
+
+  // take avarage projection params from eyes
+  float left, right, top, bottom;
+  CEye &LEye = I->Left, &REye = I->Right;
+  left = (LEye.Left + REye.Left) * 0.5f;
+  right = (LEye.Right + REye.Right) * 0.5f;
+  top = (LEye.Top + REye.Top) * 0.5f;
+  bottom = (LEye.Bottom + REye.Bottom) * 0.5f;
+  OpenVRGetProjection(left, right, top, bottom, near_plane, far_plane, matrix);
+  return;
 }
 
 float const* OpenVRGetPickingMatrix(PyMOLGlobals * G)
@@ -665,7 +698,14 @@ float const* OpenVRGetPickingMatrix(PyMOLGlobals * G)
 
 void OpenVRLoadProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane)
 {
-  glLoadMatrixf(OpenVRGetProjection(G, near_plane, far_plane));
+  glLoadMatrixf(OpenVRGetEyeProjection(G, near_plane, far_plane));
+}
+
+void OpenVRLoadPickingProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane)
+{
+  float matrix[16];
+  OpenVRGetPickingProjection(G, near_plane, far_plane, matrix);
+  glLoadMatrixf(matrix);
 }
 
 void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G)

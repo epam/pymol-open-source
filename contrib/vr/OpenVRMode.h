@@ -83,11 +83,13 @@ void OpenVRMenuSettingsChanged(PyMOLGlobals * G);
 float* OpenVRGetWorldToHead(PyMOLGlobals * G);
 float* OpenVRGetHeadToEye(PyMOLGlobals * G);
 float* OpenVRGetControllerPose(PyMOLGlobals * G);
-float* OpenVRGetProjection(PyMOLGlobals * G, float near_plane, float far_plane);
+float* OpenVRGetEyeProjection(PyMOLGlobals * G, float near_plane, float far_plane);
 float const* OpenVRGetPickingMatrix(PyMOLGlobals * G);
+void OpenVRGetPickingProjection(PyMOLGlobals * G, float near_plane, float far_plane, float *matrix);
 float const *OpenVRGetMolecule2WorldMatrix(PyMOLGlobals * G, float *scaler);
 
 void OpenVRLoadProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane);
+void OpenVRLoadPickingProjectionMatrix(PyMOLGlobals * G, float near_plane, float far_plane);
 void OpenVRLoadWorld2EyeMatrix(PyMOLGlobals * G);
 
 bool OpenVRIsMoleculeCaptured(PyMOLGlobals * G);
