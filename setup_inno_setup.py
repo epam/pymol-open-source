@@ -7,7 +7,7 @@ def make_inno_setup_script(version):
     app_version = short_version = version
     parsed_version = re.match(r'^(?P<main>\d+(\.\d+)*)\+.*\.(?P<build>\d+)(?P<suffix>[A-Z]+)?$', app_version, re.I)
     if parsed_version:
-        short_version = '%s+VR.%02i%s' % (parsed_version.group('main'), int(parsed_version.group('build')), parsed_version.group('build').lower())
+        short_version = '%s+VR.%02i%s' % (parsed_version.group('main'), int(parsed_version.group('build')), parsed_version.group('suffix').lower())
     app_folder = app_name + '-' + app_version
     app_guid = str(uuid.uuid3(uuid.NAMESPACE_URL, app_name + ' ' + app_version)).upper()
     with open(os.path.join('build', app_folder + '.iss'), 'w') as f:
