@@ -337,11 +337,13 @@ static void OpenVRInitPostponed(PyMOLGlobals * G)
     OpenVRMenuSettingsChanged(G);
   }
 
+  float width = SettingGetGlobal_f(G, cSetting_openvr_laser_width);
   for (int i = HLeft; i <= HRight; ++i) {
     OpenVRController &hand = I->Hands[i];
     if (!hand.IsInitialized()) {
       hand.Init();
       hand.SetHintsTexture(I->ControllerHintsTexture, UserActionSet_Count);
+      hand.SetLaserWidth(width);
     }
   }
 }
