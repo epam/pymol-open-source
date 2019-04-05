@@ -7076,10 +7076,12 @@ static void CGO_gl_linewidth(CCGORenderer * I, float **pc)
 static void CGO_gl_linewidth_special(CCGORenderer * I, float **pc)
 {
   int mode = CGO_get_int(*pc);
+  bool openVR = SceneGetStereo(I->G) == cStereo_openvr;
   switch (mode){
   case LINEWIDTH_DYNAMIC_WITH_SCALE_RIBBON:
     {
-      float line_width = SceneGetDynamicLineWidth(I->info, SettingGet_f(I->G, NULL, NULL, cSetting_ribbon_width));
+      float line_width = SettingGet_f(I->G, NULL, NULL, cSetting_ribbon_width);
+      if (!openVR) line_width = SceneGetDynamicLineWidth(I->info, line_width);
       if (I->info->width_scale_flag){
 	glLineWidth(line_width * I->info->width_scale);
       } else {
@@ -7089,7 +7091,8 @@ static void CGO_gl_linewidth_special(CCGORenderer * I, float **pc)
     break;
   case LINEWIDTH_DYNAMIC_WITH_SCALE_DASH:
     {
-      float line_width = SceneGetDynamicLineWidth(I->info, SettingGet_f(I->G, NULL, NULL, cSetting_dash_width));
+      float line_width = SettingGet_f(I->G, NULL, NULL, cSetting_dash_width);
+      if (!openVR) line_width = SceneGetDynamicLineWidth(I->info, line_width);
       if (I->info->width_scale_flag){
 	glLineWidth(line_width * I->info->width_scale);
       } else {
@@ -7099,7 +7102,8 @@ static void CGO_gl_linewidth_special(CCGORenderer * I, float **pc)
     break;
   case LINEWIDTH_DYNAMIC_WITH_SCALE:
     {
-      float line_width = SceneGetDynamicLineWidth(I->info, SettingGet_f(I->G, NULL, NULL, cSetting_line_width));
+      float line_width = SettingGet_f(I->G, NULL, NULL, cSetting_line_width);
+      if (!openVR) line_width = SceneGetDynamicLineWidth(I->info, line_width);
       if (I->info->width_scale_flag){
 	glLineWidth(line_width * I->info->width_scale);
       } else {
@@ -7125,7 +7129,7 @@ static void CGO_gl_linewidth_special(CCGORenderer * I, float **pc)
       } else {
 	line_width = SettingGet_f(I->G, NULL, NULL, cSetting_mesh_width);
       }
-      line_width = SceneGetDynamicLineWidth(I->info, line_width);
+      if (!openVR) line_width = SceneGetDynamicLineWidth(I->info, line_width);
       glLineWidth(line_width);
     }
     break;
